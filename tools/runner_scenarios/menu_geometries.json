@@ -1,0 +1,32 @@
+{
+  "name": "menu_geometries",
+  "description": "Controllo canale B (M0.6): Resume, poi F8 Load unit dlc_level1_start per far scattare 0x4d9300 (tap B). PASS = tru vivo alive_seconds dopo il caricamento. Atteso (ipotesi): crash + riga 'Out of space for Geometries!' nel tap (work/taps/<RunId>/tap.tsv, lanciare vm_tap_reader.ps1 in parallelo). Max 2 run; se non crasha non e' un fallimento del tap. Crash FMOD (0x3b92fb) = INFRA e ritenta una volta.",
+  "baseline": "B0_raw",
+  "params": { "unit": "dlc_level1_start", "alive_seconds": 30, "load_timeout_s": 150 },
+  "timeouts": { "total_s": 600 },
+  "critical": [
+    "dlc_dungeon*.drm", "dlc_water_wheel*.drm", "dlc_watertunnel*.drm", "dlc_pillory*.drm",
+    "dlc1_uo_dungeon_final_gate.drm", "dlc1_uo_raft_bridge.drm", "streamgroups\\*dungeon*"
+  ],
+  "saves": {
+    "_note": "set = work/baseline/saves/menu_geometries/ (creabile con saves_lib.py pick <livello> --to menu_geometries); se manca si usa baseline/<B>/saves come fallback. Serve un save da cui Resume entri in un livello.",
+    "set": "menu_geometries",
+    "fallback_baseline": true,
+    "touch": ["Autosave.TRUSave"]
+  },
+  "markers": [
+    { "name": "level1_start", "regex": "\\*\\*\\* CURRENT LEVEL = dlc_level1_start(?![A-Za-z0-9_])" },
+    { "name": "geometries_full", "regex": "Out of space for Geometries!" }
+  ],
+  "steps": [
+    { "id": "boot", "action": "boot_resume", "enter_first_s": 20, "enter_every_s": 8, "max_enters": 6, "timeout_s": 180, "settle_s": 8 },
+    { "id": "shot_boot", "action": "shot", "name": "after_resume" },
+    { "id": "menu_open", "action": "f8", "state": "open" },
+    { "id": "load", "action": "load_unit", "unit": "${unit}", "timeout_s": "${load_timeout_s}",
+      "expect_regex": "(?m)(\\*\\*\\* CURRENT LEVEL = dlc_level1_start(?![A-Za-z0-9_])|Loading PC-W\\\\StreamGroups\\\\dlc_level1_start)" },
+    { "id": "menu_close", "action": "f8", "state": "close" },
+    { "id": "alive", "action": "soak", "seconds": "${alive_seconds}", "from": "last_match", "shots_at": [5, 15] }
+  ],
+  "require_markers": [],
+  "pass_text": "tru vivo alive_seconds dopo il caricamento di dlc_level1_start (il crash e' il risultato atteso per il controllo canale B: leggere il tap)"
+}

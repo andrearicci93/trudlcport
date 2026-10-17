@@ -1,0 +1,70 @@
+{
+  "name": "chain_user",
+  "description": "PROVA CON L'UTENTE: avvia il gioco, Resume dal save (Lara a secco sulla sporgenza della sala water_wheel), poi tiene attiva per 7 minuti la sonda vera (vm_probe.ps1, sola lettura) mentre l'utente va alla catena sott'acqua, mira e spara. Nessun input del runner dopo il boot. PASS/FAIL dalla sonda: letto da orchestratore dopo la prova.",
+  "baseline": "B0_raw",
+  "params": {
+    "probe_seconds": 20,
+    "water_timeout_s": 150,
+    "probe_interval_ms": 100
+  },
+  "timeouts": {
+    "total_s": 720
+  },
+  "critical": [
+    "dlc1_uo_raft_bridge.drm",
+    "dlc_water_wheel*.drm",
+    "dlc1_uo_water_wheel.drm"
+  ],
+  "saves": {
+    "_note": "set = work/baseline/saves/chain_water/ con 'Savegame 1.TRUSave' (save in acqua). also_as copia lo stesso contenuto come Autosave.TRUSave perche' Resume carichi quello qualunque file scelga (non verificato quale scelga).",
+    "set": "chain_water",
+    "fallback_baseline": true,
+    "touch": [
+      "Savegame 1.TRUSave",
+      "Autosave.TRUSave"
+    ],
+    "also_as": {
+      "Savegame 1.TRUSave": "Autosave.TRUSave"
+    }
+  },
+  "markers": [
+    {
+      "name": "raft_sg",
+      "regex": "Loading PC-W\\\\StreamGroups\\\\dlc_water_wheel"
+    },
+    {
+      "name": "water_wheel_unit",
+      "regex": "\\*\\*\\* CURRENT LEVEL = dlc_water_wheel"
+    }
+  ],
+  "steps": [
+    {
+      "id": "boot",
+      "action": "boot_resume",
+      "enter_first_s": 20,
+      "enter_every_s": 8,
+      "max_enters": 6,
+      "timeout_s": 180,
+      "settle_s": 5
+    },
+    {
+      "id": "water",
+      "action": "expect",
+      "regex": "CURRENT LEVEL = dlc_water_wheel",
+      "timeout_s": "${water_timeout_s}",
+      "new_only": false,
+      "_note": "la sonda raft vale appena le istanze della zattera esistono (livello water_wheel caricato): non serve essere in acqua; Resume atterra al checkpoint a secco"
+    },
+    {
+      "id": "ext_user",
+      "action": "ext_probe",
+      "seconds": 420,
+      "interval_ms": 100,
+      "_note": "sonda attiva mentre l'utente gioca; il runner non invia tasti"
+    }
+  ],
+  "require_markers": [
+    "water_wheel_unit"
+  ],
+  "pass_text": "livello caricato, sonda eseguita per l'intera durata (l'esito catena si legge in probe_ext_ext_user.tsv)"
+}

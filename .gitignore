@@ -1,0 +1,11 @@
+tools/venv/
+__pycache__/
+*.pyc
+*.bak*
+*.exe
+*.drm
+*.mul
+*.dmp
+*.pkl
+.DS_Store
+work/baseline/

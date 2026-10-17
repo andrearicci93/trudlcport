@@ -1,0 +1,59 @@
+{
+  "name": "menu_probe",
+  "description": "Calibrazione/collaudo del pilotaggio: Resume, apre il menu F8, scatta screenshot (SOLO diagnostica: servono a trovare le coordinate normalizzate di Unit/Load unit da passare a load_unit), richiude. Non carica unita'. PASS = CURRENT LEVEL visto, nessun crash; l'esito di F8 e' in steps[].detail (flag 0xA02B79).",
+  "baseline": "B0_raw",
+  "timeouts": {
+    "total_s": 420
+  },
+  "critical": [],
+  "saves": {
+    "set": "menu_probe",
+    "fallback_baseline": true,
+    "touch": [
+      "Autosave.TRUSave"
+    ]
+  },
+  "steps": [
+    {
+      "id": "boot",
+      "action": "boot_resume",
+      "timeout_s": 180,
+      "settle_s": 8
+    },
+    {
+      "id": "menu_open",
+      "action": "f8",
+      "state": "open"
+    },
+    {
+      "id": "shot_menu",
+      "action": "shot",
+      "name": "menu_open"
+    },
+    {
+      "id": "wait_a",
+      "action": "wait",
+      "seconds": 2
+    },
+    {
+      "id": "menu_close",
+      "action": "f8",
+      "state": "close"
+    },
+    {
+      "id": "shot_closed",
+      "action": "shot",
+      "name": "menu_closed"
+    },
+    {
+      "id": "soak",
+      "action": "soak",
+      "seconds": 5,
+      "from": "now"
+    }
+  ],
+  "require_markers": [
+    "current_level"
+  ],
+  "pass_text": "pilotaggio base eseguito (vedi screenshot e flag menu in steps[].detail)"
+}

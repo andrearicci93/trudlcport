@@ -1,0 +1,90 @@
+{
+  "name": "dungeon_user",
+  "description": "PROVA CON L'UTENTE: boot, Resume, Load unit dlc_dungeon via F8 (automatico), poi il runner NON invia piu' tasti: l'utente gioca nel dungeon fino a 15 minuti; raccolta log, classificazione crash, dump, screenshot periodici.",
+  "baseline": "B0_raw",
+  "params": {
+    "unit": "dlc_dungeon",
+    "alive_seconds": 900,
+    "load_timeout_s": 150
+  },
+  "timeouts": {
+    "total_s": 1200
+  },
+  "critical": [
+    "dlc_dungeon*.drm",
+    "dlc_water_wheel*.drm",
+    "dlc_watertunnel*.drm",
+    "dlc_pillory*.drm",
+    "dlc1_uo_dungeon_final_gate.drm",
+    "dlc1_uo_raft_bridge.drm",
+    "streamgroups\\*dungeon*"
+  ],
+  "saves": {
+    "_note": "set = work/baseline/saves/dungeon_direct/ (da creare; se manca si usa baseline/<B>/saves come fallback). Serve un save qualunque da cui Resume entri in un livello DLC: l'unita' si carica solo da dentro un livello (il Load unit dal menu principale non e' mai stato provato).",
+    "set": "dungeon_direct",
+    "fallback_baseline": true,
+    "touch": [
+      "Autosave.TRUSave"
+    ]
+  },
+  "markers": [
+    {
+      "name": "dungeon_unit",
+      "regex": "\\*\\*\\* CURRENT LEVEL = dlc_dungeon(?![A-Za-z0-9_])"
+    },
+    {
+      "name": "dungeon_main_sg",
+      "regex": "Loading PC-W\\\\StreamGroups\\\\dlc_dungeon_dungeon_main\\.drm"
+    }
+  ],
+  "steps": [
+    {
+      "id": "boot",
+      "action": "boot_resume",
+      "enter_first_s": 20,
+      "enter_every_s": 8,
+      "max_enters": 6,
+      "timeout_s": 180,
+      "settle_s": 8
+    },
+    {
+      "id": "shot_boot",
+      "action": "shot",
+      "name": "after_resume"
+    },
+    {
+      "id": "menu_open",
+      "action": "f8",
+      "state": "open"
+    },
+    {
+      "id": "load",
+      "action": "load_unit",
+      "unit": "${unit}",
+      "timeout_s": "${load_timeout_s}",
+      "expect_regex": "(?m)(\\*\\*\\* CURRENT LEVEL = dlc_dungeon(?![A-Za-z0-9_])|Loading PC-W\\\\StreamGroups\\\\dlc_dungeon_dungeon_main\\.drm)"
+    },
+    {
+      "id": "menu_close",
+      "action": "f8",
+      "state": "close"
+    },
+    {
+      "id": "alive",
+      "action": "soak",
+      "seconds": "${alive_seconds}",
+      "from": "last_match",
+      "shots_at": [
+        20,
+        60,
+        120,
+        240,
+        400,
+        600,
+        800
+      ]
+    }
+  ],
+  "require_markers": [],
+  "pass_text": "tru vivo alive_seconds dopo il caricamento di dlc_dungeon, nessun crash"
+}

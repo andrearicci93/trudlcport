@@ -1,0 +1,107 @@
+{
+  "name": "chain_probe",
+  "description": "Ripristina il save in acqua ('Savegame 1'), Resume, attende 'in water!' e lancia la sonda raft (SEGNAPOSTO: vm_probe_lib.ps1 -Mode raft). La sequenza di mira/sparo vera la definira' l'agente chainshot (work/ws/chainshot/INSTRUMENT_SPEC.md): qui fire_steps e' vuoto. PASS = 'in water!' visto + sonda eseguita senza crash; l'esito della catena NON e' ancora giudicato (probe_expect senza condizioni).",
+  "baseline": "B0_raw",
+  "params": {
+    "probe_seconds": 20,
+    "water_timeout_s": 150,
+    "probe_interval_ms": 100
+  },
+  "timeouts": {
+    "total_s": 600
+  },
+  "critical": [
+    "dlc1_uo_raft_bridge.drm",
+    "dlc_water_wheel*.drm",
+    "dlc1_uo_water_wheel.drm"
+  ],
+  "saves": {
+    "_note": "set = work/baseline/saves/chain_water/ con 'Savegame 1.TRUSave' (save in acqua). also_as copia lo stesso contenuto come Autosave.TRUSave perche' Resume carichi quello qualunque file scelga (non verificato quale scelga).",
+    "set": "chain_water",
+    "fallback_baseline": true,
+    "touch": [
+      "Savegame 1.TRUSave",
+      "Autosave.TRUSave"
+    ],
+    "also_as": {
+      "Savegame 1.TRUSave": "Autosave.TRUSave"
+    }
+  },
+  "markers": [
+    {
+      "name": "raft_sg",
+      "regex": "Loading PC-W\\\\StreamGroups\\\\dlc_water_wheel"
+    },
+    {
+      "name": "water_wheel_unit",
+      "regex": "\\*\\*\\* CURRENT LEVEL = dlc_water_wheel"
+    }
+  ],
+  "steps": [
+    {
+      "id": "boot",
+      "action": "boot_resume",
+      "enter_first_s": 20,
+      "enter_every_s": 8,
+      "max_enters": 6,
+      "timeout_s": 180,
+      "settle_s": 5
+    },
+    {
+      "id": "water",
+      "action": "expect",
+      "regex": "CURRENT LEVEL = dlc_water_wheel",
+      "timeout_s": "${water_timeout_s}",
+      "new_only": false,
+      "_note": "la sonda raft vale appena le istanze della zattera esistono (livello water_wheel caricato): non serve essere in acqua; Resume atterra al checkpoint a secco"
+    },
+    {
+      "id": "ext_rest",
+      "action": "ext_probe",
+      "seconds": 20,
+      "interval_ms": 100,
+      "_note": "sonda vera di chainshot (vm_probe.ps1) a riposo: riporta d52 (byte DESC+0x52) per zattera/blocco/catena"
+    },
+    {
+      "id": "probe_on",
+      "action": "probe_start",
+      "mode": "raft",
+      "interval_ms": "${probe_interval_ms}"
+    },
+    {
+      "id": "baseline_read",
+      "action": "wait",
+      "seconds": 3
+    },
+    {
+      "id": "shot_before",
+      "action": "shot",
+      "name": "probe_before"
+    },
+    {
+      "id": "fire_placeholder",
+      "action": "wait",
+      "seconds": "${probe_seconds}",
+      "_note": "SEGNAPOSTO: sostituire con la sequenza di mira/sparo (key / hold_key / wait) definita da INSTRUMENT_SPEC.md"
+    },
+    {
+      "id": "shot_after",
+      "action": "shot",
+      "name": "probe_after"
+    },
+    {
+      "id": "probe_off",
+      "action": "probe_stop"
+    },
+    {
+      "id": "probe_check",
+      "action": "probe_expect",
+      "conditions": {},
+      "_note": "es. { \"latch_seen\": true } quando la sequenza di sparo esistera'"
+    }
+  ],
+  "require_markers": [
+    "water_wheel_unit"
+  ],
+  "pass_text": "livello water_wheel caricato, sonda raft eseguita, nessun crash (esito catena non giudicato)"
+}

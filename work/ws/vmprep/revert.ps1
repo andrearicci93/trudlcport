@@ -1,0 +1,44 @@
+# REVERT mods_dlc1_rc: ripristina le 41 versioni precedenti dalla Mac (Z:). Uso: powershell -File Z:\tru-port\work\ws\vmprep\revert.ps1
+$d='C:\Program Files (x86)\Steam\steamapps\common\Tomb Raider Underworld\mods'
+Copy-Item 'Z:\tru-port\work\mods_fix20\dlc1_uo_bend_switches.drm' (Join-Path $d 'dlc1_uo_bend_switches.drm') -Force
+Copy-Item 'Z:\tru-port\work\mods_glitchfix\dlc1_uo_cavern_hall_gate.drm' (Join-Path $d 'dlc1_uo_cavern_hall_gate.drm') -Force
+Copy-Item 'Z:\tru-port\work\mods_glitchfix\dlc1_uo_cavern_hall_gate_two.drm' (Join-Path $d 'dlc1_uo_cavern_hall_gate_two.drm') -Force
+Copy-Item 'Z:\tru-port\work\mods_fix18\dlc1_uo_crushers.drm' (Join-Path $d 'dlc1_uo_crushers.drm') -Force
+Copy-Item 'Z:\tru-port\work\mods_fix20\dlc1_uo_dragon_slider.drm' (Join-Path $d 'dlc1_uo_dragon_slider.drm') -Force
+Copy-Item 'Z:\tru-port\work\mods_current\dlc1_uo_dungeon_final_gate.drm' (Join-Path $d 'dlc1_uo_dungeon_final_gate.drm') -Force
+Copy-Item 'Z:\tru-port\work\mods_current\dlc1_uo_goo_pit_lever.drm' (Join-Path $d 'dlc1_uo_goo_pit_lever.drm') -Force
+Copy-Item 'Z:\tru-port\work\mods_fix20\dlc1_uo_pillar_of_doom_a.drm' (Join-Path $d 'dlc1_uo_pillar_of_doom_a.drm') -Force
+Copy-Item 'Z:\tru-port\work\mods_fix20\dlc1_uo_pillar_of_doom_b.drm' (Join-Path $d 'dlc1_uo_pillar_of_doom_b.drm') -Force
+Copy-Item 'Z:\tru-port\work\chain_aim\mods_chainfix_min\dlc1_uo_raft_bridge.drm' (Join-Path $d 'dlc1_uo_raft_bridge.drm') -Force
+Copy-Item 'Z:\tru-port\work\mods_current\dlc1_uo_raft_bridge_spawned.drm' (Join-Path $d 'dlc1_uo_raft_bridge_spawned.drm') -Force
+Copy-Item 'Z:\tru-port\work\mods_current\dlc1_uo_sewer_gate.drm' (Join-Path $d 'dlc1_uo_sewer_gate.drm') -Force
+Copy-Item 'Z:\tru-port\work\mods_fix14\dlc1_uo_water_wheel.drm' (Join-Path $d 'dlc1_uo_water_wheel.drm') -Force
+Copy-Item 'Z:\tru-port\work\mods_current_webs\dlc_caverns.drm' (Join-Path $d 'dlc_caverns.drm') -Force
+Copy-Item 'Z:\tru-port\work\mods_current\dlc_costume_b.drm' (Join-Path $d 'dlc_costume_b.drm') -Force
+Copy-Item 'Z:\tru-port\work\mods_current\dlc_costume_c.drm' (Join-Path $d 'dlc_costume_c.drm') -Force
+Copy-Item 'Z:\tru-port\work\mods_current\dlc_costume_e.drm' (Join-Path $d 'dlc_costume_e.drm') -Force
+Copy-Item 'Z:\tru-port\work\mods_current\dlc_costume_f.drm' (Join-Path $d 'dlc_costume_f.drm') -Force
+Copy-Item 'Z:\tru-port\work\mods_current\dlc_costume_j.drm' (Join-Path $d 'dlc_costume_j.drm') -Force
+Copy-Item 'Z:\tru-port\work\mods_current\dlc_costume_o.drm' (Join-Path $d 'dlc_costume_o.drm') -Force
+Copy-Item 'Z:\tru-port\work\mods_fix20\dlc_dungeon.drm' (Join-Path $d 'dlc_dungeon.drm') -Force
+Copy-Item 'Z:\tru-port\work\mods_current\dlc_dungeonhalla.drm' (Join-Path $d 'dlc_dungeonhalla.drm') -Force
+Copy-Item 'Z:\tru-port\work\mods_current\dlc_dungeonhallb.drm' (Join-Path $d 'dlc_dungeonhallb.drm') -Force
+Copy-Item 'Z:\tru-port\work\mods_current\dlc_fx_goo_dun_ist.drm' (Join-Path $d 'dlc_fx_goo_dun_ist.drm') -Force
+Copy-Item 'Z:\tru-port\work\mods_current\dlc_fx_goo_tres_ist.drm' (Join-Path $d 'dlc_fx_goo_tres_ist.drm') -Force
+Copy-Item 'Z:\tru-port\work\mods_current\dlc_fx_goo_tres_line_ist.drm' (Join-Path $d 'dlc_fx_goo_tres_line_ist.drm') -Force
+Copy-Item 'Z:\tru-port\work\mods_fix20\dlc_pillory.drm' (Join-Path $d 'dlc_pillory.drm') -Force
+Copy-Item 'Z:\tru-port\work\mods_fix20\dlc_treasureroom.drm' (Join-Path $d 'dlc_treasureroom.drm') -Force
+Copy-Item 'Z:\tru-port\work\mods_fix20\dlc_water_wheel.drm' (Join-Path $d 'dlc_water_wheel.drm') -Force
+Copy-Item 'Z:\tru-port\work\mods_current\dlc_watertunnel.drm' (Join-Path $d 'dlc_watertunnel.drm') -Force
+Copy-Item 'Z:\tru-port\work\mods_current\knight_thrall.drm' (Join-Path $d 'knight_thrall.drm') -Force
+Copy-Item 'Z:\tru-port\work\vm_mods_expected\cinstream\pdlc1_010_intro.drm' (Join-Path $d 'cinstream\pdlc1_010_intro.drm') -Force
+Copy-Item 'Z:\tru-port\work\mods_current\streamgroups\dlc_dungeon_dungeon_main.drm' (Join-Path $d 'streamgroups\dlc_dungeon_dungeon_main.drm') -Force
+Copy-Item 'Z:\tru-port\work\mods_current\streamgroups\dlc_dungeonhalla_dungeonhalla_a.drm' (Join-Path $d 'streamgroups\dlc_dungeonhalla_dungeonhalla_a.drm') -Force
+Copy-Item 'Z:\tru-port\work\mods_glitchfix\streamgroups\dlc_dungeonhalla_dungeonhalla_b.drm' (Join-Path $d 'streamgroups\dlc_dungeonhalla_dungeonhalla_b.drm') -Force
+Copy-Item 'Z:\tru-port\work\mods_glitchfix\streamgroups\dlc_dungeonhallb_dungeonhallb_a.drm' (Join-Path $d 'streamgroups\dlc_dungeonhallb_dungeonhallb_a.drm') -Force
+Copy-Item 'Z:\tru-port\work\mods_glitchfix\streamgroups\dlc_dungeonhallb_dungeonhallb_b.drm' (Join-Path $d 'streamgroups\dlc_dungeonhallb_dungeonhallb_b.drm') -Force
+Copy-Item 'Z:\tru-port\work\mods_glitchfix\streamgroups\dlc_dungeonhallb_dungeonhallb_dungeoncorner.drm' (Join-Path $d 'streamgroups\dlc_dungeonhallb_dungeonhallb_dungeoncorner.drm') -Force
+Copy-Item 'Z:\tru-port\work\mods_current\streamgroups\dlc_pillory_pillorymain.drm' (Join-Path $d 'streamgroups\dlc_pillory_pillorymain.drm') -Force
+Copy-Item 'Z:\tru-port\work\mods_current\streamgroups\dlc_treasureroom_treasureroom_main.drm' (Join-Path $d 'streamgroups\dlc_treasureroom_treasureroom_main.drm') -Force
+Copy-Item 'Z:\tru-port\work\mods_current_webs\streamgroups\dlc_water_wheel_waterwheel_main.drm' (Join-Path $d 'streamgroups\dlc_water_wheel_waterwheel_main.drm') -Force
+'revert fatto: 41 file'

@@ -1,6 +1,9 @@
-# Setup: what you need and how to install
+# Setup for developers (rebuilding from the raw files)
 
-This repository ships **no game files**. Everything below is something you must own and supply yourself.
+> **Just want to play?** Use [INSTALL.md](INSTALL.md): the release kit reproduces the reference build B132 from your own files in
+> minutes. This page describes the developer route (converters, learned tables, exe patch tools), which is much longer.
+
+The git repository ships **no game files**. Everything below is something you must own and supply yourself.
 
 ## 1. Files you need
 

@@ -2,8 +2,14 @@
 
 You are helping a user who owns *Tomb Raider: Underworld* (PC, Steam) and the Xbox 360 files of its DLC. Goal: reproduce, verify, or improve the PC port in this repository. Read `README.md`, `docs/STATUS.md` and `docs/PIPELINE.md` first.
 
+## Task 0 — the user only wants to play
+Follow `docs/INSTALL.md`: get the latest release (`gh release download -R andrearicci93/trudlcport` or the Releases page), unzip the
+kit to `kit/`, `python -m pip install bsdiff4`, run `python install_dlc.py --game <game> --dlc <xbox files> --kit kit --check`, show the
+user the output, then run it without `--check` only after the user agrees. Make sure ModLoader is in the game folder. Never delete
+the user's files: the installer keeps `mods_backup_*` and `tru.exe.steam_original`.
+
 ## Ground rules
-1. **Never commit or upload game data** (DRM/CDRM, bigfiles, exe, converted mods, Xbox files, decompiler output). `.gitignore` already blocks the common extensions; keep it that way.
+1. **Never commit game data to git** (DRM/CDRM, bigfiles, exe, converted mods, Xbox files, decompiler output). `.gitignore` already blocks the common extensions; keep it that way. The binary-patch kit is published only as a release asset, by the owner's decision.
 2. **Never modify the user's game folder without asking**; always keep a copy of `tru.exe` and `mods/`. `vm_baseline_sync.ps1` quarantines extra files instead of deleting.
 3. Treat baselines as immutable: derive new ones (`tools/baseline_derive.py`), never edit in place.
 4. Gate before testing: run the static gates for any new `mods/` tree before asking the user to play it. Do not use the VM/game for blind exploration; read code and build an offline oracle first.

@@ -2,18 +2,24 @@
 
 Work-in-progress port of the **Xbox 360-only DLC of Tomb Raider: Underworld** — *Beneath the Ashes* (DLC1) and *Lara's Shadow* (DLC2) — to the **native PC version** (Steam `tru.exe`), without an emulator.
 
-The result is a `mods/` overlay for the PC game (loaded by a third-party mod loader) plus a few small binary patches to `tru.exe`. DLC1 is playable up to and including the *dlc_dungeon* level in the current best build (`B90_gold_L4`), with known visual and gameplay defects (see [docs/STATUS.md](docs/STATUS.md)). DLC2 has not been started.
+The result is a `mods/` overlay for the PC game (loaded by a third-party mod loader) plus a patched `tru.exe`. **DLC1 is playable from the start to the end credits** in the current reference build **B132**. DLC2 has not been converted yet.
 
-> **No game data is included in this repository.** You must own the PC game, and you must supply the Xbox 360 files yourself (see [docs/SETUP.md](docs/SETUP.md)). The repo contains only the conversion tools, patch tools, analysis scripts, notes, and a hash manifest that lets you check your own output.
+## Install it (players) → [docs/INSTALL.md](docs/INSTALL.md)
+
+You need the Steam PC game, your own Xbox 360 DLC files (`pack10.000`, `credits_DLC1.wmv`), ModLoader and Python. Download
+`install_dlc.py` and the kit from **Releases**, run `python install_dlc.py --game <game folder> --dlc <Xbox files> --kit kit --check`,
+then without `--check`. The installer rebuilds the reference build byte for byte from your files and verifies every MD5.
+
+> The git repository contains no game data. The release kit contains binary patches that only work together with your own copy of the
+> game and the DLC (every source file is MD5-checked); you must own both.
 
 ## Where we are (short version)
 
 | | |
 |---|---|
-| Best build | `B90_gold_L4` (manifest: [docs/data/B90_gold_L4.manifest.tsv](docs/data/B90_gold_L4.manifest.tsv), 279 files) + patched exe `f47814ff…` |
-| Crashes | None in the last user test (new game → bridge → pillory → dlc_dungeon reached naturally) |
-| Works | Boot, DLC menu entry, opening cutscene, converted audio, grapple rings, water wheel, most geometry/textures/materials |
-| Broken / open | Cobwebs look wrong, reddish surfaces in *caverns_hall*, *dlc_dungeon* looks "broken" when reached naturally, bridge-collapse/Adrenaline trap, sluice gate, DLC2 |
+| Reference build | **B132** (release kit `trudlcport-kit-B132.zip`, manifest in the kit) + patched exe `5560abac…` |
+| Works (confirmed in game) | start, DLC menu, all DLC1 areas, enemies/AI, treasures, cobwebs, pause QUIT, final cutscene and credits |
+| Open | rare start-up crash (audio init, restart), golden shotgun untested, small visual defects — see [docs/STATUS.md](docs/STATUS.md) |
 
 Details: [docs/STATUS.md](docs/STATUS.md) · open questions with leads: [docs/INVESTIGATION.md](docs/INVESTIGATION.md).
 
@@ -33,7 +39,7 @@ Details: [docs/STATUS.md](docs/STATUS.md) · open questions with leads: [docs/IN
 | `work/crash/` | Crash-diagnosis scripts |
 | `scripts/` | `build_exe.sh`, `make_laa.py`, `check_inputs.py`, `verify_mods.py`, `set_root.sh` |
 
-## Quick start (for a human)
+## Rebuilding from scratch (developers)
 
 1. Read [docs/SETUP.md](docs/SETUP.md) and collect the required files.
 2. `python3 -m venv tools/venv && tools/venv/bin/pip install -r requirements.txt` (Windows: `tools\venv\Scripts\`).
@@ -46,7 +52,11 @@ Details: [docs/STATUS.md](docs/STATUS.md) · open questions with leads: [docs/IN
 
 ## Using a coding agent
 
-Open this repo in your agent and say, for example:
+To **install** the DLC, open this repo in your agent and say:
+
+> Install the Tomb Raider: Underworld DLC port for me following `docs/INSTALL.md`. My game is in `<path>`, my Xbox DLC files are under `<path>`. Download the latest release kit, run the installer with `--check` first and show me the result before installing. Do not delete anything.
+
+To **continue the development**, say for example:
 
 > Read `README.md` and `docs/AGENT_GUIDE.md`. My PC game is in `<path>`, my Xbox 360 files are in `<path>`. Check my inputs, build the patched exe, and then work through `docs/PIPELINE.md` to produce the `mods/` tree, verifying against `docs/data/B90_gold_L4.manifest.tsv`. Stop and ask before touching anything inside the game folder.
 
@@ -60,4 +70,4 @@ Not included, needed by the setup: [ModLoader](https://github.com/TombRaiderModd
 
 ## Legal
 
-Tomb Raider: Underworld and its DLC are the property of their respective owners. This project is unofficial, ships no copyrighted game content, and is intended for people who own the game and the DLC. Code in this repository is MIT-licensed (see `LICENSE`).
+Tomb Raider: Underworld and its DLC are the property of their respective owners. This project is unofficial and intended only for people who own the PC game and the Xbox 360 DLC: the release kit is a set of binary patches that is useless without (and checked against) your own files. Code in this repository is MIT-licensed (see `LICENSE`).

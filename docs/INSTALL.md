@@ -54,7 +54,8 @@ Use `--no-exe` if you want to keep your exe (the game will be less stable).
 ## 4. Play
 
 Start the game from Steam → main menu → **Downloadable Content** → **Beneath the Ashes** → **Play mission**. Start a **new** DLC game
-(saves made with older builds of this port may contain broken treasure counters).
+(saves made with older builds of this port may contain broken treasure counters). **Lock the game to 60 fps**: physics and
+camera are tied to the frame rate ([TROUBLESHOOTING.md](TROUBLESHOOTING.md)).
 
 ## 5. Uninstall
 
@@ -70,6 +71,8 @@ Delete `mods\` (or rename it), rename `tru.exe.steam_original` back to `tru.exe`
 | `pack10.000 ... not found` | point `--dlc` at the folder that contains it. |
 | Game crashes immediately at start, sometimes | known FMOD (audio) start-up failure on some systems; start it again. |
 | The DLC entry is missing from the menu | ModLoader is not installed (the `mods` folder is not being read). |
+| "A problem has occured with your display driver" | under investigation on real GPUs; workaround and native test in [TROUBLESHOOTING.md](TROUBLESHOOTING.md). |
+| Boxes, ragdolls or puzzles behave strangely | lock the game to 60 fps, see [TROUBLESHOOTING.md](TROUBLESHOOTING.md). |
 
 Known open issues of B132: see [STATUS.md](STATUS.md).
 
@@ -91,4 +94,6 @@ Open this repository in your agent (Claude Code, Codex, …) and say:
 3. Gioco chiuso, prova a secco: `python install_dlc.py --game "<cartella gioco>" --dlc "<cartella file Xbox>" --kit .\kit --check`.
 4. Se risponde *All inputs OK*, ripeti il comando senza `--check`. Vengono scritti `mods\`, `tru.exe` e `movies\credits_DLC1.bik`;
    i vecchi file restano come copie (`mods_backup_…`, `tru.exe.steam_original`).
-5. Avvia da Steam → *Contenuti scaricabili* → *Beneath the Ashes* → *Gioca missione*, con una **nuova partita** DLC.
+5. Avvia da Steam → *Contenuti scaricabili* → *Beneath the Ashes* → *Gioca missione*, con una **nuova partita** DLC, e **blocca il gioco a 60 fps**.
+6. Se compare "A problem has occured with your display driver": vedi [TROUBLESHOOTING.md](TROUBLESHOOTING.md) (rimedio con
+   dgVoodoo2 e test da mandarci).

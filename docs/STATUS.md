@@ -24,6 +24,8 @@ pillar_of_doom data reference (dungeon) · global sound-info table from the Xbox
 | Issue | Impact |
 |---|---|
 | Occasional crash right at game start (FMOD audio init fails and the game ignores the error) | start the game again |
+| "A problem has occured with your display driver" on a real GPU (reported 20 Oct 2026; the author tests through dgVoodoo2) | main suspect: 113 port shaders longer than 512 instructions; workaround dgVoodoo2, native test in [TROUBLESHOOTING.md](TROUBLESHOOTING.md) |
+| Physics and camera tied to the frame rate (base game) | lock the game to 60 fps |
 | Golden shotgun (unlocked after all treasures) depends on title-update scripts/tables the PC exe lacks | may not work or crash when equipped; untested |
 | Material 23211 (dungeon) texture layout | small visual defect |
 | Blue reflection on Lara at the four thrall portals (balcony) | probably faithful to Xbox |

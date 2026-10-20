@@ -9,6 +9,7 @@ The result is a `mods/` overlay for the PC game (loaded by a third-party mod loa
 You need the Steam PC game, your own Xbox 360 DLC files (`pack10.000`, `credits_DLC1.wmv`), ModLoader and Python. Download
 `install_dlc.py` and the kit from **Releases**, run `python install_dlc.py --game <game folder> --dlc <Xbox files> --kit kit --check`,
 then without `--check`. The installer rebuilds the reference build byte for byte from your files and verifies every MD5.
+**Lock the game to 60 fps** and see [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) if something goes wrong.
 
 > The git repository contains no game data. The release kit contains binary patches that only work together with your own copy of the
 > game and the DLC (every source file is MD5-checked); you must own both.
@@ -19,7 +20,7 @@ then without `--check`. The installer rebuilds the reference build byte for byte
 |---|---|
 | Reference build | **B132** (release kit `trudlcport-kit-B132.zip`, manifest in the kit) + patched exe `5560abac…` |
 | Works (confirmed in game) | start, DLC menu, all DLC1 areas, enemies/AI, treasures, cobwebs, pause QUIT, final cutscene and credits |
-| Open | rare start-up crash (audio init, restart), golden shotgun untested, small visual defects — see [docs/STATUS.md](docs/STATUS.md) |
+| Open | **"display driver" error on some real GPUs** (workaround + test: [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md)), rare start-up crash (audio init, restart), golden shotgun untested, small visual defects — see [docs/STATUS.md](docs/STATUS.md) |
 
 Details: [docs/STATUS.md](docs/STATUS.md) · open questions with leads: [docs/INVESTIGATION.md](docs/INVESTIGATION.md).
 

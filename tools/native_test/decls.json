@@ -1,0 +1,1464 @@
+[
+{
+"name": "B00",
+"in_pc": true,
+"example": "dlc_caverns.drm/20869",
+"elements": [
+{
+"Stream": 0,
+"Offset": 0,
+"Type": 2,
+"Method": 0,
+"Usage": 0,
+"UsageIndex": 0
+},
+{
+"Stream": 0,
+"Offset": 12,
+"Type": 7,
+"Method": 0,
+"Usage": 5,
+"UsageIndex": 4
+},
+{
+"Stream": 0,
+"Offset": 20,
+"Type": 6,
+"Method": 0,
+"Usage": 5,
+"UsageIndex": 0
+},
+{
+"Stream": 0,
+"Offset": 24,
+"Type": 6,
+"Method": 0,
+"Usage": 5,
+"UsageIndex": 1
+}
+]
+},
+{
+"name": "B01",
+"in_pc": true,
+"example": "cine_dlc1_start_spangs.drm/23779",
+"elements": [
+{
+"Stream": 0,
+"Offset": 0,
+"Type": 2,
+"Method": 0,
+"Usage": 0,
+"UsageIndex": 0
+},
+{
+"Stream": 0,
+"Offset": 12,
+"Type": 4,
+"Method": 0,
+"Usage": 3,
+"UsageIndex": 0
+},
+{
+"Stream": 0,
+"Offset": 16,
+"Type": 4,
+"Method": 0,
+"Usage": 7,
+"UsageIndex": 0
+},
+{
+"Stream": 0,
+"Offset": 20,
+"Type": 4,
+"Method": 0,
+"Usage": 6,
+"UsageIndex": 0
+}
+]
+},
+{
+"name": "B02",
+"in_pc": true,
+"example": "co_monitor_frame.drm/4019",
+"elements": [
+{
+"Stream": 0,
+"Offset": 0,
+"Type": 2,
+"Method": 0,
+"Usage": 0,
+"UsageIndex": 0
+},
+{
+"Stream": 0,
+"Offset": 12,
+"Type": 4,
+"Method": 0,
+"Usage": 3,
+"UsageIndex": 0
+},
+{
+"Stream": 0,
+"Offset": 16,
+"Type": 6,
+"Method": 0,
+"Usage": 5,
+"UsageIndex": 0
+},
+{
+"Stream": 0,
+"Offset": 20,
+"Type": 4,
+"Method": 0,
+"Usage": 7,
+"UsageIndex": 0
+},
+{
+"Stream": 0,
+"Offset": 24,
+"Type": 4,
+"Method": 0,
+"Usage": 6,
+"UsageIndex": 0
+}
+]
+},
+{
+"name": "B03",
+"in_pc": true,
+"example": "dlc_costume_b.drm/23674",
+"elements": [
+{
+"Stream": 0,
+"Offset": 0,
+"Type": 2,
+"Method": 0,
+"Usage": 0,
+"UsageIndex": 0
+},
+{
+"Stream": 0,
+"Offset": 12,
+"Type": 4,
+"Method": 0,
+"Usage": 3,
+"UsageIndex": 0
+},
+{
+"Stream": 0,
+"Offset": 16,
+"Type": 4,
+"Method": 0,
+"Usage": 1,
+"UsageIndex": 0
+},
+{
+"Stream": 0,
+"Offset": 20,
+"Type": 4,
+"Method": 0,
+"Usage": 2,
+"UsageIndex": 0
+},
+{
+"Stream": 0,
+"Offset": 24,
+"Type": 6,
+"Method": 0,
+"Usage": 5,
+"UsageIndex": 0
+},
+{
+"Stream": 0,
+"Offset": 28,
+"Type": 4,
+"Method": 0,
+"Usage": 10,
+"UsageIndex": 0
+},
+{
+"Stream": 0,
+"Offset": 32,
+"Type": 4,
+"Method": 0,
+"Usage": 7,
+"UsageIndex": 0
+},
+{
+"Stream": 0,
+"Offset": 36,
+"Type": 4,
+"Method": 0,
+"Usage": 6,
+"UsageIndex": 0
+}
+]
+},
+{
+"name": "B04",
+"in_pc": true,
+"example": "dlc_caverns.drm/20869",
+"elements": [
+{
+"Stream": 0,
+"Offset": 0,
+"Type": 2,
+"Method": 0,
+"Usage": 0,
+"UsageIndex": 0
+},
+{
+"Stream": 0,
+"Offset": 12,
+"Type": 7,
+"Method": 0,
+"Usage": 5,
+"UsageIndex": 4
+},
+{
+"Stream": 0,
+"Offset": 20,
+"Type": 6,
+"Method": 0,
+"Usage": 5,
+"UsageIndex": 0
+},
+{
+"Stream": 0,
+"Offset": 24,
+"Type": 4,
+"Method": 0,
+"Usage": 10,
+"UsageIndex": 0
+}
+]
+},
+{
+"name": "B05",
+"in_pc": true,
+"example": "dlc_caverns.drm/20869",
+"elements": [
+{
+"Stream": 0,
+"Offset": 0,
+"Type": 2,
+"Method": 0,
+"Usage": 0,
+"UsageIndex": 0
+},
+{
+"Stream": 0,
+"Offset": 12,
+"Type": 7,
+"Method": 0,
+"Usage": 5,
+"UsageIndex": 4
+},
+{
+"Stream": 0,
+"Offset": 20,
+"Type": 6,
+"Method": 0,
+"Usage": 5,
+"UsageIndex": 0
+}
+]
+},
+{
+"name": "B06",
+"in_pc": true,
+"example": "dlc_caverns.drm/20869",
+"elements": [
+{
+"Stream": 0,
+"Offset": 0,
+"Type": 2,
+"Method": 0,
+"Usage": 0,
+"UsageIndex": 0
+},
+{
+"Stream": 0,
+"Offset": 12,
+"Type": 7,
+"Method": 0,
+"Usage": 5,
+"UsageIndex": 4
+},
+{
+"Stream": 0,
+"Offset": 20,
+"Type": 6,
+"Method": 0,
+"Usage": 5,
+"UsageIndex": 0
+},
+{
+"Stream": 0,
+"Offset": 24,
+"Type": 6,
+"Method": 0,
+"Usage": 5,
+"UsageIndex": 1
+},
+{
+"Stream": 0,
+"Offset": 28,
+"Type": 4,
+"Method": 0,
+"Usage": 10,
+"UsageIndex": 0
+}
+]
+},
+{
+"name": "B07",
+"in_pc": true,
+"example": "dlc1_ei_grapple_ceiling.drm/21005",
+"elements": [
+{
+"Stream": 0,
+"Offset": 0,
+"Type": 2,
+"Method": 0,
+"Usage": 0,
+"UsageIndex": 0
+},
+{
+"Stream": 0,
+"Offset": 12,
+"Type": 4,
+"Method": 0,
+"Usage": 3,
+"UsageIndex": 0
+},
+{
+"Stream": 0,
+"Offset": 16,
+"Type": 6,
+"Method": 0,
+"Usage": 5,
+"UsageIndex": 0
+},
+{
+"Stream": 0,
+"Offset": 20,
+"Type": 6,
+"Method": 0,
+"Usage": 5,
+"UsageIndex": 1
+},
+{
+"Stream": 0,
+"Offset": 24,
+"Type": 4,
+"Method": 0,
+"Usage": 7,
+"UsageIndex": 0
+},
+{
+"Stream": 0,
+"Offset": 28,
+"Type": 4,
+"Method": 0,
+"Usage": 6,
+"UsageIndex": 0
+}
+]
+},
+{
+"name": "B08",
+"in_pc": true,
+"example": "co_dlc_knight_thrall_pieces.drm/20781",
+"elements": [
+{
+"Stream": 0,
+"Offset": 0,
+"Type": 2,
+"Method": 0,
+"Usage": 0,
+"UsageIndex": 0
+},
+{
+"Stream": 0,
+"Offset": 12,
+"Type": 4,
+"Method": 0,
+"Usage": 3,
+"UsageIndex": 0
+},
+{
+"Stream": 0,
+"Offset": 20,
+"Type": 4,
+"Method": 0,
+"Usage": 2,
+"UsageIndex": 0
+},
+{
+"Stream": 0,
+"Offset": 24,
+"Type": 6,
+"Method": 0,
+"Usage": 5,
+"UsageIndex": 0
+},
+{
+"Stream": 0,
+"Offset": 28,
+"Type": 6,
+"Method": 0,
+"Usage": 5,
+"UsageIndex": 1
+},
+{
+"Stream": 0,
+"Offset": 32,
+"Type": 4,
+"Method": 0,
+"Usage": 7,
+"UsageIndex": 0
+},
+{
+"Stream": 0,
+"Offset": 36,
+"Type": 4,
+"Method": 0,
+"Usage": 6,
+"UsageIndex": 0
+}
+]
+},
+{
+"name": "B09",
+"in_pc": true,
+"example": "dlc_costume_b.drm/23674",
+"elements": [
+{
+"Stream": 0,
+"Offset": 0,
+"Type": 2,
+"Method": 0,
+"Usage": 0,
+"UsageIndex": 0
+},
+{
+"Stream": 0,
+"Offset": 12,
+"Type": 4,
+"Method": 0,
+"Usage": 3,
+"UsageIndex": 0
+},
+{
+"Stream": 0,
+"Offset": 16,
+"Type": 4,
+"Method": 0,
+"Usage": 1,
+"UsageIndex": 0
+},
+{
+"Stream": 0,
+"Offset": 20,
+"Type": 4,
+"Method": 0,
+"Usage": 2,
+"UsageIndex": 0
+},
+{
+"Stream": 0,
+"Offset": 24,
+"Type": 6,
+"Method": 0,
+"Usage": 5,
+"UsageIndex": 0
+},
+{
+"Stream": 0,
+"Offset": 28,
+"Type": 4,
+"Method": 0,
+"Usage": 7,
+"UsageIndex": 0
+},
+{
+"Stream": 0,
+"Offset": 32,
+"Type": 4,
+"Method": 0,
+"Usage": 6,
+"UsageIndex": 0
+}
+]
+},
+{
+"name": "B10",
+"in_pc": true,
+"example": "co_dlc_knight_thrall.drm/22609",
+"elements": [
+{
+"Stream": 0,
+"Offset": 0,
+"Type": 2,
+"Method": 0,
+"Usage": 0,
+"UsageIndex": 0
+},
+{
+"Stream": 0,
+"Offset": 12,
+"Type": 4,
+"Method": 0,
+"Usage": 3,
+"UsageIndex": 0
+},
+{
+"Stream": 0,
+"Offset": 16,
+"Type": 4,
+"Method": 0,
+"Usage": 1,
+"UsageIndex": 0
+},
+{
+"Stream": 0,
+"Offset": 20,
+"Type": 4,
+"Method": 0,
+"Usage": 2,
+"UsageIndex": 0
+},
+{
+"Stream": 0,
+"Offset": 24,
+"Type": 6,
+"Method": 0,
+"Usage": 5,
+"UsageIndex": 0
+},
+{
+"Stream": 0,
+"Offset": 28,
+"Type": 6,
+"Method": 0,
+"Usage": 5,
+"UsageIndex": 1
+},
+{
+"Stream": 0,
+"Offset": 32,
+"Type": 4,
+"Method": 0,
+"Usage": 7,
+"UsageIndex": 0
+},
+{
+"Stream": 0,
+"Offset": 36,
+"Type": 4,
+"Method": 0,
+"Usage": 6,
+"UsageIndex": 0
+}
+]
+},
+{
+"name": "B11",
+"in_pc": true,
+"example": "dlc1_uo_pillory.drm/20631",
+"elements": [
+{
+"Stream": 0,
+"Offset": 0,
+"Type": 2,
+"Method": 0,
+"Usage": 0,
+"UsageIndex": 0
+},
+{
+"Stream": 0,
+"Offset": 12,
+"Type": 4,
+"Method": 0,
+"Usage": 3,
+"UsageIndex": 0
+},
+{
+"Stream": 0,
+"Offset": 16,
+"Type": 6,
+"Method": 0,
+"Usage": 5,
+"UsageIndex": 0
+},
+{
+"Stream": 0,
+"Offset": 20,
+"Type": 6,
+"Method": 0,
+"Usage": 5,
+"UsageIndex": 1
+},
+{
+"Stream": 0,
+"Offset": 24,
+"Type": 4,
+"Method": 0,
+"Usage": 10,
+"UsageIndex": 0
+},
+{
+"Stream": 0,
+"Offset": 28,
+"Type": 4,
+"Method": 0,
+"Usage": 7,
+"UsageIndex": 0
+},
+{
+"Stream": 0,
+"Offset": 32,
+"Type": 4,
+"Method": 0,
+"Usage": 6,
+"UsageIndex": 0
+}
+]
+},
+{
+"name": "B12",
+"in_pc": true,
+"example": "dlc_costume_b.drm/23674",
+"elements": [
+{
+"Stream": 0,
+"Offset": 0,
+"Type": 2,
+"Method": 0,
+"Usage": 0,
+"UsageIndex": 0
+},
+{
+"Stream": 0,
+"Offset": 12,
+"Type": 4,
+"Method": 0,
+"Usage": 3,
+"UsageIndex": 0
+},
+{
+"Stream": 0,
+"Offset": 16,
+"Type": 4,
+"Method": 0,
+"Usage": 1,
+"UsageIndex": 0
+},
+{
+"Stream": 0,
+"Offset": 20,
+"Type": 4,
+"Method": 0,
+"Usage": 2,
+"UsageIndex": 0
+},
+{
+"Stream": 0,
+"Offset": 24,
+"Type": 6,
+"Method": 0,
+"Usage": 5,
+"UsageIndex": 0
+},
+{
+"Stream": 0,
+"Offset": 28,
+"Type": 6,
+"Method": 0,
+"Usage": 5,
+"UsageIndex": 1
+},
+{
+"Stream": 0,
+"Offset": 32,
+"Type": 4,
+"Method": 0,
+"Usage": 10,
+"UsageIndex": 0
+},
+{
+"Stream": 0,
+"Offset": 36,
+"Type": 4,
+"Method": 0,
+"Usage": 7,
+"UsageIndex": 0
+},
+{
+"Stream": 0,
+"Offset": 40,
+"Type": 4,
+"Method": 0,
+"Usage": 6,
+"UsageIndex": 0
+}
+]
+},
+{
+"name": "B13",
+"in_pc": true,
+"example": "co_dlc_earphonecam.drm/23752",
+"elements": [
+{
+"Stream": 0,
+"Offset": 0,
+"Type": 2,
+"Method": 0,
+"Usage": 0,
+"UsageIndex": 0
+},
+{
+"Stream": 0,
+"Offset": 12,
+"Type": 4,
+"Method": 0,
+"Usage": 3,
+"UsageIndex": 0
+},
+{
+"Stream": 0,
+"Offset": 20,
+"Type": 4,
+"Method": 0,
+"Usage": 2,
+"UsageIndex": 0
+},
+{
+"Stream": 0,
+"Offset": 24,
+"Type": 6,
+"Method": 0,
+"Usage": 5,
+"UsageIndex": 0
+},
+{
+"Stream": 0,
+"Offset": 28,
+"Type": 4,
+"Method": 0,
+"Usage": 7,
+"UsageIndex": 0
+},
+{
+"Stream": 0,
+"Offset": 32,
+"Type": 4,
+"Method": 0,
+"Usage": 6,
+"UsageIndex": 0
+}
+]
+},
+{
+"name": "B14",
+"in_pc": true,
+"example": "co_dlc_eitr_stone.drm/23430",
+"elements": [
+{
+"Stream": 0,
+"Offset": 0,
+"Type": 2,
+"Method": 0,
+"Usage": 0,
+"UsageIndex": 0
+},
+{
+"Stream": 0,
+"Offset": 12,
+"Type": 4,
+"Method": 0,
+"Usage": 3,
+"UsageIndex": 0
+},
+{
+"Stream": 0,
+"Offset": 20,
+"Type": 4,
+"Method": 0,
+"Usage": 2,
+"UsageIndex": 0
+},
+{
+"Stream": 0,
+"Offset": 24,
+"Type": 6,
+"Method": 0,
+"Usage": 5,
+"UsageIndex": 0
+},
+{
+"Stream": 0,
+"Offset": 28,
+"Type": 4,
+"Method": 0,
+"Usage": 10,
+"UsageIndex": 0
+},
+{
+"Stream": 0,
+"Offset": 32,
+"Type": 4,
+"Method": 0,
+"Usage": 7,
+"UsageIndex": 0
+},
+{
+"Stream": 0,
+"Offset": 36,
+"Type": 4,
+"Method": 0,
+"Usage": 6,
+"UsageIndex": 0
+}
+]
+},
+{
+"name": "B15",
+"in_pc": true,
+"example": "dlc1_ei_hpole_a.drm/23722",
+"elements": [
+{
+"Stream": 0,
+"Offset": 0,
+"Type": 2,
+"Method": 0,
+"Usage": 0,
+"UsageIndex": 0
+},
+{
+"Stream": 0,
+"Offset": 12,
+"Type": 4,
+"Method": 0,
+"Usage": 3,
+"UsageIndex": 0
+},
+{
+"Stream": 0,
+"Offset": 16,
+"Type": 6,
+"Method": 0,
+"Usage": 5,
+"UsageIndex": 0
+},
+{
+"Stream": 0,
+"Offset": 20,
+"Type": 4,
+"Method": 0,
+"Usage": 10,
+"UsageIndex": 0
+},
+{
+"Stream": 0,
+"Offset": 24,
+"Type": 4,
+"Method": 0,
+"Usage": 7,
+"UsageIndex": 0
+},
+{
+"Stream": 0,
+"Offset": 28,
+"Type": 4,
+"Method": 0,
+"Usage": 6,
+"UsageIndex": 0
+}
+]
+},
+{
+"name": "B16",
+"in_pc": true,
+"example": "dlc_caverns_hall.drm/20804",
+"elements": [
+{
+"Stream": 0,
+"Offset": 0,
+"Type": 2,
+"Method": 0,
+"Usage": 0,
+"UsageIndex": 0
+},
+{
+"Stream": 0,
+"Offset": 12,
+"Type": 7,
+"Method": 0,
+"Usage": 5,
+"UsageIndex": 4
+},
+{
+"Stream": 0,
+"Offset": 20,
+"Type": 1,
+"Method": 0,
+"Usage": 5,
+"UsageIndex": 0
+},
+{
+"Stream": 0,
+"Offset": 28,
+"Type": 6,
+"Method": 0,
+"Usage": 5,
+"UsageIndex": 1
+},
+{
+"Stream": 0,
+"Offset": 32,
+"Type": 4,
+"Method": 0,
+"Usage": 10,
+"UsageIndex": 0
+}
+]
+},
+{
+"name": "B17",
+"in_pc": true,
+"example": "dlc1_uo_pillar_of_doom_a.drm/20473",
+"elements": [
+{
+"Stream": 0,
+"Offset": 0,
+"Type": 2,
+"Method": 0,
+"Usage": 0,
+"UsageIndex": 0
+},
+{
+"Stream": 0,
+"Offset": 12,
+"Type": 4,
+"Method": 0,
+"Usage": 3,
+"UsageIndex": 0
+},
+{
+"Stream": 0,
+"Offset": 20,
+"Type": 4,
+"Method": 0,
+"Usage": 2,
+"UsageIndex": 0
+},
+{
+"Stream": 0,
+"Offset": 24,
+"Type": 6,
+"Method": 0,
+"Usage": 5,
+"UsageIndex": 0
+},
+{
+"Stream": 0,
+"Offset": 28,
+"Type": 6,
+"Method": 0,
+"Usage": 5,
+"UsageIndex": 1
+},
+{
+"Stream": 0,
+"Offset": 32,
+"Type": 4,
+"Method": 0,
+"Usage": 10,
+"UsageIndex": 0
+},
+{
+"Stream": 0,
+"Offset": 36,
+"Type": 4,
+"Method": 0,
+"Usage": 7,
+"UsageIndex": 0
+},
+{
+"Stream": 0,
+"Offset": 40,
+"Type": 4,
+"Method": 0,
+"Usage": 6,
+"UsageIndex": 0
+}
+]
+},
+{
+"name": "PC00",
+"in_pc": true,
+"example": "bigfile:pc-w\\l2_towerconnector.drm/8669",
+"elements": [
+{
+"Stream": 0,
+"Offset": 0,
+"Type": 2,
+"Method": 0,
+"Usage": 0,
+"UsageIndex": 0
+},
+{
+"Stream": 0,
+"Offset": 12,
+"Type": 7,
+"Method": 0,
+"Usage": 5,
+"UsageIndex": 4
+}
+]
+},
+{
+"name": "PC01",
+"in_pc": true,
+"example": "bigfile:pc-w\\bend_smallbamboo_a.drm/8504",
+"elements": [
+{
+"Stream": 0,
+"Offset": 0,
+"Type": 2,
+"Method": 0,
+"Usage": 0,
+"UsageIndex": 0
+},
+{
+"Stream": 0,
+"Offset": 12,
+"Type": 4,
+"Method": 0,
+"Usage": 3,
+"UsageIndex": 0
+},
+{
+"Stream": 0,
+"Offset": 20,
+"Type": 4,
+"Method": 0,
+"Usage": 2,
+"UsageIndex": 0
+},
+{
+"Stream": 0,
+"Offset": 24,
+"Type": 6,
+"Method": 0,
+"Usage": 5,
+"UsageIndex": 0
+},
+{
+"Stream": 0,
+"Offset": 28,
+"Type": 6,
+"Method": 0,
+"Usage": 5,
+"UsageIndex": 1
+},
+{
+"Stream": 0,
+"Offset": 32,
+"Type": 3,
+"Method": 0,
+"Usage": 5,
+"UsageIndex": 4
+},
+{
+"Stream": 0,
+"Offset": 48,
+"Type": 3,
+"Method": 0,
+"Usage": 5,
+"UsageIndex": 5
+},
+{
+"Stream": 0,
+"Offset": 64,
+"Type": 3,
+"Method": 0,
+"Usage": 5,
+"UsageIndex": 6
+},
+{
+"Stream": 0,
+"Offset": 80,
+"Type": 4,
+"Method": 0,
+"Usage": 7,
+"UsageIndex": 0
+},
+{
+"Stream": 0,
+"Offset": 84,
+"Type": 4,
+"Method": 0,
+"Usage": 6,
+"UsageIndex": 0
+}
+]
+},
+{
+"name": "PC02",
+"in_pc": true,
+"example": "bigfile:pc-w\\streamgroups\\l2_cliffclimb_all_cliffclimb.drm/11280",
+"elements": [
+{
+"Stream": 0,
+"Offset": 0,
+"Type": 2,
+"Method": 0,
+"Usage": 0,
+"UsageIndex": 0
+},
+{
+"Stream": 0,
+"Offset": 12,
+"Type": 7,
+"Method": 0,
+"Usage": 5,
+"UsageIndex": 4
+},
+{
+"Stream": 0,
+"Offset": 20,
+"Type": 1,
+"Method": 0,
+"Usage": 5,
+"UsageIndex": 0
+},
+{
+"Stream": 0,
+"Offset": 28,
+"Type": 4,
+"Method": 0,
+"Usage": 10,
+"UsageIndex": 0
+}
+]
+},
+{
+"name": "PC03",
+"in_pc": true,
+"example": "bigfile:pc-w\\bend_jungle_broadleaf.drm/8495",
+"elements": [
+{
+"Stream": 0,
+"Offset": 0,
+"Type": 2,
+"Method": 0,
+"Usage": 0,
+"UsageIndex": 0
+},
+{
+"Stream": 0,
+"Offset": 12,
+"Type": 4,
+"Method": 0,
+"Usage": 3,
+"UsageIndex": 0
+},
+{
+"Stream": 0,
+"Offset": 20,
+"Type": 4,
+"Method": 0,
+"Usage": 2,
+"UsageIndex": 0
+},
+{
+"Stream": 0,
+"Offset": 24,
+"Type": 6,
+"Method": 0,
+"Usage": 5,
+"UsageIndex": 0
+},
+{
+"Stream": 0,
+"Offset": 28,
+"Type": 6,
+"Method": 0,
+"Usage": 5,
+"UsageIndex": 1
+},
+{
+"Stream": 0,
+"Offset": 32,
+"Type": 4,
+"Method": 0,
+"Usage": 10,
+"UsageIndex": 0
+},
+{
+"Stream": 0,
+"Offset": 36,
+"Type": 3,
+"Method": 0,
+"Usage": 5,
+"UsageIndex": 4
+},
+{
+"Stream": 0,
+"Offset": 52,
+"Type": 3,
+"Method": 0,
+"Usage": 5,
+"UsageIndex": 5
+},
+{
+"Stream": 0,
+"Offset": 68,
+"Type": 3,
+"Method": 0,
+"Usage": 5,
+"UsageIndex": 6
+},
+{
+"Stream": 0,
+"Offset": 84,
+"Type": 4,
+"Method": 0,
+"Usage": 7,
+"UsageIndex": 0
+},
+{
+"Stream": 0,
+"Offset": 88,
+"Type": 4,
+"Method": 0,
+"Usage": 6,
+"UsageIndex": 0
+}
+]
+},
+{
+"name": "PC04",
+"in_pc": true,
+"example": "bigfile:pc-w\\l5_valgrind_tunnel.drm/17363",
+"elements": [
+{
+"Stream": 0,
+"Offset": 0,
+"Type": 2,
+"Method": 0,
+"Usage": 0,
+"UsageIndex": 0
+},
+{
+"Stream": 0,
+"Offset": 12,
+"Type": 7,
+"Method": 0,
+"Usage": 5,
+"UsageIndex": 4
+},
+{
+"Stream": 0,
+"Offset": 20,
+"Type": 1,
+"Method": 0,
+"Usage": 5,
+"UsageIndex": 0
+},
+{
+"Stream": 0,
+"Offset": 28,
+"Type": 6,
+"Method": 0,
+"Usage": 5,
+"UsageIndex": 1
+}
+]
+},
+{
+"name": "PC05",
+"in_pc": true,
+"example": "bigfile:pc-w\\wp_handgun.drm/2873",
+"elements": [
+{
+"Stream": 0,
+"Offset": 0,
+"Type": 2,
+"Method": 0,
+"Usage": 0,
+"UsageIndex": 0
+},
+{
+"Stream": 0,
+"Offset": 12,
+"Type": 4,
+"Method": 0,
+"Usage": 3,
+"UsageIndex": 0
+},
+{
+"Stream": 0,
+"Offset": 20,
+"Type": 4,
+"Method": 0,
+"Usage": 2,
+"UsageIndex": 0
+},
+{
+"Stream": 0,
+"Offset": 24,
+"Type": 4,
+"Method": 0,
+"Usage": 10,
+"UsageIndex": 0
+},
+{
+"Stream": 0,
+"Offset": 28,
+"Type": 6,
+"Method": 0,
+"Usage": 5,
+"UsageIndex": 0
+},
+{
+"Stream": 0,
+"Offset": 32,
+"Type": 4,
+"Method": 0,
+"Usage": 7,
+"UsageIndex": 0
+},
+{
+"Stream": 0,
+"Offset": 36,
+"Type": 4,
+"Method": 0,
+"Usage": 6,
+"UsageIndex": 0
+}
+]
+},
+{
+"name": "PC06",
+"in_pc": true,
+"example": "bigfile:pc-w\\ar_ei_thor_valgrind_door.drm/17694",
+"elements": [
+{
+"Stream": 0,
+"Offset": 0,
+"Type": 2,
+"Method": 0,
+"Usage": 0,
+"UsageIndex": 0
+},
+{
+"Stream": 0,
+"Offset": 12,
+"Type": 4,
+"Method": 0,
+"Usage": 3,
+"UsageIndex": 0
+},
+{
+"Stream": 0,
+"Offset": 16,
+"Type": 6,
+"Method": 0,
+"Usage": 5,
+"UsageIndex": 0
+},
+{
+"Stream": 0,
+"Offset": 20,
+"Type": 6,
+"Method": 0,
+"Usage": 5,
+"UsageIndex": 1
+},
+{
+"Stream": 0,
+"Offset": 24,
+"Type": 6,
+"Method": 0,
+"Usage": 5,
+"UsageIndex": 2
+},
+{
+"Stream": 0,
+"Offset": 28,
+"Type": 4,
+"Method": 0,
+"Usage": 7,
+"UsageIndex": 0
+},
+{
+"Stream": 0,
+"Offset": 32,
+"Type": 4,
+"Method": 0,
+"Usage": 6,
+"UsageIndex": 0
+}
+]
+},
+{
+"name": "PC07",
+"in_pc": true,
+"example": "bigfile:pc-w\\co_wp_handgun.drm/4123",
+"elements": [
+{
+"Stream": 0,
+"Offset": 0,
+"Type": 2,
+"Method": 0,
+"Usage": 0,
+"UsageIndex": 0
+},
+{
+"Stream": 0,
+"Offset": 12,
+"Type": 4,
+"Method": 0,
+"Usage": 3,
+"UsageIndex": 0
+},
+{
+"Stream": 0,
+"Offset": 16,
+"Type": 4,
+"Method": 0,
+"Usage": 10,
+"UsageIndex": 0
+},
+{
+"Stream": 0,
+"Offset": 20,
+"Type": 6,
+"Method": 0,
+"Usage": 5,
+"UsageIndex": 0
+},
+{
+"Stream": 0,
+"Offset": 24,
+"Type": 4,
+"Method": 0,
+"Usage": 7,
+"UsageIndex": 0
+},
+{
+"Stream": 0,
+"Offset": 28,
+"Type": 4,
+"Method": 0,
+"Usage": 6,
+"UsageIndex": 0
+}
+]
+}
+]

@@ -1,4 +1,6 @@
-# Status — reference build B132 (19 Oct 2026)
+# Status — B138 (21 Oct 2026; last build played end to end: B132, 19 Oct 2026)
+
+B133–B138 (native-D3D9 shaders, mechanism joints in pillory/dungeon, bat generators, audio re-encode) are **offline only** — see [../CHANGELOG.md](../CHANGELOG.md) for what they change and what should now be fixed. The tables below describe B132 and still apply, except where the changelog says otherwise.
 
 "Confirmed" = the project owner played it (Windows 11 VM). "Offline" = static checks only, not yet seen in game.
 
@@ -24,6 +26,8 @@ pillar_of_doom data reference (dungeon) · global sound-info table from the Xbox
 | Issue | Impact |
 |---|---|
 | Occasional crash right at game start (FMOD audio init fails and the game ignores the error) | start the game again |
+| "A problem has occured with your display driver" on a real GPU (reported 20 Oct 2026; the author tests through dgVoodoo2) | main suspect: 113 port shaders longer than 512 instructions; workaround dgVoodoo2, native test in [TROUBLESHOOTING.md](TROUBLESHOOTING.md) |
+| Physics and camera tied to the frame rate (base game) | lock the game to 60 fps |
 | Golden shotgun (unlocked after all treasures) depends on title-update scripts/tables the PC exe lacks | may not work or crash when equipped; untested |
 | Material 23211 (dungeon) texture layout | small visual defect |
 | Blue reflection on Lara at the four thrall portals (balcony) | probably faithful to Xbox |
@@ -35,4 +39,4 @@ point, uid checks) and a per-area audit Xbox vs PC: same number of meshes/animat
 files, all scripts parse, no silent audio, all 29 DLC1 treasures in the reward table.
 
 ## Lineage
-`… B90_gold_L4 → B92–B105 (water volumes, instance data, triggers, texts, DTP words) → B106 (cell streaming) → B107 (audio channels) → B108/B116 (cobwebs) → B109 (save-slot name) → B117 (light colour bridge) → B119–B121 (thrall data) → B122 (navmesh) → B123/B124 (cobwebs, black water textures) → B125 (reward table) → B126 (pillar_of_doom) → B127 (sound info) → B129 (cobweb 20264) → B130 (QUIT) → B131/B132 (moss)`.
+`… B90_gold_L4 → B92–B105 (water volumes, instance data, triggers, texts, DTP words) → B106 (cell streaming) → B107 (audio channels) → B108/B116 (cobwebs) → B109 (save-slot name) → B117 (light colour bridge) → B119–B121 (thrall data) → B122 (navmesh) → B123/B124 (cobwebs, black water textures) → B125 (reward table) → B126 (pillar_of_doom) → B127 (sound info) → B129 (cobweb 20264) → B130 (QUIT) → B131/B132 (moss) → B133 (native D3D9 shaders) → B134–B137 (joints, bat generators) → B138 (audio .mul)`.

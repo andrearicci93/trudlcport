@@ -12,7 +12,7 @@ boxes, ragdolls and physics puzzles can break, in the base game and even more in
 
 ## "A problem has occured with your display driver"
 
-**Status (20 Oct 2026): under investigation.** The box appeared on a player's PC (real GPU, Windows' own Direct3D 9); the game without
+**Status (21 Oct 2026): probable cause found and fixed in B133 (included in B138), not yet confirmed on a real GPU.** Update to the B138 kit first; if the box is still there, use the workaround and the test below. Original investigation notes (20 Oct):  The box appeared on a player's PC (real GPU, Windows' own Direct3D 9); the game without
 the port starts fine on the same PC. The author's test setup runs the game through dgVoodoo2, so the port's graphics data had never
 been checked by Windows' native Direct3D 9 runtime.
 

@@ -1,0 +1,4156 @@
+{
+ "build": "B138_audio",
+ "files": [
+  {
+   "rel": "audio/streams/event_triggered/dlc_pillar_of_doom_water_stereo.mul",
+   "md5": "97cacd1bfaddce1c219615bff198839c",
+   "size": 420416,
+   "patch": "patches/audio__streams__event_triggered__dlc_pillar_of_doom_water_stereo.mul.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\audio\\streams\\event_triggered\\dlc_pillar_of_doom_water_stereo.mul",
+    "spec": 4294967295,
+    "size": 214112,
+    "md5": "45d6f00003f3d9f6099f226988ca63e0"
+   },
+   "optional": null
+  },
+  {
+   "rel": "audio/streams/event_triggered/room_drain_underwater_01_dlc.mul",
+   "md5": "67d51f66cc1dea6570d0b3d30dda4099",
+   "size": 433024,
+   "patch": "patches/audio__streams__event_triggered__room_drain_underwater_01_dlc.mul.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\audio\\streams\\event_triggered\\room_drain_underwater_01_dlc.mul",
+    "spec": 4294967295,
+    "size": 226096,
+    "md5": "2c7d3705b9979b6717068deb5c970605"
+   },
+   "optional": null
+  },
+  {
+   "rel": "audio/streams/event_triggered/singleshot/light_flash_huge_a_07.mul",
+   "md5": "f829f5d795a96e480b8435443ccf7ea4",
+   "size": 376672,
+   "patch": "patches/audio__streams__event_triggered__singleshot__light_flash_huge_a_07.mul.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\audio\\streams\\event_triggered\\singleshot\\light_flash_huge_a_07.mul",
+    "spec": 4294967295,
+    "size": 164064,
+    "md5": "7d9ee59cea27b3bde48c2ecb3daaccd2"
+   },
+   "optional": null
+  },
+  {
+   "rel": "audio/streams/music/3_mansion/burning_stinger_2_dlc.mul",
+   "md5": "93a7eae0e1b2d26a6533221cf8a0b11e",
+   "size": 684928,
+   "patch": "patches/audio__streams__music__3_mansion__burning_stinger_2_dlc.mul.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\audio\\streams\\music\\3_mansion\\burning_stinger_2_dlc.mul",
+    "spec": 4294967295,
+    "size": 268048,
+    "md5": "9d8e68fd4006bda30fd45803c90b5ea9"
+   },
+   "optional": null
+  },
+  {
+   "rel": "audio/streams/music/3_mansion/mansion_is_burning_layer1(1)_dlc.mul",
+   "md5": "899ac39e5b03023533f7daf4a6934bb7",
+   "size": 4553632,
+   "patch": "patches/audio__streams__music__3_mansion__mansion_is_burning_layer1(1)_dlc.mul.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\audio\\streams\\music\\3_mansion\\mansion_is_burning_layer1(1)_dlc.mul",
+    "spec": 4294967295,
+    "size": 2085184,
+    "md5": "180ce63980d79c214a795557b7c4fcf5"
+   },
+   "optional": null
+  },
+  {
+   "rel": "audio/streams/music/stingers/short_stinger_1.mul",
+   "md5": "85445d4c3495a8e2d14834c2a5e03af0",
+   "size": 431840,
+   "patch": "patches/audio__streams__music__stingers__short_stinger_1.mul.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\audio\\streams\\music\\stingers\\short_stinger_1.mul",
+    "spec": 4294967295,
+    "size": 157968,
+    "md5": "39acb25318c5add6e416cf07ee8aeca7"
+   },
+   "optional": null
+  },
+  {
+   "rel": "audio/streams/music/stingers/short_stinger_17_dlc.mul",
+   "md5": "17e142f376e4ba02c02eded6d0d7efb3",
+   "size": 507904,
+   "patch": "patches/audio__streams__music__stingers__short_stinger_17_dlc.mul.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\audio\\streams\\music\\stingers\\short_stinger_17_dlc.mul",
+    "spec": 4294967295,
+    "size": 263776,
+    "md5": "2a240d476a7ea94f2d296bcd895987bd"
+   },
+   "optional": null
+  },
+  {
+   "rel": "audio/streams/vo/dlc1/lara/c_lara_1_pdlc1_invasion_01.mul",
+   "md5": "9da5ba9d9dc61d4b34438fdc82bcc1e8",
+   "size": 117824,
+   "patch": "patches/audio__streams__vo__dlc1__lara__c_lara_1_pdlc1_invasion_01.mul.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\audio\\streams\\vo\\dlc1\\lara\\c_lara_1_pdlc1_invasion_01.mul",
+    "spec": 4294967265,
+    "size": 56128,
+    "md5": "4a985d96ea0b596b04ad6d676cb49e61"
+   },
+   "optional": null
+  },
+  {
+   "rel": "audio/streams/vo/dlc1/lara/c_lara_2_pdlc1_water_01.mul",
+   "md5": "4d7d5ec09f153bfe7267a4a93563032f",
+   "size": 99728,
+   "patch": "patches/audio__streams__vo__dlc1__lara__c_lara_2_pdlc1_water_01.mul.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\audio\\streams\\vo\\dlc1\\lara\\c_lara_2_pdlc1_water_01.mul",
+    "spec": 4294967265,
+    "size": 56128,
+    "md5": "1e378060bad89d644e7679595a651042"
+   },
+   "optional": null
+  },
+  {
+   "rel": "audio/streams/vo/dlc1/zip/c_zip_1_pdlc1_invasion_01.mul",
+   "md5": "605782b6b8227b352128bbdffc52ebb8",
+   "size": 78048,
+   "patch": "patches/audio__streams__vo__dlc1__zip__c_zip_1_pdlc1_invasion_01.mul.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\audio\\streams\\vo\\dlc1\\zip\\c_zip_1_pdlc1_invasion_01.mul",
+    "spec": 4294967265,
+    "size": 35328,
+    "md5": "32024c2144409e18d67401d5024311c5"
+   },
+   "optional": null
+  },
+  {
+   "rel": "audio/streams/vo/dlc1/zip/c_zip_1_pdlc1_invasion_02.mul",
+   "md5": "c093657e09ad8f4f4cb44136a2768209",
+   "size": 102880,
+   "patch": "patches/audio__streams__vo__dlc1__zip__c_zip_1_pdlc1_invasion_02.mul.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\audio\\streams\\vo\\dlc1\\zip\\c_zip_1_pdlc1_invasion_02.mul",
+    "spec": 4294959112,
+    "size": 43648,
+    "md5": "d6462e7ad90e9227c14f596a81491b70"
+   },
+   "optional": null
+  },
+  {
+   "rel": "audio/streams/vo/dlc1/zip/c_zip_2_pdlc1_water_01.mul",
+   "md5": "aaf8a8af2026dff83d0943354cb1bfda",
+   "size": 78048,
+   "patch": "patches/audio__streams__vo__dlc1__zip__c_zip_2_pdlc1_water_01.mul.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\audio\\streams\\vo\\dlc1\\zip\\c_zip_2_pdlc1_water_01.mul",
+    "spec": 4294967265,
+    "size": 35296,
+    "md5": "de14b729c20f18cf8640c0afe4279d42"
+   },
+   "optional": null
+  },
+  {
+   "rel": "cine_dlc1_start_spangs.drm",
+   "md5": "715cf5e4852128f8cc02b126c080afdf",
+   "size": 397332,
+   "patch": "patches/cine_dlc1_start_spangs.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\cine_dlc1_start_spangs.drm",
+    "spec": 4294967295,
+    "size": 411979,
+    "md5": "0ccbe1964b193ef9e33c0bb4b638e07c"
+   },
+   "optional": null
+  },
+  {
+   "rel": "cinstream/pdlc1_010_intro.drm",
+   "md5": "35d1a18014d60aa56774bdb0b616c8d8",
+   "size": 353538,
+   "patch": "patches/cinstream__pdlc1_010_intro.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\cinstream\\pdlc1_010_intro.drm",
+    "spec": 4294967295,
+    "size": 380746,
+    "md5": "d12fedb1279a29291e3013be177e806b"
+   },
+   "optional": null
+  },
+  {
+   "rel": "cinstream/pdlc1_010_intro.mul",
+   "md5": "ed8cee0a408c650cfb224c8179ea771d",
+   "size": 6129568,
+   "patch": "patches/cinstream__pdlc1_010_intro.mul.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\cinstream\\pdlc1_010_intro.mul",
+    "spec": 4294959120,
+    "size": 4430512,
+    "md5": "24e9e59bc5574b49e77287c74da800e1"
+   },
+   "optional": null
+  },
+  {
+   "rel": "cinstream/pdlc1_030_finale.drm",
+   "md5": "fdb173e37ffb50def53627189e40c794",
+   "size": 126,
+   "patch": "patches/cinstream__pdlc1_030_finale.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\cinstream\\pdlc1_030_finale.drm",
+    "spec": 4294967295,
+    "size": 126,
+    "md5": "91939d5ea705b8ae6d4ca1c1d77f688b"
+   },
+   "optional": null
+  },
+  {
+   "rel": "cinstream/pdlc1_030_finale.mul",
+   "md5": "4b4b6cf565dcd41699afa57238b72b0f",
+   "size": 7042384,
+   "patch": "patches/cinstream__pdlc1_030_finale.mul.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\cinstream\\pdlc1_030_finale.mul",
+    "spec": 4294959108,
+    "size": 5404320,
+    "md5": "8ea923c5425afb897778cefdf387686c"
+   },
+   "optional": null
+  },
+  {
+   "rel": "co_dlc_earphonecam.drm",
+   "md5": "3e02de5febc2302b32c151cdc6c5a437",
+   "size": 79583,
+   "patch": "patches/co_dlc_earphonecam.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\co_dlc_earphonecam.drm",
+    "spec": 4294967295,
+    "size": 86126,
+    "md5": "8cde1d52cee5a02689f3168116609a32"
+   },
+   "optional": null
+  },
+  {
+   "rel": "co_dlc_eitr_stone.drm",
+   "md5": "f2d8e4d607b66aa4d9975b9d8405fdf7",
+   "size": 886051,
+   "patch": "patches/co_dlc_eitr_stone.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\co_dlc_eitr_stone.drm",
+    "spec": 4294967295,
+    "size": 1031667,
+    "md5": "6294c6f67290caa1e4fe578660179179"
+   },
+   "optional": null
+  },
+  {
+   "rel": "co_dlc_knight_thrall.drm",
+   "md5": "27995bd7056819c5934fabe38dadc36b",
+   "size": 2881860,
+   "patch": "patches/co_dlc_knight_thrall.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\co_dlc_knight_thrall.drm",
+    "spec": 4294967295,
+    "size": 3083425,
+    "md5": "83027e631940b37ee7630705cbbe0aa0"
+   },
+   "optional": null
+  },
+  {
+   "rel": "co_dlc_knight_thrall_pieces.drm",
+   "md5": "75386fdcf62acbfa37b1f1e527fc955c",
+   "size": 2535719,
+   "patch": "patches/co_dlc_knight_thrall_pieces.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\co_dlc_knight_thrall_pieces.drm",
+    "spec": 4294967295,
+    "size": 2717981,
+    "md5": "04000c7a40f06ef033fc86134fb70079"
+   },
+   "optional": null
+  },
+  {
+   "rel": "co_dlc_letter_with_stonephoto.drm",
+   "md5": "a8eee3e3657c0fac9115d1c4dd66e741",
+   "size": 547611,
+   "patch": "patches/co_dlc_letter_with_stonephoto.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\co_dlc_letter_with_stonephoto.drm",
+    "spec": 4294967295,
+    "size": 604491,
+    "md5": "dbb461aaa40daea8563bdbde2af70def"
+   },
+   "optional": null
+  },
+  {
+   "rel": "co_lights.drm",
+   "md5": "1d54a5d1e497bbaf53a809b0b1c225ce",
+   "size": 12841,
+   "patch": "patches/co_lights.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\co_lights.drm",
+    "spec": 4294967295,
+    "size": 13117,
+    "md5": "72806f177280d5b1900c380a2d3e50ea"
+   },
+   "optional": null
+  },
+  {
+   "rel": "co_monitor_frame.drm",
+   "md5": "9178086a76e46ac25ad7efa9094d8fb5",
+   "size": 20301,
+   "patch": "patches/co_monitor_frame.drm.bsdiff",
+   "source": {
+    "kind": "pc",
+    "archive": "bigfile.000",
+    "name": "pc-w\\co_monitor_frame.drm",
+    "spec": 4294967295,
+    "size": 20161,
+    "md5": "5561a4393d20023ded5070adef9bde09"
+   },
+   "optional": null
+  },
+  {
+   "rel": "dlc1_ei_grapple_ceiling.drm",
+   "md5": "b3c20663493908f7e3aab73778785b9c",
+   "size": 602675,
+   "patch": "patches/dlc1_ei_grapple_ceiling.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\dlc1_ei_grapple_ceiling.drm",
+    "spec": 4294967295,
+    "size": 650261,
+    "md5": "7dfcadf9cf3978b37f9afb68c3c1e1b8"
+   },
+   "optional": null
+  },
+  {
+   "rel": "dlc1_ei_grapple_wall.drm",
+   "md5": "6201b70c4a466d386be6c41092e18e4b",
+   "size": 899375,
+   "patch": "patches/dlc1_ei_grapple_wall.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\dlc1_ei_grapple_wall.drm",
+    "spec": 4294967295,
+    "size": 799260,
+    "md5": "9a5dff72f77eb29b07a0d0e7796ccaab"
+   },
+   "optional": null
+  },
+  {
+   "rel": "dlc1_ei_hpole_a.drm",
+   "md5": "7cd3d42f476abc591723d8b8aa00ca96",
+   "size": 874284,
+   "patch": "patches/dlc1_ei_hpole_a.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\dlc1_ei_hpole_a.drm",
+    "spec": 4294967295,
+    "size": 959759,
+    "md5": "e5323f7cd3ac13526fe4074029bb5a7f"
+   },
+   "optional": null
+  },
+  {
+   "rel": "dlc1_fx_ma_rb_pillory.drm",
+   "md5": "a62e8db8df68e188097bea429b03eac2",
+   "size": 317775,
+   "patch": "patches/dlc1_fx_ma_rb_pillory.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\dlc1_fx_ma_rb_pillory.drm",
+    "spec": 4294967295,
+    "size": 329851,
+    "md5": "5b560cba029071c5748c783f44a61a59"
+   },
+   "optional": null
+  },
+  {
+   "rel": "dlc1_fx_ma_rb_pillory_grinders.drm",
+   "md5": "8a63c9e8d59eeee6d09aa79e7c4d618c",
+   "size": 317760,
+   "patch": "patches/dlc1_fx_ma_rb_pillory_grinders.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\dlc1_fx_ma_rb_pillory_grinders.drm",
+    "spec": 4294967295,
+    "size": 329819,
+    "md5": "76387a27e21c24f9df2170e204287dfe"
+   },
+   "optional": null
+  },
+  {
+   "rel": "dlc1_health_pack.drm",
+   "md5": "e46dc1dffba8d166490268b247de3e0d",
+   "size": 1631737,
+   "patch": "patches/dlc1_health_pack.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\dlc1_health_pack.drm",
+    "spec": 4294967295,
+    "size": 1596451,
+    "md5": "f623029156cea44d43fe3ea524509264"
+   },
+   "optional": null
+  },
+  {
+   "rel": "dlc1_pt_reward_pot.drm",
+   "md5": "dde0315f6b1bc21a3e6bee80aaab6247",
+   "size": 964001,
+   "patch": "patches/dlc1_pt_reward_pot.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\dlc1_pt_reward_pot.drm",
+    "spec": 4294967295,
+    "size": 850919,
+    "md5": "8903f8c52bd85711be27693fc6c09d87"
+   },
+   "optional": null
+  },
+  {
+   "rel": "dlc1_uo_adren_trap.drm",
+   "md5": "0be8871a3fd0eade7c187a5548425c24",
+   "size": 2491019,
+   "patch": "patches/dlc1_uo_adren_trap.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\dlc1_uo_adren_trap.drm",
+    "spec": 4294967295,
+    "size": 2263179,
+    "md5": "a1823aa7b712446eabc0a1f392da8676"
+   },
+   "optional": null
+  },
+  {
+   "rel": "dlc1_uo_bend_switches.drm",
+   "md5": "efc4512a7ee4e4d75a282ca4cd0ca6b9",
+   "size": 2820703,
+   "patch": "patches/dlc1_uo_bend_switches.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\dlc1_uo_bend_switches.drm",
+    "spec": 4294967295,
+    "size": 2718962,
+    "md5": "8218923a598ec16629bf7fdcdeb1c9ee"
+   },
+   "optional": null
+  },
+  {
+   "rel": "dlc1_uo_cavern_hall_gate.drm",
+   "md5": "be7a04012c7d513c33dbd5672ea0fcf4",
+   "size": 2000051,
+   "patch": "patches/dlc1_uo_cavern_hall_gate.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\dlc1_uo_cavern_hall_gate.drm",
+    "spec": 4294967295,
+    "size": 1715650,
+    "md5": "0866f86373a8539c91325e3f96c412fa"
+   },
+   "optional": null
+  },
+  {
+   "rel": "dlc1_uo_cavern_hall_gate_two.drm",
+   "md5": "7135f4e77410964822c5b19eb24a0d4a",
+   "size": 2003342,
+   "patch": "patches/dlc1_uo_cavern_hall_gate_two.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\dlc1_uo_cavern_hall_gate_two.drm",
+    "spec": 4294967295,
+    "size": 1720530,
+    "md5": "464903e4ad078dcd22a979b1e9364697"
+   },
+   "optional": null
+  },
+  {
+   "rel": "dlc1_uo_chapel_gate_round_b.drm",
+   "md5": "8343b299d21a79c890dd0a332163c1fe",
+   "size": 1701822,
+   "patch": "patches/dlc1_uo_chapel_gate_round_b.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\dlc1_uo_chapel_gate_round_b.drm",
+    "spec": 4294967295,
+    "size": 1463385,
+    "md5": "1509438def7600723fa0d0e47eb16914"
+   },
+   "optional": null
+  },
+  {
+   "rel": "dlc1_uo_crushers.drm",
+   "md5": "c89286d9276a94e0d8537dfd692ff9ee",
+   "size": 2449567,
+   "patch": "patches/dlc1_uo_crushers.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\dlc1_uo_crushers.drm",
+    "spec": 4294967295,
+    "size": 2170835,
+    "md5": "2e511c64a4c61adabfb437f052752d76"
+   },
+   "optional": null
+  },
+  {
+   "rel": "dlc1_uo_dragon_slider.drm",
+   "md5": "9d79a7cfff12ee69377cdd415cb895bc",
+   "size": 3307749,
+   "patch": "patches/dlc1_uo_dragon_slider.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\dlc1_uo_dragon_slider.drm",
+    "spec": 4294967295,
+    "size": 3194087,
+    "md5": "9f1f38482909467a15c96b5073b625cc"
+   },
+   "optional": null
+  },
+  {
+   "rel": "dlc1_uo_dungeon_final_gate.drm",
+   "md5": "b718168447c73c87017d39ccfcb0498a",
+   "size": 1266461,
+   "patch": "patches/dlc1_uo_dungeon_final_gate.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\dlc1_uo_dungeon_final_gate.drm",
+    "spec": 4294967295,
+    "size": 1046678,
+    "md5": "86818ed9b8bbe28706426a30121a0ae7"
+   },
+   "optional": null
+  },
+  {
+   "rel": "dlc1_uo_goo_pit_gate.drm",
+   "md5": "2f78ceb7989612706640959238fc9d05",
+   "size": 1348476,
+   "patch": "patches/dlc1_uo_goo_pit_gate.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\dlc1_uo_goo_pit_gate.drm",
+    "spec": 4294967295,
+    "size": 1120138,
+    "md5": "85140aa839d4357e066a77d30815ccb0"
+   },
+   "optional": null
+  },
+  {
+   "rel": "dlc1_uo_goo_pit_lever.drm",
+   "md5": "6b1def27a9f741bf0338d8ca735ba088",
+   "size": 1757505,
+   "patch": "patches/dlc1_uo_goo_pit_lever.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\dlc1_uo_goo_pit_lever.drm",
+    "spec": 4294967295,
+    "size": 1765151,
+    "md5": "7b3e9d05e64fea9c88bf158184648916"
+   },
+   "optional": null
+  },
+  {
+   "rel": "dlc1_uo_guillotine.drm",
+   "md5": "005470122dd82f9e0705c8ec318365b0",
+   "size": 2233057,
+   "patch": "patches/dlc1_uo_guillotine.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\dlc1_uo_guillotine.drm",
+    "spec": 4294967295,
+    "size": 2249428,
+    "md5": "0263eb68f5c412527b7699b501b05f64"
+   },
+   "optional": null
+  },
+  {
+   "rel": "dlc1_uo_pillar_of_doom_a.drm",
+   "md5": "9daea3d5695bf6336b383eb95e3f2e3b",
+   "size": 4035286,
+   "patch": "patches/dlc1_uo_pillar_of_doom_a.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\dlc1_uo_pillar_of_doom_a.drm",
+    "spec": 4294967295,
+    "size": 3616581,
+    "md5": "a95c0b344efdca9601c84f26bc58529c"
+   },
+   "optional": null
+  },
+  {
+   "rel": "dlc1_uo_pillar_of_doom_b.drm",
+   "md5": "89fdbb3206435ad7cef5ff2905a5d00a",
+   "size": 4043839,
+   "patch": "patches/dlc1_uo_pillar_of_doom_b.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\dlc1_uo_pillar_of_doom_b.drm",
+    "spec": 4294967295,
+    "size": 3606135,
+    "md5": "b0d67e2a8e276dd2f37079c39f70725c"
+   },
+   "optional": null
+  },
+  {
+   "rel": "dlc1_uo_pillory.drm",
+   "md5": "16500d05a592cff33e5c7296561baffc",
+   "size": 3693937,
+   "patch": "patches/dlc1_uo_pillory.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\dlc1_uo_pillory.drm",
+    "spec": 4294967295,
+    "size": 3663479,
+    "md5": "ec52cb651fe982734228e437297d0495"
+   },
+   "optional": null
+  },
+  {
+   "rel": "dlc1_uo_pillory_axle.drm",
+   "md5": "2632816eec9fc3681ee3160d705947d0",
+   "size": 1865326,
+   "patch": "patches/dlc1_uo_pillory_axle.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\dlc1_uo_pillory_axle.drm",
+    "spec": 4294967295,
+    "size": 1913010,
+    "md5": "de54a0e88acae44702b3550f0aa672c2"
+   },
+   "optional": null
+  },
+  {
+   "rel": "dlc1_uo_pillory_collision_helper.drm",
+   "md5": "f2a2d2f0b836d5991b5ea616791c86c3",
+   "size": 22018,
+   "patch": "patches/dlc1_uo_pillory_collision_helper.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\dlc1_uo_pillory_collision_helper.drm",
+    "spec": 4294967295,
+    "size": 24748,
+    "md5": "21d4b406d9888823493cb98900d53039"
+   },
+   "optional": null
+  },
+  {
+   "rel": "dlc1_uo_raft_bridge.drm",
+   "md5": "693663418ff962c52b692f5f7ca7cb6f",
+   "size": 2217477,
+   "patch": "patches/dlc1_uo_raft_bridge.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\dlc1_uo_raft_bridge.drm",
+    "spec": 4294967295,
+    "size": 2171193,
+    "md5": "5fd4234f3e1f9483e108d4767c0e6fbe"
+   },
+   "optional": null
+  },
+  {
+   "rel": "dlc1_uo_raft_bridge_spawned.drm",
+   "md5": "abd76f5c2ce6accb4ea99c478d7620cd",
+   "size": 2339337,
+   "patch": "patches/dlc1_uo_raft_bridge_spawned.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\dlc1_uo_raft_bridge_spawned.drm",
+    "spec": 4294967295,
+    "size": 2234141,
+    "md5": "0c4acb943bd6485fdb29ee14ace23e68"
+   },
+   "optional": null
+  },
+  {
+   "rel": "dlc1_uo_sewer_gate.drm",
+   "md5": "6f89c6e57ce4752fc2f7501ee28f7775",
+   "size": 4083409,
+   "patch": "patches/dlc1_uo_sewer_gate.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\dlc1_uo_sewer_gate.drm",
+    "spec": 4294967295,
+    "size": 3881533,
+    "md5": "0578e0f1b702a286ce1c8de6ac7db205"
+   },
+   "optional": null
+  },
+  {
+   "rel": "dlc1_uo_sluice_falls.drm",
+   "md5": "d6cdac02dacf8dc89d1d2bad6dee6672",
+   "size": 487121,
+   "patch": "patches/dlc1_uo_sluice_falls.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\dlc1_uo_sluice_falls.drm",
+    "spec": 4294967295,
+    "size": 514188,
+    "md5": "a17f19e36a1d4d46bee59990814e2c81"
+   },
+   "optional": null
+  },
+  {
+   "rel": "dlc1_uo_sluice_gate.drm",
+   "md5": "bd37fe98c9166f854ec9050c7be15955",
+   "size": 1961455,
+   "patch": "patches/dlc1_uo_sluice_gate.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\dlc1_uo_sluice_gate.drm",
+    "spec": 4294967295,
+    "size": 1902189,
+    "md5": "83a1a7159372415d19377834555d40d8"
+   },
+   "optional": null
+  },
+  {
+   "rel": "dlc1_uo_wall_switch_b.drm",
+   "md5": "e916dcfcbc898f33900eecd2b1bfd302",
+   "size": 1485737,
+   "patch": "patches/dlc1_uo_wall_switch_b.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\dlc1_uo_wall_switch_b.drm",
+    "spec": 4294967295,
+    "size": 1476051,
+    "md5": "a8c6681b503cebd85262211c892637af"
+   },
+   "optional": null
+  },
+  {
+   "rel": "dlc1_uo_water_wheel.drm",
+   "md5": "8b5647282781ef3337885c1a4ee32ac1",
+   "size": 3777199,
+   "patch": "patches/dlc1_uo_water_wheel.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\dlc1_uo_water_wheel.drm",
+    "spec": 4294967295,
+    "size": 3970321,
+    "md5": "adc12785a18c88318c0ba4a35f49a62e"
+   },
+   "optional": null
+  },
+  {
+   "rel": "dlc_caverns.drm",
+   "md5": "d1ebf890c7d8c5a073e35060c2eff492",
+   "size": 41926955,
+   "patch": "patches/dlc_caverns.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\dlc_caverns.drm",
+    "spec": 4294967295,
+    "size": 42960215,
+    "md5": "b5275b4865a54d36bd918c370f0e553d"
+   },
+   "optional": null
+  },
+  {
+   "rel": "dlc_caverns_hall.drm",
+   "md5": "210f1b921a70eb7b608c40176668002e",
+   "size": 25193713,
+   "patch": "patches/dlc_caverns_hall.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\dlc_caverns_hall.drm",
+    "spec": 4294967295,
+    "size": 25558576,
+    "md5": "6f90034c321edcce6ba3f9d8bdde3ba6"
+   },
+   "optional": null
+  },
+  {
+   "rel": "dlc_caverns_hall_map.drm",
+   "md5": "ae7f485a9e4ab3013b787f265cba0b99",
+   "size": 203949,
+   "patch": "patches/dlc_caverns_hall_map.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\dlc_caverns_hall_map.drm",
+    "spec": 4294967295,
+    "size": 206181,
+    "md5": "c2b50e1661271677cfb8452a23cebf46"
+   },
+   "optional": null
+  },
+  {
+   "rel": "dlc_caverns_map.drm",
+   "md5": "065e355167f8354fa348f1e35fd19bb9",
+   "size": 262862,
+   "patch": "patches/dlc_caverns_map.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\dlc_caverns_map.drm",
+    "spec": 4294967295,
+    "size": 271383,
+    "md5": "cab0cfd6514fae010535a1789265418b"
+   },
+   "optional": null
+  },
+  {
+   "rel": "dlc_costume_b.drm",
+   "md5": "f35a7a9669aa81e9ae6de7e9a36946e4",
+   "size": 30118395,
+   "patch": "patches/dlc_costume_b.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\dlc_costume_b.drm",
+    "spec": 4294967295,
+    "size": 29314548,
+    "md5": "2cf210d6d4dbed4c55d0882374e7772c"
+   },
+   "optional": null
+  },
+  {
+   "rel": "dlc_costume_c.drm",
+   "md5": "3b84cb0d92e38ab45cd281fbdc2d4f40",
+   "size": 30103687,
+   "patch": "patches/dlc_costume_c.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\dlc_costume_c.drm",
+    "spec": 4294967295,
+    "size": 29260604,
+    "md5": "7fe6663d3a797da3e9e96fa121c51f38"
+   },
+   "optional": null
+  },
+  {
+   "rel": "dlc_costume_e.drm",
+   "md5": "dc08410162d6b4b4292bbfc4159dd4d1",
+   "size": 30001250,
+   "patch": "patches/dlc_costume_e.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\dlc_costume_e.drm",
+    "spec": 4294967295,
+    "size": 29158045,
+    "md5": "e598a9f5761b04e05b5fc0e06d465e41"
+   },
+   "optional": null
+  },
+  {
+   "rel": "dlc_costume_f.drm",
+   "md5": "8430d5d53745fed45f3e9442f144b058",
+   "size": 31791223,
+   "patch": "patches/dlc_costume_f.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\dlc_costume_f.drm",
+    "spec": 4294967295,
+    "size": 30787406,
+    "md5": "fb080a1fe5d501c8bbbb10a9447fd62e"
+   },
+   "optional": null
+  },
+  {
+   "rel": "dlc_costume_j.drm",
+   "md5": "6397fc23bdf97902bf3a1f2a2612f315",
+   "size": 30048303,
+   "patch": "patches/dlc_costume_j.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\dlc_costume_j.drm",
+    "spec": 4294967295,
+    "size": 29199681,
+    "md5": "51f6dfcdf3f78e81803f92e0f89f15c5"
+   },
+   "optional": null
+  },
+  {
+   "rel": "dlc_costume_o.drm",
+   "md5": "273ca9cc96cf6bf318a296d2e0e188cd",
+   "size": 31672566,
+   "patch": "patches/dlc_costume_o.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\dlc_costume_o.drm",
+    "spec": 4294967295,
+    "size": 30656781,
+    "md5": "22b034966e20f30435a8cdb6fe6e6ae6"
+   },
+   "optional": null
+  },
+  {
+   "rel": "dlc_dispatcher.drm",
+   "md5": "b9d52220844f613299aa5db917e31319",
+   "size": 70372,
+   "patch": "patches/dlc_dispatcher.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\dlc_dispatcher.drm",
+    "spec": 4294967295,
+    "size": 74320,
+    "md5": "4bb9d9df37ce64c23c6452295d321595"
+   },
+   "optional": null
+  },
+  {
+   "rel": "dlc_dungeon.drm",
+   "md5": "aef07df7a0bcdfff13e228a59304b267",
+   "size": 14987449,
+   "patch": "patches/dlc_dungeon.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\dlc_dungeon.drm",
+    "spec": 4294967295,
+    "size": 10363193,
+    "md5": "a0742c5a1c716cecbddd457084e01338"
+   },
+   "optional": null
+  },
+  {
+   "rel": "dlc_dungeon_map.drm",
+   "md5": "c0d19ab6c4dbfa607cd3e56124784a66",
+   "size": 752122,
+   "patch": "patches/dlc_dungeon_map.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\dlc_dungeon_map.drm",
+    "spec": 4294967295,
+    "size": 758458,
+    "md5": "12329748e4c3f38ab4bf55cd3f41ca9a"
+   },
+   "optional": null
+  },
+  {
+   "rel": "dlc_dungeonhalla.drm",
+   "md5": "1c05f79201c3af6bbd6956d88684f80c",
+   "size": 10551226,
+   "patch": "patches/dlc_dungeonhalla.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\dlc_dungeonhalla.drm",
+    "spec": 4294967295,
+    "size": 7161001,
+    "md5": "895e53236799d93644451627543f5edd"
+   },
+   "optional": null
+  },
+  {
+   "rel": "dlc_dungeonhalla_map.drm",
+   "md5": "0c69abfb3a01ec921924a32a05bd236b",
+   "size": 434931,
+   "patch": "patches/dlc_dungeonhalla_map.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\dlc_dungeonhalla_map.drm",
+    "spec": 4294967295,
+    "size": 438335,
+    "md5": "2b97b8687ca740c9ab4438894a1cd474"
+   },
+   "optional": null
+  },
+  {
+   "rel": "dlc_dungeonhallb.drm",
+   "md5": "517e316a8012f12a4cabc0482c7dd678",
+   "size": 9318740,
+   "patch": "patches/dlc_dungeonhallb.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\dlc_dungeonhallb.drm",
+    "spec": 4294967295,
+    "size": 6300880,
+    "md5": "c5ae0b6b06bc968d3a4d6f93e029b03f"
+   },
+   "optional": null
+  },
+  {
+   "rel": "dlc_dungeonhallb_map.drm",
+   "md5": "676b4d4d0ce1b5b21030d3d51796e9a9",
+   "size": 510896,
+   "patch": "patches/dlc_dungeonhallb_map.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\dlc_dungeonhallb_map.drm",
+    "spec": 4294967295,
+    "size": 509969,
+    "md5": "4e90d54b9b42dbacb598727e253a7d24"
+   },
+   "optional": null
+  },
+  {
+   "rel": "dlc_fx_cine_thrall_death.drm",
+   "md5": "ed23ed6903247df1c4c6edcb2c3183c7",
+   "size": 368014,
+   "patch": "patches/dlc_fx_cine_thrall_death.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\dlc_fx_cine_thrall_death.drm",
+    "spec": 4294967295,
+    "size": 378586,
+    "md5": "dc035f92bc07981068772a7b5017d3da"
+   },
+   "optional": null
+  },
+  {
+   "rel": "dlc_fx_drips_ist.drm",
+   "md5": "a64b35355de38c0b17db5630fcbe2704",
+   "size": 458512,
+   "patch": "patches/dlc_fx_drips_ist.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\dlc_fx_drips_ist.drm",
+    "spec": 4294967295,
+    "size": 418330,
+    "md5": "aab3410a69c5f282b05f2c01257f566f"
+   },
+   "optional": null
+  },
+  {
+   "rel": "dlc_fx_drips_noring_ist.drm",
+   "md5": "4cbb72644cbe6175aac9406e883eba78",
+   "size": 458512,
+   "patch": "patches/dlc_fx_drips_noring_ist.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\dlc_fx_drips_noring_ist.drm",
+    "spec": 4294967295,
+    "size": 418330,
+    "md5": "d4990141c8aba8329a6ab04965808f54"
+   },
+   "optional": null
+  },
+  {
+   "rel": "dlc_fx_fall_base.drm",
+   "md5": "21abf75e719eab618bca1640722f575c",
+   "size": 466230,
+   "patch": "patches/dlc_fx_fall_base.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\dlc_fx_fall_base.drm",
+    "spec": 4294967295,
+    "size": 420429,
+    "md5": "d8c142e470847e87438595c3f7c839e3"
+   },
+   "optional": null
+  },
+  {
+   "rel": "dlc_fx_flying_bugs_dark_cvn_ist.drm",
+   "md5": "4e85ca81e96c15fd3857522e7b4d38d2",
+   "size": 218834,
+   "patch": "patches/dlc_fx_flying_bugs_dark_cvn_ist.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\dlc_fx_flying_bugs_dark_cvn_ist.drm",
+    "spec": 4294967295,
+    "size": 174445,
+    "md5": "f030700059ea6ab8dae327ce20916d08"
+   },
+   "optional": null
+  },
+  {
+   "rel": "dlc_fx_flying_bugs_light_cvn_ist.drm",
+   "md5": "2c09c2ae56db505f9dbae43ba4314ffb",
+   "size": 218850,
+   "patch": "patches/dlc_fx_flying_bugs_light_cvn_ist.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\dlc_fx_flying_bugs_light_cvn_ist.drm",
+    "spec": 4294967295,
+    "size": 174461,
+    "md5": "bcb48996b84d5119cfee2ae1b72787c0"
+   },
+   "optional": null
+  },
+  {
+   "rel": "dlc_fx_glare_simple_cvn_ist.drm",
+   "md5": "aab6b021dbc328a64c14e6662333f080",
+   "size": 100901,
+   "patch": "patches/dlc_fx_glare_simple_cvn_ist.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\dlc_fx_glare_simple_cvn_ist.drm",
+    "spec": 4294967295,
+    "size": 108829,
+    "md5": "b7fd1ab84a1bb3920e83b3dbc0439599"
+   },
+   "optional": null
+  },
+  {
+   "rel": "dlc_fx_glare_simple_dun_ist.drm",
+   "md5": "9c529c01c868c1474664959ce063375e",
+   "size": 100901,
+   "patch": "patches/dlc_fx_glare_simple_dun_ist.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\dlc_fx_glare_simple_dun_ist.drm",
+    "spec": 4294967295,
+    "size": 108829,
+    "md5": "c3be23f33d404f197e26db9403ccba90"
+   },
+   "optional": null
+  },
+  {
+   "rel": "dlc_fx_glare_simple_dunhall_ist.drm",
+   "md5": "5663293b8952c44aba514353b21edd1a",
+   "size": 100901,
+   "patch": "patches/dlc_fx_glare_simple_dunhall_ist.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\dlc_fx_glare_simple_dunhall_ist.drm",
+    "spec": 4294967295,
+    "size": 108829,
+    "md5": "221b94b2e06702fc2633890c4d1fa94b"
+   },
+   "optional": null
+  },
+  {
+   "rel": "dlc_fx_glare_simple_dunhall_sml_ist.drm",
+   "md5": "6d693e6df147b3d9349bba6f4c06372d",
+   "size": 100901,
+   "patch": "patches/dlc_fx_glare_simple_dunhall_sml_ist.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\dlc_fx_glare_simple_dunhall_sml_ist.drm",
+    "spec": 4294967295,
+    "size": 108829,
+    "md5": "f31065c0820e57c82c18bbe7931ac586"
+   },
+   "optional": null
+  },
+  {
+   "rel": "dlc_fx_glare_simple_hallb_ist.drm",
+   "md5": "c5c35b5789cc49e53920f719b0c9789c",
+   "size": 100901,
+   "patch": "patches/dlc_fx_glare_simple_hallb_ist.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\dlc_fx_glare_simple_hallb_ist.drm",
+    "spec": 4294967295,
+    "size": 108829,
+    "md5": "d4d93c28e517121e6610336e4bd239e9"
+   },
+   "optional": null
+  },
+  {
+   "rel": "dlc_fx_glare_simple_scav_hall_ist.drm",
+   "md5": "7a9a804187ffe2e918ce59c5eb96f4a6",
+   "size": 100901,
+   "patch": "patches/dlc_fx_glare_simple_scav_hall_ist.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\dlc_fx_glare_simple_scav_hall_ist.drm",
+    "spec": 4294967295,
+    "size": 108829,
+    "md5": "149a9b9296f9d27816ac26754d771e9e"
+   },
+   "optional": null
+  },
+  {
+   "rel": "dlc_fx_glare_simple_waterwhl_ist.drm",
+   "md5": "ba052f729334eaa37d3686ef73c09cad",
+   "size": 100901,
+   "patch": "patches/dlc_fx_glare_simple_waterwhl_ist.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\dlc_fx_glare_simple_waterwhl_ist.drm",
+    "spec": 4294967295,
+    "size": 108829,
+    "md5": "39194a041a952a8358bb87933366fda8"
+   },
+   "optional": null
+  },
+  {
+   "rel": "dlc_fx_goo_dun_ist.drm",
+   "md5": "377f44fbf29a8aaca8778da843143fbe",
+   "size": 1161470,
+   "patch": "patches/dlc_fx_goo_dun_ist.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\dlc_fx_goo_dun_ist.drm",
+    "spec": 4294967295,
+    "size": 1182557,
+    "md5": "b66da655a64af2067e341663c460e677"
+   },
+   "optional": null
+  },
+  {
+   "rel": "dlc_fx_goo_sml_fall.drm",
+   "md5": "eb06bc314338737893d0d744b9e102c3",
+   "size": 293950,
+   "patch": "patches/dlc_fx_goo_sml_fall.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\dlc_fx_goo_sml_fall.drm",
+    "spec": 4294967295,
+    "size": 309080,
+    "md5": "7c71b8ee40633464eda4dcb6724becca"
+   },
+   "optional": null
+  },
+  {
+   "rel": "dlc_fx_goo_tres_ist.drm",
+   "md5": "992da9a91bc79603e429bdbd906d98a2",
+   "size": 1161486,
+   "patch": "patches/dlc_fx_goo_tres_ist.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\dlc_fx_goo_tres_ist.drm",
+    "spec": 4294967295,
+    "size": 1182589,
+    "md5": "4f4489ae2cff402f6e1184900b386022"
+   },
+   "optional": null
+  },
+  {
+   "rel": "dlc_fx_goo_tres_line_ist.drm",
+   "md5": "f96652a2c9d5959e985f91c9089b5232",
+   "size": 1161502,
+   "patch": "patches/dlc_fx_goo_tres_line_ist.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\dlc_fx_goo_tres_line_ist.drm",
+    "spec": 4294967295,
+    "size": 1182589,
+    "md5": "56954f30d098aa65ffe14d92958dc1fd"
+   },
+   "optional": null
+  },
+  {
+   "rel": "dlc_fx_haze.drm",
+   "md5": "b3f9099bd55a3a4ead3b60fc3a73314a",
+   "size": 259985,
+   "patch": "patches/dlc_fx_haze.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\dlc_fx_haze.drm",
+    "spec": 4294967295,
+    "size": 268662,
+    "md5": "e068040b0ec0e18f67f17076fe5349aa"
+   },
+   "optional": null
+  },
+  {
+   "rel": "dlc_fx_haze_grey.drm",
+   "md5": "0498951318dc645789b80ef662e35c3e",
+   "size": 260003,
+   "patch": "patches/dlc_fx_haze_grey.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\dlc_fx_haze_grey.drm",
+    "spec": 4294967295,
+    "size": 268678,
+    "md5": "4fcaf35b5f7214cc6a8fc2ab4480c61e"
+   },
+   "optional": null
+  },
+  {
+   "rel": "dlc_fx_rain_sheet_med_ist.drm",
+   "md5": "dc915ff98dd7f9997439c2d6b68c1cb3",
+   "size": 794571,
+   "patch": "patches/dlc_fx_rain_sheet_med_ist.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\dlc_fx_rain_sheet_med_ist.drm",
+    "spec": 4294967295,
+    "size": 718520,
+    "md5": "280d8a92ea94e1517850ce852d75094c"
+   },
+   "optional": null
+  },
+  {
+   "rel": "dlc_fx_rain_sheet_no_em_ist.drm",
+   "md5": "05810dfeaea67316e699c07385429d11",
+   "size": 794571,
+   "patch": "patches/dlc_fx_rain_sheet_no_em_ist.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\dlc_fx_rain_sheet_no_em_ist.drm",
+    "spec": 4294967295,
+    "size": 718504,
+    "md5": "698f22748d3e69b111de9c733f2373c4"
+   },
+   "optional": null
+  },
+  {
+   "rel": "dlc_fx_rain_sheet_short_ist.drm",
+   "md5": "e12f56090601f4ef0fa19b41825d25d6",
+   "size": 794571,
+   "patch": "patches/dlc_fx_rain_sheet_short_ist.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\dlc_fx_rain_sheet_short_ist.drm",
+    "spec": 4294967295,
+    "size": 718520,
+    "md5": "d78ac90f4bd3b1cf2310ab6bb6c0c955"
+   },
+   "optional": null
+  },
+  {
+   "rel": "dlc_fx_splash_base.drm",
+   "md5": "1c76fd8c8843be89871eb256291d0998",
+   "size": 466278,
+   "patch": "patches/dlc_fx_splash_base.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\dlc_fx_splash_base.drm",
+    "spec": 4294967295,
+    "size": 420461,
+    "md5": "e622c5252132498805ac12d8f602355f"
+   },
+   "optional": null
+  },
+  {
+   "rel": "dlc_fx_water_ripples_ist.drm",
+   "md5": "9112a8fdcff2f57c32252d12da410e41",
+   "size": 163628,
+   "patch": "patches/dlc_fx_water_ripples_ist.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\dlc_fx_water_ripples_ist.drm",
+    "spec": 4294967295,
+    "size": 174069,
+    "md5": "6f1d3ec4f7d49d701f95b399b1887b53"
+   },
+   "optional": null
+  },
+  {
+   "rel": "dlc_fx_water_ripples_thin_ist.drm",
+   "md5": "76a614e43e7aa63933dba8a5f802b899",
+   "size": 163612,
+   "patch": "patches/dlc_fx_water_ripples_thin_ist.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\dlc_fx_water_ripples_thin_ist.drm",
+    "spec": 4294967295,
+    "size": 174069,
+    "md5": "d19a49d46e90a2d41ec2880d95f8a27a"
+   },
+   "optional": null
+  },
+  {
+   "rel": "dlc_fx_water_spout_simple_ist.drm",
+   "md5": "3beb4c7f9d94c75cdeca6aa126847724",
+   "size": 487614,
+   "patch": "patches/dlc_fx_water_spout_simple_ist.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\dlc_fx_water_spout_simple_ist.drm",
+    "spec": 4294967295,
+    "size": 455868,
+    "md5": "f59e401a437778aa811248a3546f361a"
+   },
+   "optional": null
+  },
+  {
+   "rel": "dlc_fx_waterfall_cvn_ist.drm",
+   "md5": "d3678c87f75e77b4dd42f8d229a7fb79",
+   "size": 922326,
+   "patch": "patches/dlc_fx_waterfall_cvn_ist.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\dlc_fx_waterfall_cvn_ist.drm",
+    "spec": 4294967295,
+    "size": 1012862,
+    "md5": "89d51ea47f12cd54f700c57e28902ada"
+   },
+   "optional": null
+  },
+  {
+   "rel": "dlc_fx_waterfall_cvn_thin_ist.drm",
+   "md5": "a7f2b99df8909042d3020a3656f448b8",
+   "size": 922310,
+   "patch": "patches/dlc_fx_waterfall_cvn_thin_ist.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\dlc_fx_waterfall_cvn_thin_ist.drm",
+    "spec": 4294967295,
+    "size": 1012846,
+    "md5": "d005844d11c80827ff7a7b7806cd5dcc"
+   },
+   "optional": null
+  },
+  {
+   "rel": "dlc_fx_waterfalledge.drm",
+   "md5": "a48f1171413edfa6719c967e6d9a9d50",
+   "size": 244982,
+   "patch": "patches/dlc_fx_waterfalledge.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\dlc_fx_waterfalledge.drm",
+    "spec": 4294967295,
+    "size": 259347,
+    "md5": "5e6cc121683005707169af405ed597ed"
+   },
+   "optional": null
+  },
+  {
+   "rel": "dlc_fx_waterfalledge_simple.drm",
+   "md5": "6b3eeb79a61100ef5a4715ed588faaf1",
+   "size": 244982,
+   "patch": "patches/dlc_fx_waterfalledge_simple.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\dlc_fx_waterfalledge_simple.drm",
+    "spec": 4294967295,
+    "size": 259347,
+    "md5": "bf77337cbc3352aa62f5b1c5c816094b"
+   },
+   "optional": null
+  },
+  {
+   "rel": "dlc_level1_start.drm",
+   "md5": "b7ccaae1a1bc516161e3d0a2b28e68b3",
+   "size": 28522408,
+   "patch": "patches/dlc_level1_start.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\dlc_level1_start.drm",
+    "spec": 4294967295,
+    "size": 29670223,
+    "md5": "8041c458dcf6d322bbbc2620bef98594"
+   },
+   "optional": null
+  },
+  {
+   "rel": "dlc_level1_start_map.drm",
+   "md5": "df8f0513743800d492e70ec8445bb193",
+   "size": 1233,
+   "patch": "patches/dlc_level1_start_map.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\dlc_level1_start_map.drm",
+    "spec": 4294967295,
+    "size": 1208,
+    "md5": "e76702843b039a510108c1d2d1f71ea2"
+   },
+   "optional": null
+  },
+  {
+   "rel": "dlc_pillory.drm",
+   "md5": "e0da02028da2bdf3abe930b0351dd596",
+   "size": 8815873,
+   "patch": "patches/dlc_pillory.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\dlc_pillory.drm",
+    "spec": 4294967295,
+    "size": 6074565,
+    "md5": "60b5e2912c3682e26e29df74cbc4f02d"
+   },
+   "optional": null
+  },
+  {
+   "rel": "dlc_pillory_map.drm",
+   "md5": "a172dc63a5d13af47a58b1faa748ae11",
+   "size": 681503,
+   "patch": "patches/dlc_pillory_map.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\dlc_pillory_map.drm",
+    "spec": 4294967295,
+    "size": 683690,
+    "md5": "38f0b39ef758e3f948743f28924fe963"
+   },
+   "optional": null
+  },
+  {
+   "rel": "dlc_treasureroom.drm",
+   "md5": "9c18b02947a78dc2eca023107f82b47f",
+   "size": 1611804,
+   "patch": "patches/dlc_treasureroom.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\dlc_treasureroom.drm",
+    "spec": 4294967295,
+    "size": 1211865,
+    "md5": "09884f6b54e27302022abc9a72879f41"
+   },
+   "optional": null
+  },
+  {
+   "rel": "dlc_treasureroom_map.drm",
+   "md5": "ba0474c2e74044999647314e21839c74",
+   "size": 1234,
+   "patch": "patches/dlc_treasureroom_map.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\dlc_treasureroom_map.drm",
+    "spec": 4294967295,
+    "size": 1204,
+    "md5": "4ec7907c5266f7d71fad8dc55d00da55"
+   },
+   "optional": null
+  },
+  {
+   "rel": "dlc_water_wheel.drm",
+   "md5": "26e719663838a28fd647162c1feae2db",
+   "size": 6614964,
+   "patch": "patches/dlc_water_wheel.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\dlc_water_wheel.drm",
+    "spec": 4294967295,
+    "size": 4507985,
+    "md5": "d9a6bac9784d5b6efe50656bbbe3039b"
+   },
+   "optional": null
+  },
+  {
+   "rel": "dlc_water_wheel_map.drm",
+   "md5": "63f629e6a2de69c96768805667676f5f",
+   "size": 230265,
+   "patch": "patches/dlc_water_wheel_map.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\dlc_water_wheel_map.drm",
+    "spec": 4294967295,
+    "size": 233320,
+    "md5": "92250a9f5ce4b475ab89922eb9b0a7c2"
+   },
+   "optional": null
+  },
+  {
+   "rel": "dlc_watertunnel.drm",
+   "md5": "214d345328fc42e0ba33eba1015d4a62",
+   "size": 5124554,
+   "patch": "patches/dlc_watertunnel.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\dlc_watertunnel.drm",
+    "spec": 4294967295,
+    "size": 3399221,
+    "md5": "deebab1817acbbc98d6093bf760342aa"
+   },
+   "optional": null
+  },
+  {
+   "rel": "dlc_watertunnel_map.drm",
+   "md5": "7992e00b26fa355273ee4744e4244550",
+   "size": 170819,
+   "patch": "patches/dlc_watertunnel_map.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\dlc_watertunnel_map.drm",
+    "spec": 4294967295,
+    "size": 173248,
+    "md5": "86d378160b59475a4e1728617bca7dc6"
+   },
+   "optional": null
+  },
+  {
+   "rel": "doppelganger.drm",
+   "md5": "08356e4de7673d60e45612b32c849fd5",
+   "size": 6733273,
+   "patch": "patches/doppelganger.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\doppelganger.drm",
+    "spec": 4294967295,
+    "size": 7484860,
+    "md5": "40b29b51fea69ad4717bd697768cfaa0"
+   },
+   "optional": null
+  },
+  {
+   "rel": "fx_dlc1_dungeon_spout_large_a.drm",
+   "md5": "26102c9873d22454c903c70d8062a1e7",
+   "size": 222875,
+   "patch": "patches/fx_dlc1_dungeon_spout_large_a.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\fx_dlc1_dungeon_spout_large_a.drm",
+    "spec": 4294967295,
+    "size": 233157,
+    "md5": "17b7526aa98e63c819a757df2a129ef9"
+   },
+   "optional": null
+  },
+  {
+   "rel": "fx_dlc1_dungeon_spout_large_b.drm",
+   "md5": "412d3b2a63b707e1d40c313b33ca0375",
+   "size": 222817,
+   "patch": "patches/fx_dlc1_dungeon_spout_large_b.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\fx_dlc1_dungeon_spout_large_b.drm",
+    "spec": 4294967295,
+    "size": 233037,
+    "md5": "f2ca7b7cf32eb71950bc42c162bc6ceb"
+   },
+   "optional": null
+  },
+  {
+   "rel": "fx_dlc1_dungeon_spout_large_c.drm",
+   "md5": "3dcb1e5c143eeda00280dad6095249c8",
+   "size": 222913,
+   "patch": "patches/fx_dlc1_dungeon_spout_large_c.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\fx_dlc1_dungeon_spout_large_c.drm",
+    "spec": 4294967295,
+    "size": 233133,
+    "md5": "07844feb55a839819d9cacf7ac862d22"
+   },
+   "optional": null
+  },
+  {
+   "rel": "fx_dlc1_dungeon_spout_sml.drm",
+   "md5": "50199fca16a82eaa8e60ebd9e9bc470f",
+   "size": 223432,
+   "patch": "patches/fx_dlc1_dungeon_spout_sml.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\fx_dlc1_dungeon_spout_sml.drm",
+    "spec": 4294967295,
+    "size": 234292,
+    "md5": "92bc4d37cbda9aec6993ec6444dc1d3d"
+   },
+   "optional": null
+  },
+  {
+   "rel": "fx_dlc_haze.drm",
+   "md5": "9874100586a1894a1076d99a3ef210d1",
+   "size": 269848,
+   "patch": "patches/fx_dlc_haze.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\fx_dlc_haze.drm",
+    "spec": 4294967295,
+    "size": 275956,
+    "md5": "8434ff08254fe71a5b6989180cf2b3a9"
+   },
+   "optional": null
+  },
+  {
+   "rel": "fx_dlc_water_spout_man_dungn_ist.drm",
+   "md5": "5685f70afa5f32d1a49b4a6049323c15",
+   "size": 474092,
+   "patch": "patches/fx_dlc_water_spout_man_dungn_ist.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\fx_dlc_water_spout_man_dungn_ist.drm",
+    "spec": 4294967295,
+    "size": 441246,
+    "md5": "d9a199b4692620e6b7666fe906e5ec4d"
+   },
+   "optional": null
+  },
+  {
+   "rel": "fx_dlc_water_spout_man_dungn_less_ist.drm",
+   "md5": "2e2c0bae6e59ffa9e79f2ae2eea582e0",
+   "size": 474092,
+   "patch": "patches/fx_dlc_water_spout_man_dungn_less_ist.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\fx_dlc_water_spout_man_dungn_less_ist.drm",
+    "spec": 4294967295,
+    "size": 441246,
+    "md5": "f04086c786e02c7b57634a4b1f2ce786"
+   },
+   "optional": null
+  },
+  {
+   "rel": "fx_dlc_water_spout_man_dungn_short_ist.drm",
+   "md5": "7d0e93fe5b092e8b97b21f73479adb4b",
+   "size": 474092,
+   "patch": "patches/fx_dlc_water_spout_man_dungn_short_ist.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\fx_dlc_water_spout_man_dungn_short_ist.drm",
+    "spec": 4294967295,
+    "size": 441246,
+    "md5": "6735b1aa3f992b926c590665a4a7de18"
+   },
+   "optional": null
+  },
+  {
+   "rel": "fx_dlc_water_spout_man_dungn_short_less_ist.drm",
+   "md5": "ffb681c643608ae7fc5dd617e8c0cea3",
+   "size": 474108,
+   "patch": "patches/fx_dlc_water_spout_man_dungn_short_less_ist.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\fx_dlc_water_spout_man_dungn_short_less_ist.drm",
+    "spec": 4294967295,
+    "size": 441230,
+    "md5": "b2962006819f1701a45342d26c982ab0"
+   },
+   "optional": null
+  },
+  {
+   "rel": "fx_drips_pillory_ist.drm",
+   "md5": "027f989f2df5a4d02575ed01ff9de03f",
+   "size": 458528,
+   "patch": "patches/fx_drips_pillory_ist.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\fx_drips_pillory_ist.drm",
+    "spec": 4294967295,
+    "size": 418330,
+    "md5": "49617ff2fe2a38987ae69b98ba57b315"
+   },
+   "optional": null
+  },
+  {
+   "rel": "fx_ma_waterwheel_current_ist.drm",
+   "md5": "8ead55027d039953d1324d67ce37f97f",
+   "size": 314841,
+   "patch": "patches/fx_ma_waterwheel_current_ist.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\fx_ma_waterwheel_current_ist.drm",
+    "spec": 4294967295,
+    "size": 324181,
+    "md5": "42cd95103bf7e0780cde71784f1495cf"
+   },
+   "optional": null
+  },
+  {
+   "rel": "fx_mex_puddle_ist.drm",
+   "md5": "2390981a914405e202184f4658802a3e",
+   "size": 691311,
+   "patch": "patches/fx_mex_puddle_ist.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\fx_mex_puddle_ist.drm",
+    "spec": 4294967295,
+    "size": 609598,
+    "md5": "18987424bb2b560c9a21ae8092fd39b9"
+   },
+   "optional": null
+  },
+  {
+   "rel": "fx_waterwheel_fsfx.drm",
+   "md5": "be9a5c196cd7f82e0baae6795d9a0f68",
+   "size": 70808,
+   "patch": "patches/fx_waterwheel_fsfx.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\fx_waterwheel_fsfx.drm",
+    "spec": 4294967295,
+    "size": 81151,
+    "md5": "1d5637b0fae7b9c9efeeb9df65d2bc90"
+   },
+   "optional": null
+  },
+  {
+   "rel": "generalbank.drm",
+   "md5": "e2688b11769128de57470a2aa630132e",
+   "size": 4445624,
+   "patch": "patches/generalbank.drm.bsdiff",
+   "source": {
+    "kind": "pc",
+    "archive": "patch.000",
+    "name": "pc-w\\generalbank.drm",
+    "spec": 4294967295,
+    "size": 4445187,
+    "md5": "fff9ca0b01a49843e927c524627da78f"
+   },
+   "optional": null
+  },
+  {
+   "rel": "globalsoundinfo.drm",
+   "md5": "444484266d549b13b0c3eac25059fb85",
+   "size": 17698,
+   "patch": "patches/globalsoundinfo.drm.bsdiff",
+   "source": {
+    "kind": "pc",
+    "archive": "bigfile.000",
+    "name": "pc-w\\globalsoundinfo.drm",
+    "spec": 4294967295,
+    "size": 17614,
+    "md5": "3a7656766e7ae159b59a9dc25f90604a"
+   },
+   "optional": null
+  },
+  {
+   "rel": "image/concept_natla_early.raw",
+   "md5": "3ce16562b05f2fd463988069e1bf897b",
+   "size": 1228928,
+   "patch": "patches/image__concept_natla_early.raw.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack11.000",
+    "name": "xenon-w\\image\\concept_natla_early.raw",
+    "spec": 4294967295,
+    "size": 1228928,
+    "md5": "220cdf68955e010ff2715c4fd69acab6"
+   },
+   "optional": "dlc2"
+  },
+  {
+   "rel": "image/concept_natla_mdlsheet.raw",
+   "md5": "bae8f2266bb5b9ff4bdfd706decdd65e",
+   "size": 1228928,
+   "patch": "patches/image__concept_natla_mdlsheet.raw.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack11.000",
+    "name": "xenon-w\\image\\concept_natla_mdlsheet.raw",
+    "spec": 4294967295,
+    "size": 1228928,
+    "md5": "0bf746d515290a0b90b42a2d0c9bb005"
+   },
+   "optional": "dlc2"
+  },
+  {
+   "rel": "image/concept_natla_sketch.raw",
+   "md5": "7d712d3242961c1c04b4bbe136290bcb",
+   "size": 1228928,
+   "patch": "patches/image__concept_natla_sketch.raw.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack11.000",
+    "name": "xenon-w\\image\\concept_natla_sketch.raw",
+    "spec": 4294967295,
+    "size": 1228928,
+    "md5": "c6c568ef4533436f1b15abfbf21e09df"
+   },
+   "optional": "dlc2"
+  },
+  {
+   "rel": "image/controls_dlc2_d.raw",
+   "md5": "e7b0d58d15fe4d6d3f333355d3324a9e",
+   "size": 3686528,
+   "patch": "patches/image__controls_dlc2_d.raw.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack11.000",
+    "name": "xenon-w\\image\\controls_dlc2_d.raw",
+    "spec": 4294967295,
+    "size": 3768448,
+    "md5": "ed35f9be1a68de5d268c19681c07b057"
+   },
+   "optional": "dlc2"
+  },
+  {
+   "rel": "image/controls_dlc2_e.raw",
+   "md5": "e433b266b59eec9206f8408734630465",
+   "size": 3686528,
+   "patch": "patches/image__controls_dlc2_e.raw.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack11.000",
+    "name": "xenon-w\\image\\controls_dlc2_e.raw",
+    "spec": 4294967295,
+    "size": 3768448,
+    "md5": "57db0c3d6dce7ebe5e63cf462b109c16"
+   },
+   "optional": "dlc2"
+  },
+  {
+   "rel": "image/controls_dlc2_f.raw",
+   "md5": "a77a882e7800723bd19fbdc0bcf3754e",
+   "size": 3686528,
+   "patch": "patches/image__controls_dlc2_f.raw.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack11.000",
+    "name": "xenon-w\\image\\controls_dlc2_f.raw",
+    "spec": 4294967295,
+    "size": 3768448,
+    "md5": "16877f580692a2af01e5b9d49af3d212"
+   },
+   "optional": "dlc2"
+  },
+  {
+   "rel": "image/controls_dlc2_g.raw",
+   "md5": "e1d278d806f0734603c31d9d5051fb74",
+   "size": 3686528,
+   "patch": "patches/image__controls_dlc2_g.raw.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack11.000",
+    "name": "xenon-w\\image\\controls_dlc2_g.raw",
+    "spec": 4294967295,
+    "size": 3768448,
+    "md5": "55104d2016239ce0f90c4eac6b591643"
+   },
+   "optional": "dlc2"
+  },
+  {
+   "rel": "image/controls_dlc2_i.raw",
+   "md5": "91abbefaca6dc98bcfd24137e1b58dfb",
+   "size": 3686528,
+   "patch": "patches/image__controls_dlc2_i.raw.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack11.000",
+    "name": "xenon-w\\image\\controls_dlc2_i.raw",
+    "spec": 4294967295,
+    "size": 3768448,
+    "md5": "1efbd31e5107a41c8164560eb5ee7b54"
+   },
+   "optional": "dlc2"
+  },
+  {
+   "rel": "image/controls_dlc2_s.raw",
+   "md5": "0a28ff44a0e56a06e937ba4bb29c895c",
+   "size": 3686528,
+   "patch": "patches/image__controls_dlc2_s.raw.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack11.000",
+    "name": "xenon-w\\image\\controls_dlc2_s.raw",
+    "spec": 4294967295,
+    "size": 3768448,
+    "md5": "54f5da5d86c561d545591f2f8b063abe"
+   },
+   "optional": "dlc2"
+  },
+  {
+   "rel": "image/dlc_level1_preview.raw",
+   "md5": "a7aae186c26a876f7448259d43f7e34a",
+   "size": 921728,
+   "patch": "patches/image__dlc_level1_preview.raw.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\image\\dlc_level1_preview.raw",
+    "spec": 4294967295,
+    "size": 983168,
+    "md5": "6542e2528ec5629c11ebc4f6a0240210"
+   },
+   "optional": null
+  },
+  {
+   "rel": "image/dlc_level2_preview.raw",
+   "md5": "578844ee2b5acc9c44be3ab1c6478108",
+   "size": 3686528,
+   "patch": "patches/image__dlc_level2_preview.raw.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\image\\dlc_level2_preview.raw",
+    "spec": 4294967295,
+    "size": 16512,
+    "md5": "ec39f82e7a470664155962ffbe9caf5c"
+   },
+   "optional": null
+  },
+  {
+   "rel": "image/dlc_level3_preview.raw",
+   "md5": "33da7f274a67567c7bd6186b767e2ba0",
+   "size": 9344,
+   "patch": "patches/image__dlc_level3_preview.raw.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\image\\dlc_level3_preview.raw",
+    "spec": 4294967295,
+    "size": 16512,
+    "md5": "60030a5cc45f1f57199a35d81b0edee6"
+   },
+   "optional": null
+  },
+  {
+   "rel": "image/dlc_level4_preview.raw",
+   "md5": "c140239d1038265305aab0ca7fa0ad32",
+   "size": 9344,
+   "patch": "patches/image__dlc_level4_preview.raw.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\image\\dlc_level4_preview.raw",
+    "spec": 4294967295,
+    "size": 16512,
+    "md5": "7dac78ed19869ccc1f2739bdda91d808"
+   },
+   "optional": null
+  },
+  {
+   "rel": "image/dlc_level5_preview.raw",
+   "md5": "603829e6cd1433c05b87037e8abefec7",
+   "size": 9344,
+   "patch": "patches/image__dlc_level5_preview.raw.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\image\\dlc_level5_preview.raw",
+    "spec": 4294967295,
+    "size": 16512,
+    "md5": "7c5e5dc518893eefac87254e0956085e"
+   },
+   "optional": null
+  },
+  {
+   "rel": "image/dlc_level6_preview.raw",
+   "md5": "1a8c8c69a74077c72abefefc8535423d",
+   "size": 9344,
+   "patch": "patches/image__dlc_level6_preview.raw.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\image\\dlc_level6_preview.raw",
+    "spec": 4294967295,
+    "size": 16512,
+    "md5": "c5cb494b1e12fafe3797c4fd32d695ed"
+   },
+   "optional": null
+  },
+  {
+   "rel": "image/dlc_outfit_costume_a.raw",
+   "md5": "b5e605fdc2d4e079afc540f6f6375dc8",
+   "size": 225628,
+   "patch": "patches/image__dlc_outfit_costume_a.raw.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\image\\dlc_outfit_costume_a.raw",
+    "spec": 4294967295,
+    "size": 258176,
+    "md5": "12901245cf9984950791e479e28ff109"
+   },
+   "optional": null
+  },
+  {
+   "rel": "image/dlc_outfit_costume_b.raw",
+   "md5": "6661c2b8c48492e5ccc2315d681a94b2",
+   "size": 225628,
+   "patch": "patches/image__dlc_outfit_costume_b.raw.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\image\\dlc_outfit_costume_b.raw",
+    "spec": 4294967295,
+    "size": 258176,
+    "md5": "09c5cdcda556b8a9880513e30cbbdf70"
+   },
+   "optional": null
+  },
+  {
+   "rel": "image/dlc_outfit_costume_c.raw",
+   "md5": "5c71468b82184bfb11ae690a41ab15f6",
+   "size": 225628,
+   "patch": "patches/image__dlc_outfit_costume_c.raw.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\image\\dlc_outfit_costume_c.raw",
+    "spec": 4294967295,
+    "size": 258176,
+    "md5": "3f6d2e0636ba3c4318a82dbee011722c"
+   },
+   "optional": null
+  },
+  {
+   "rel": "image/dlc_outfit_costume_d.raw",
+   "md5": "eaa48c90aa08f51513fe19f6f8cd6310",
+   "size": 225628,
+   "patch": "patches/image__dlc_outfit_costume_d.raw.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\image\\dlc_outfit_costume_d.raw",
+    "spec": 4294967295,
+    "size": 258176,
+    "md5": "d1ca93ca8844ea3e25bd900e9180085b"
+   },
+   "optional": null
+  },
+  {
+   "rel": "image/dlc_outfit_costume_e.raw",
+   "md5": "0b62da8574b79e76bdb55dcd06248ac1",
+   "size": 225628,
+   "patch": "patches/image__dlc_outfit_costume_e.raw.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\image\\dlc_outfit_costume_e.raw",
+    "spec": 4294967295,
+    "size": 258176,
+    "md5": "4d0af6e2ce1f7fcacd64f45b8e6c498c"
+   },
+   "optional": null
+  },
+  {
+   "rel": "image/dlc_outfit_costume_f.raw",
+   "md5": "cb0a8f06625f68366a699fcf01592dcb",
+   "size": 225628,
+   "patch": "patches/image__dlc_outfit_costume_f.raw.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\image\\dlc_outfit_costume_f.raw",
+    "spec": 4294967295,
+    "size": 258176,
+    "md5": "613399a8aa9082d2ac394c272faff74a"
+   },
+   "optional": null
+  },
+  {
+   "rel": "image/dlc_outfit_costume_g.raw",
+   "md5": "f462cb99bfbc69c4fc4d4076614c8bf8",
+   "size": 225628,
+   "patch": "patches/image__dlc_outfit_costume_g.raw.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\image\\dlc_outfit_costume_g.raw",
+    "spec": 4294967295,
+    "size": 258176,
+    "md5": "a86ad7ae051edc1edf053c52ecd0722c"
+   },
+   "optional": null
+  },
+  {
+   "rel": "image/dlc_outfit_costume_h.raw",
+   "md5": "46657c22a874be818680e94623c6d6f7",
+   "size": 225628,
+   "patch": "patches/image__dlc_outfit_costume_h.raw.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\image\\dlc_outfit_costume_h.raw",
+    "spec": 4294967295,
+    "size": 258176,
+    "md5": "76c8658b6d237810d027e92af99b781e"
+   },
+   "optional": null
+  },
+  {
+   "rel": "image/dlc_outfit_costume_i.raw",
+   "md5": "90bbfe854ec591cb913bf455d4483b2f",
+   "size": 225628,
+   "patch": "patches/image__dlc_outfit_costume_i.raw.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\image\\dlc_outfit_costume_i.raw",
+    "spec": 4294967295,
+    "size": 258176,
+    "md5": "a191e30bd599885e3db1a8aa271f22f4"
+   },
+   "optional": null
+  },
+  {
+   "rel": "image/dlc_outfit_costume_j.raw",
+   "md5": "99f98100ef987ed475ab00d90c550aa5",
+   "size": 225628,
+   "patch": "patches/image__dlc_outfit_costume_j.raw.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\image\\dlc_outfit_costume_j.raw",
+    "spec": 4294967295,
+    "size": 258176,
+    "md5": "6644c9fba3b41390735f2d861c4a6376"
+   },
+   "optional": null
+  },
+  {
+   "rel": "image/dlc_outfit_costume_k.raw",
+   "md5": "fd5e87575d1a4e031f27262fa71ed580",
+   "size": 225628,
+   "patch": "patches/image__dlc_outfit_costume_k.raw.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\image\\dlc_outfit_costume_k.raw",
+    "spec": 4294967295,
+    "size": 258176,
+    "md5": "7758830d7414c68507d18bfc98f72d2e"
+   },
+   "optional": null
+  },
+  {
+   "rel": "image/dlc_outfit_costume_l.raw",
+   "md5": "aee59b554160da425f6f6ffb55938c35",
+   "size": 225628,
+   "patch": "patches/image__dlc_outfit_costume_l.raw.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\image\\dlc_outfit_costume_l.raw",
+    "spec": 4294967295,
+    "size": 4224,
+    "md5": "38e908222f61b1483fda2341b3b70705"
+   },
+   "optional": null
+  },
+  {
+   "rel": "image/dlc_outfit_costume_m.raw",
+   "md5": "6b1d2f80155fcad1316224d7e09bdb54",
+   "size": 225628,
+   "patch": "patches/image__dlc_outfit_costume_m.raw.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\image\\dlc_outfit_costume_m.raw",
+    "spec": 4294967295,
+    "size": 4224,
+    "md5": "9e9fe81075b4c71cadd5adccb0ecedcc"
+   },
+   "optional": null
+  },
+  {
+   "rel": "image/dlc_outfit_costume_n.raw",
+   "md5": "8252d516b18900b965a2c8fb3ef9b1cf",
+   "size": 225628,
+   "patch": "patches/image__dlc_outfit_costume_n.raw.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\image\\dlc_outfit_costume_n.raw",
+    "spec": 4294967295,
+    "size": 281728,
+    "md5": "cfc0fae171d4b69c292e758173a805c4"
+   },
+   "optional": null
+  },
+  {
+   "rel": "image/dlc_outfit_costume_o.raw",
+   "md5": "f462cb99bfbc69c4fc4d4076614c8bf8",
+   "size": 225628,
+   "patch": "patches/image__dlc_outfit_costume_o.raw.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\image\\dlc_outfit_costume_o.raw",
+    "spec": 4294967295,
+    "size": 258176,
+    "md5": "a86ad7ae051edc1edf053c52ecd0722c"
+   },
+   "optional": null
+  },
+  {
+   "rel": "image/dlc_outfit_costume_p.raw",
+   "md5": "992f0a25a759562a751e6bc4fe938741",
+   "size": 225628,
+   "patch": "patches/image__dlc_outfit_costume_p.raw.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\image\\dlc_outfit_costume_p.raw",
+    "spec": 4294967295,
+    "size": 258176,
+    "md5": "8767d6cf8dcdc9731e26b576640728dd"
+   },
+   "optional": null
+  },
+  {
+   "rel": "image/dlc_outfit_doppel_costume_a.raw",
+   "md5": "05b1517c315a6f334f6af97f298f673a",
+   "size": 1472,
+   "patch": "patches/image__dlc_outfit_doppel_costume_a.raw.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\image\\dlc_outfit_doppel_costume_a.raw",
+    "spec": 4294967295,
+    "size": 4224,
+    "md5": "fe7e3216a1b0bea911fbad5beda72548"
+   },
+   "optional": null
+  },
+  {
+   "rel": "image/dlc_outfit_doppel_costume_b.raw",
+   "md5": "b77d04273ddebea87bd5d48ded546e19",
+   "size": 1472,
+   "patch": "patches/image__dlc_outfit_doppel_costume_b.raw.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\image\\dlc_outfit_doppel_costume_b.raw",
+    "spec": 4294967295,
+    "size": 4224,
+    "md5": "65d6e209106e7275632b89aa4eaf87cd"
+   },
+   "optional": null
+  },
+  {
+   "rel": "image/dlc_outfit_doppel_costume_c.raw",
+   "md5": "68d4e9e7e93fda33b10a77d5a0440d47",
+   "size": 1472,
+   "patch": "patches/image__dlc_outfit_doppel_costume_c.raw.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\image\\dlc_outfit_doppel_costume_c.raw",
+    "spec": 4294967295,
+    "size": 4224,
+    "md5": "d7396e62490d32f54e51df4209031e8f"
+   },
+   "optional": null
+  },
+  {
+   "rel": "image/dlc_outfit_doppel_costume_d.raw",
+   "md5": "92257d68c4ebe1ce86f4cbf5b7175294",
+   "size": 1472,
+   "patch": "patches/image__dlc_outfit_doppel_costume_d.raw.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\image\\dlc_outfit_doppel_costume_d.raw",
+    "spec": 4294967295,
+    "size": 4224,
+    "md5": "14c409ef7165d16b3cb95c324b29c073"
+   },
+   "optional": null
+  },
+  {
+   "rel": "image/pda_dlc2_bg_1280.raw",
+   "md5": "583e9cd8f6df3eb547b776879a8745ee",
+   "size": 3686528,
+   "patch": "patches/image__pda_dlc2_bg_1280.raw.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack11.000",
+    "name": "xenon-w\\image\\pda_dlc2_bg_1280.raw",
+    "spec": 4294967295,
+    "size": 3768448,
+    "md5": "79542bc56e2a3ed1c50088430d05414f"
+   },
+   "optional": "dlc2"
+  },
+  {
+   "rel": "image/pda_dlc2_bg_960.raw",
+   "md5": "57c74cd00098b0d633ebeb00fbcd1921",
+   "size": 2764928,
+   "patch": "patches/image__pda_dlc2_bg_960.raw.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack11.000",
+    "name": "xenon-w\\image\\pda_dlc2_bg_960.raw",
+    "spec": 4294967295,
+    "size": 2826368,
+    "md5": "623ed6af156166ee10a3e449cd8a3969"
+   },
+   "optional": "dlc2"
+  },
+  {
+   "rel": "image/pda_gold_shotgun.raw",
+   "md5": "3311e12aa8ad5e3b9a9a1204ba345b2e",
+   "size": 355328,
+   "patch": "patches/image__pda_gold_shotgun.raw.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\image\\pda_gold_shotgun.raw",
+    "spec": 4294967295,
+    "size": 368768,
+    "md5": "034a018af7f99783face245bbc429fd1"
+   },
+   "optional": null
+  },
+  {
+   "rel": "knight_thrall.drm",
+   "md5": "d9b33cee13504300cbbc28da8e934844",
+   "size": 9192168,
+   "patch": "patches/knight_thrall.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\knight_thrall.drm",
+    "spec": 4294967295,
+    "size": 7770605,
+    "md5": "3cba3ead99cbcae0da529f32f7ca8b41"
+   },
+   "optional": null
+  },
+  {
+   "rel": "knight_thrall_chunkdoll.drm",
+   "md5": "44378ea4793d18eb407f1a5f59a78fbf",
+   "size": 3023662,
+   "patch": "patches/knight_thrall_chunkdoll.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\knight_thrall_chunkdoll.drm",
+    "spec": 4294967295,
+    "size": 3073220,
+    "md5": "3a66b5f518a3fa2b897d9adb5b6cfcd0"
+   },
+   "optional": null
+  },
+  {
+   "rel": "knight_thrall_pool_generator.drm",
+   "md5": "77a89d19a8f12f5b39140f7e51db73ea",
+   "size": 25012,
+   "patch": "patches/knight_thrall_pool_generator.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\knight_thrall_pool_generator.drm",
+    "spec": 4294967295,
+    "size": 27064,
+    "md5": "39cb84ecc01b2f0a6f02d4db9ec065fc"
+   },
+   "optional": null
+  },
+  {
+   "rel": "l3_main_bedroom.drm",
+   "md5": "26ccd734c3a9eb22ac2a11621e2080f3",
+   "size": 28158077,
+   "patch": "patches/l3_main_bedroom.drm.bsdiff",
+   "source": {
+    "kind": "pc",
+    "archive": "bigfile.000",
+    "name": "pc-w\\l3_main_bedroom.drm",
+    "spec": 4294967295,
+    "size": 27989262,
+    "md5": "38cc3138e3eb24fc2d370d1a9f3abeca"
+   },
+   "optional": null
+  },
+  {
+   "rel": "local/locals.bin_001",
+   "md5": "b21b741caaeee7f09269b72026489614",
+   "size": 114892,
+   "patch": "patches/local__locals.bin_001.bsdiff",
+   "source": {
+    "kind": "pc",
+    "archive": "patch.000",
+    "name": "pc-w\\local\\locals.bin",
+    "spec": 4294965218,
+    "size": 120792,
+    "md5": "c3d02a053d4898ea33b18d8dffb0fe03"
+   },
+   "optional": null
+  },
+  {
+   "rel": "local/locals.bin_002",
+   "md5": "142c1974d0746ace6bcdfb71a7a5eb2b",
+   "size": 128368,
+   "patch": "patches/local__locals.bin_002.bsdiff",
+   "source": {
+    "kind": "pc",
+    "archive": "patch.000",
+    "name": "pc-w\\local\\locals.bin",
+    "spec": 4294965218,
+    "size": 120792,
+    "md5": "c3d02a053d4898ea33b18d8dffb0fe03"
+   },
+   "optional": null
+  },
+  {
+   "rel": "local/locals.bin_004",
+   "md5": "f0d8b8a4a1f8c04f4e8ac704d507f643",
+   "size": 123901,
+   "patch": "patches/local__locals.bin_004.bsdiff",
+   "source": {
+    "kind": "pc",
+    "archive": "patch.000",
+    "name": "pc-w\\local\\locals.bin",
+    "spec": 4294965218,
+    "size": 120792,
+    "md5": "c3d02a053d4898ea33b18d8dffb0fe03"
+   },
+   "optional": null
+  },
+  {
+   "rel": "local/locals.bin_008",
+   "md5": "5a487c588fc3019c623d4ecddb99e457",
+   "size": 124169,
+   "patch": "patches/local__locals.bin_008.bsdiff",
+   "source": {
+    "kind": "pc",
+    "archive": "patch.000",
+    "name": "pc-w\\local\\locals.bin",
+    "spec": 4294965218,
+    "size": 120792,
+    "md5": "c3d02a053d4898ea33b18d8dffb0fe03"
+   },
+   "optional": null
+  },
+  {
+   "rel": "local/locals.bin_016",
+   "md5": "55f0c7d0c68c18ab7bcdb7c78ff0ad4b",
+   "size": 119770,
+   "patch": "patches/local__locals.bin_016.bsdiff",
+   "source": {
+    "kind": "pc",
+    "archive": "patch.000",
+    "name": "pc-w\\local\\locals.bin",
+    "spec": 4294965218,
+    "size": 120792,
+    "md5": "c3d02a053d4898ea33b18d8dffb0fe03"
+   },
+   "optional": null
+  },
+  {
+   "rel": "local/locals.bin_032",
+   "md5": "fa13e3aefd49f29ac7ab90f694d2852e",
+   "size": 118700,
+   "patch": "patches/local__locals.bin_032.bsdiff",
+   "source": {
+    "kind": "pc",
+    "archive": "patch.000",
+    "name": "pc-w\\local\\locals.bin",
+    "spec": 4294965218,
+    "size": 120792,
+    "md5": "c3d02a053d4898ea33b18d8dffb0fe03"
+   },
+   "optional": null
+  },
+  {
+   "rel": "ma_ani_adren_trap.drm",
+   "md5": "0aa8d30d7afc1ff5d1b7bbaf781398b7",
+   "size": 2044031,
+   "patch": "patches/ma_ani_adren_trap.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\ma_ani_adren_trap.drm",
+    "spec": 4294967295,
+    "size": 1813428,
+    "md5": "ddf3be47eb69471b18262f763e376efb"
+   },
+   "optional": null
+  },
+  {
+   "rel": "music/dlc2_ceremony_room_amb_01/dlc2_ceremony_room_amb_01.mul",
+   "md5": "2fdf51dd53f7e2f4c478c87c1f497cc0",
+   "size": 13103744,
+   "patch": "patches/music__dlc2_ceremony_room_amb_01__dlc2_ceremony_room_amb_01.mul.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack11.000",
+    "name": "xenon-w\\music\\dlc2_ceremony_room_amb_01\\dlc2_ceremony_room_amb_01.mul",
+    "spec": 4294967295,
+    "size": 6579072,
+    "md5": "b0b7a7ff6c0b49532d589b449a508e1d"
+   },
+   "optional": "dlc2"
+  },
+  {
+   "rel": "music/dlc2_ceremony_room_amb_01/dlc2_ceremony_room_amb_01.mus",
+   "md5": "4fc1cc69e86b40da1b65ff11cb343330",
+   "size": 10884,
+   "patch": "patches/music__dlc2_ceremony_room_amb_01__dlc2_ceremony_room_amb_01.mus.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack11.000",
+    "name": "xenon-w\\music\\dlc2_ceremony_room_amb_01\\dlc2_ceremony_room_amb_01.mus",
+    "spec": 4294967295,
+    "size": 10884,
+    "md5": "5fabd7344f4d08771caca97c331371a6"
+   },
+   "optional": "dlc2"
+  },
+  {
+   "rel": "music/dlc2_ceremony_room_amb_01/dlc2_ceremony_room_amb_01.sam",
+   "md5": "7bed4c414e57f24e8358fd4c7926486c",
+   "size": 1024,
+   "patch": "patches/music__dlc2_ceremony_room_amb_01__dlc2_ceremony_room_amb_01.sam.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack11.000",
+    "name": "xenon-w\\music\\dlc2_ceremony_room_amb_01\\dlc2_ceremony_room_amb_01.sam",
+    "spec": 4294967295,
+    "size": 8512,
+    "md5": "50e737eaaaf3945a741ce48cbc2046a4"
+   },
+   "optional": "dlc2"
+  },
+  {
+   "rel": "music/dlc2_ceremony_room_amb_02/dlc2_ceremony_room_amb_02.mul",
+   "md5": "1d25bc2277e559fedadf31301a4f1a00",
+   "size": 13103744,
+   "patch": "patches/music__dlc2_ceremony_room_amb_02__dlc2_ceremony_room_amb_02.mul.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack11.000",
+    "name": "xenon-w\\music\\dlc2_ceremony_room_amb_02\\dlc2_ceremony_room_amb_02.mul",
+    "spec": 4294967295,
+    "size": 7223440,
+    "md5": "ca342d82176e9a5d9c071a8510026383"
+   },
+   "optional": "dlc2"
+  },
+  {
+   "rel": "music/dlc2_ceremony_room_amb_02/dlc2_ceremony_room_amb_02.mus",
+   "md5": "266d956745a8fd0c6c3709b2961382a0",
+   "size": 10884,
+   "patch": "patches/music__dlc2_ceremony_room_amb_02__dlc2_ceremony_room_amb_02.mus.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack11.000",
+    "name": "xenon-w\\music\\dlc2_ceremony_room_amb_02\\dlc2_ceremony_room_amb_02.mus",
+    "spec": 4294967295,
+    "size": 10884,
+    "md5": "08651243c1a8bd7680857cc70da9e8a3"
+   },
+   "optional": "dlc2"
+  },
+  {
+   "rel": "music/dlc2_ceremony_room_amb_02/dlc2_ceremony_room_amb_02.sam",
+   "md5": "7bed4c414e57f24e8358fd4c7926486c",
+   "size": 1024,
+   "patch": "patches/music__dlc2_ceremony_room_amb_02__dlc2_ceremony_room_amb_02.sam.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack11.000",
+    "name": "xenon-w\\music\\dlc2_ceremony_room_amb_02\\dlc2_ceremony_room_amb_02.sam",
+    "spec": 4294967295,
+    "size": 8512,
+    "md5": "50e737eaaaf3945a741ce48cbc2046a4"
+   },
+   "optional": "dlc2"
+  },
+  {
+   "rel": "music/dlc2_ceremony_room_visit_mus_01/dlc2_ceremony_room_visit_mus_01.mul",
+   "md5": "ef28028be8ab24c9aff3b844705c1643",
+   "size": 6681440,
+   "patch": "patches/music__dlc2_ceremony_room_visit_mus_01__dlc2_ceremony_room_visit_mus_01.mul.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack11.000",
+    "name": "xenon-w\\music\\dlc2_ceremony_room_visit_mus_01\\dlc2_ceremony_room_visit_mus_01.mul",
+    "spec": 4294967295,
+    "size": 3632976,
+    "md5": "7a66527114fb6569b9d50f33a7644658"
+   },
+   "optional": "dlc2"
+  },
+  {
+   "rel": "music/dlc2_ceremony_room_visit_mus_01/dlc2_ceremony_room_visit_mus_01.mus",
+   "md5": "919d05749993271e2b721390fc39638b",
+   "size": 10036,
+   "patch": "patches/music__dlc2_ceremony_room_visit_mus_01__dlc2_ceremony_room_visit_mus_01.mus.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack11.000",
+    "name": "xenon-w\\music\\dlc2_ceremony_room_visit_mus_01\\dlc2_ceremony_room_visit_mus_01.mus",
+    "spec": 4294967295,
+    "size": 10036,
+    "md5": "e1c7b61ae574b6d564520f1c61111ab7"
+   },
+   "optional": "dlc2"
+  },
+  {
+   "rel": "music/dlc2_ceremony_room_visit_mus_01/dlc2_ceremony_room_visit_mus_01.sam",
+   "md5": "7bed4c414e57f24e8358fd4c7926486c",
+   "size": 1024,
+   "patch": "patches/music__dlc2_ceremony_room_visit_mus_01__dlc2_ceremony_room_visit_mus_01.sam.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack11.000",
+    "name": "xenon-w\\music\\dlc2_ceremony_room_visit_mus_01\\dlc2_ceremony_room_visit_mus_01.sam",
+    "spec": 4294967295,
+    "size": 8512,
+    "md5": "50e737eaaaf3945a741ce48cbc2046a4"
+   },
+   "optional": "dlc2"
+  },
+  {
+   "rel": "music/dlc2_ceremony_room_visit_mus_02/dlc2_ceremony_room_visit_mus_02.mul",
+   "md5": "6e779433e8e38db70aac3de219c29afc",
+   "size": 7311136,
+   "patch": "patches/music__dlc2_ceremony_room_visit_mus_02__dlc2_ceremony_room_visit_mus_02.mul.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack11.000",
+    "name": "xenon-w\\music\\dlc2_ceremony_room_visit_mus_02\\dlc2_ceremony_room_visit_mus_02.mul",
+    "spec": 4294967295,
+    "size": 3940208,
+    "md5": "c9c3c1012a6400ce2f5a5d850e94698e"
+   },
+   "optional": "dlc2"
+  },
+  {
+   "rel": "music/dlc2_ceremony_room_visit_mus_02/dlc2_ceremony_room_visit_mus_02.mus",
+   "md5": "9b5015c8abdf171124ea43913805dc7d",
+   "size": 10036,
+   "patch": "patches/music__dlc2_ceremony_room_visit_mus_02__dlc2_ceremony_room_visit_mus_02.mus.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack11.000",
+    "name": "xenon-w\\music\\dlc2_ceremony_room_visit_mus_02\\dlc2_ceremony_room_visit_mus_02.mus",
+    "spec": 4294967295,
+    "size": 10036,
+    "md5": "5174f81aee9559280d9c40e6916b8e41"
+   },
+   "optional": "dlc2"
+  },
+  {
+   "rel": "music/dlc2_ceremony_room_visit_mus_02/dlc2_ceremony_room_visit_mus_02.sam",
+   "md5": "7bed4c414e57f24e8358fd4c7926486c",
+   "size": 1024,
+   "patch": "patches/music__dlc2_ceremony_room_visit_mus_02__dlc2_ceremony_room_visit_mus_02.sam.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack11.000",
+    "name": "xenon-w\\music\\dlc2_ceremony_room_visit_mus_02\\dlc2_ceremony_room_visit_mus_02.sam",
+    "spec": 4294967295,
+    "size": 8512,
+    "md5": "50e737eaaaf3945a741ce48cbc2046a4"
+   },
+   "optional": "dlc2"
+  },
+  {
+   "rel": "music/dlc2_goo_room_amb_01/dlc2_goo_room_amb_01.mul",
+   "md5": "4430befad3fc404e209d66ba6d668e9c",
+   "size": 13103744,
+   "patch": "patches/music__dlc2_goo_room_amb_01__dlc2_goo_room_amb_01.mul.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack11.000",
+    "name": "xenon-w\\music\\dlc2_goo_room_amb_01\\dlc2_goo_room_amb_01.mul",
+    "spec": 4294967295,
+    "size": 7182912,
+    "md5": "18d74cdec44f65bde9a25358f00dc50b"
+   },
+   "optional": "dlc2"
+  },
+  {
+   "rel": "music/dlc2_goo_room_amb_01/dlc2_goo_room_amb_01.mus",
+   "md5": "2657252f395fa6dbad532f2f97e83db9",
+   "size": 10872,
+   "patch": "patches/music__dlc2_goo_room_amb_01__dlc2_goo_room_amb_01.mus.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack11.000",
+    "name": "xenon-w\\music\\dlc2_goo_room_amb_01\\dlc2_goo_room_amb_01.mus",
+    "spec": 4294967295,
+    "size": 10872,
+    "md5": "89f4438c7a03a2a833ca821e0ac91a6c"
+   },
+   "optional": "dlc2"
+  },
+  {
+   "rel": "music/dlc2_goo_room_amb_01/dlc2_goo_room_amb_01.sam",
+   "md5": "7bed4c414e57f24e8358fd4c7926486c",
+   "size": 1024,
+   "patch": "patches/music__dlc2_goo_room_amb_01__dlc2_goo_room_amb_01.sam.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack11.000",
+    "name": "xenon-w\\music\\dlc2_goo_room_amb_01\\dlc2_goo_room_amb_01.sam",
+    "spec": 4294967295,
+    "size": 8512,
+    "md5": "50e737eaaaf3945a741ce48cbc2046a4"
+   },
+   "optional": "dlc2"
+  },
+  {
+   "rel": "music/dlc2_goo_room_mus_01/dlc2_goo_room_mus_01.mul",
+   "md5": "6cc196940af268314a91276ea07da089",
+   "size": 6677600,
+   "patch": "patches/music__dlc2_goo_room_mus_01__dlc2_goo_room_mus_01.mul.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack11.000",
+    "name": "xenon-w\\music\\dlc2_goo_room_mus_01\\dlc2_goo_room_mus_01.mul",
+    "spec": 4294967295,
+    "size": 3786368,
+    "md5": "8ea8a82fb275c0fef82960c91d5afac4"
+   },
+   "optional": "dlc2"
+  },
+  {
+   "rel": "music/dlc2_goo_room_mus_01/dlc2_goo_room_mus_01.mus",
+   "md5": "d11422357fd680b1d60f9968568b61ff",
+   "size": 10012,
+   "patch": "patches/music__dlc2_goo_room_mus_01__dlc2_goo_room_mus_01.mus.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack11.000",
+    "name": "xenon-w\\music\\dlc2_goo_room_mus_01\\dlc2_goo_room_mus_01.mus",
+    "spec": 4294967295,
+    "size": 10012,
+    "md5": "b2ebe1904f71dedf2c5c33e09f3d8453"
+   },
+   "optional": "dlc2"
+  },
+  {
+   "rel": "music/dlc2_goo_room_mus_01/dlc2_goo_room_mus_01.sam",
+   "md5": "7bed4c414e57f24e8358fd4c7926486c",
+   "size": 1024,
+   "patch": "patches/music__dlc2_goo_room_mus_01__dlc2_goo_room_mus_01.sam.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack11.000",
+    "name": "xenon-w\\music\\dlc2_goo_room_mus_01\\dlc2_goo_room_mus_01.sam",
+    "spec": 4294967295,
+    "size": 8512,
+    "md5": "50e737eaaaf3945a741ce48cbc2046a4"
+   },
+   "optional": "dlc2"
+  },
+  {
+   "rel": "music/dlc2_goo_room_visit_mus_02/dlc2_goo_room_visit_mus_02.mul",
+   "md5": "428c79d4b3522e46666a1888dc4e64e1",
+   "size": 12618048,
+   "patch": "patches/music__dlc2_goo_room_visit_mus_02__dlc2_goo_room_visit_mus_02.mul.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack11.000",
+    "name": "xenon-w\\music\\dlc2_goo_room_visit_mus_02\\dlc2_goo_room_visit_mus_02.mul",
+    "spec": 4294967295,
+    "size": 6414256,
+    "md5": "83dc25cff390f5c29d35dd5a102b5e17"
+   },
+   "optional": "dlc2"
+  },
+  {
+   "rel": "music/dlc2_goo_room_visit_mus_02/dlc2_goo_room_visit_mus_02.mus",
+   "md5": "023d9b7075210737dd1075e10bec808f",
+   "size": 10028,
+   "patch": "patches/music__dlc2_goo_room_visit_mus_02__dlc2_goo_room_visit_mus_02.mus.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack11.000",
+    "name": "xenon-w\\music\\dlc2_goo_room_visit_mus_02\\dlc2_goo_room_visit_mus_02.mus",
+    "spec": 4294967295,
+    "size": 10028,
+    "md5": "6fc792a2468a5464c54c57daccbcddef"
+   },
+   "optional": "dlc2"
+  },
+  {
+   "rel": "music/dlc2_goo_room_visit_mus_02/dlc2_goo_room_visit_mus_02.sam",
+   "md5": "7bed4c414e57f24e8358fd4c7926486c",
+   "size": 1024,
+   "patch": "patches/music__dlc2_goo_room_visit_mus_02__dlc2_goo_room_visit_mus_02.sam.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack11.000",
+    "name": "xenon-w\\music\\dlc2_goo_room_visit_mus_02\\dlc2_goo_room_visit_mus_02.sam",
+    "spec": 4294967295,
+    "size": 8512,
+    "md5": "50e737eaaaf3945a741ce48cbc2046a4"
+   },
+   "optional": "dlc2"
+  },
+  {
+   "rel": "music/dlc2_hall_ceremony_goo_mus_01/dlc2_hall_ceremony_goo_mus_01.mul",
+   "md5": "b38a136f087d39d3baa8583d8b28ea13",
+   "size": 9885184,
+   "patch": "patches/music__dlc2_hall_ceremony_goo_mus_01__dlc2_hall_ceremony_goo_mus_01.mul.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack11.000",
+    "name": "xenon-w\\music\\dlc2_hall_ceremony_goo_mus_01\\dlc2_hall_ceremony_goo_mus_01.mul",
+    "spec": 4294967295,
+    "size": 7148704,
+    "md5": "581891903a3e1352a111b4e2073bfc29"
+   },
+   "optional": "dlc2"
+  },
+  {
+   "rel": "music/dlc2_hall_ceremony_goo_mus_01/dlc2_hall_ceremony_goo_mus_01.mus",
+   "md5": "95d0cc35c4db6c7a4a5c1133478212aa",
+   "size": 10032,
+   "patch": "patches/music__dlc2_hall_ceremony_goo_mus_01__dlc2_hall_ceremony_goo_mus_01.mus.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack11.000",
+    "name": "xenon-w\\music\\dlc2_hall_ceremony_goo_mus_01\\dlc2_hall_ceremony_goo_mus_01.mus",
+    "spec": 4294967295,
+    "size": 10032,
+    "md5": "42c5de8ab9eacb4191b9b8519a8273b9"
+   },
+   "optional": "dlc2"
+  },
+  {
+   "rel": "music/dlc2_hall_ceremony_goo_mus_01/dlc2_hall_ceremony_goo_mus_01.sam",
+   "md5": "7bed4c414e57f24e8358fd4c7926486c",
+   "size": 1024,
+   "patch": "patches/music__dlc2_hall_ceremony_goo_mus_01__dlc2_hall_ceremony_goo_mus_01.sam.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack11.000",
+    "name": "xenon-w\\music\\dlc2_hall_ceremony_goo_mus_01\\dlc2_hall_ceremony_goo_mus_01.sam",
+    "spec": 4294967295,
+    "size": 8512,
+    "md5": "50e737eaaaf3945a741ce48cbc2046a4"
+   },
+   "optional": "dlc2"
+  },
+  {
+   "rel": "music/dlc2_hall_goo_machine_amb_01/dlc2_hall_goo_machine_amb_01.mul",
+   "md5": "8f908c11c4e2c7f894b43f786d8d982f",
+   "size": 13103744,
+   "patch": "patches/music__dlc2_hall_goo_machine_amb_01__dlc2_hall_goo_machine_amb_01.mul.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack11.000",
+    "name": "xenon-w\\music\\dlc2_hall_goo_machine_amb_01\\dlc2_hall_goo_machine_amb_01.mul",
+    "spec": 4294967295,
+    "size": 7107616,
+    "md5": "5c5cdea80563c6b7710ee16cc1c7133d"
+   },
+   "optional": "dlc2"
+  },
+  {
+   "rel": "music/dlc2_hall_goo_machine_amb_01/dlc2_hall_goo_machine_amb_01.mus",
+   "md5": "d09cfe6fcb8695bb6ea2d68951005949",
+   "size": 10468,
+   "patch": "patches/music__dlc2_hall_goo_machine_amb_01__dlc2_hall_goo_machine_amb_01.mus.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack11.000",
+    "name": "xenon-w\\music\\dlc2_hall_goo_machine_amb_01\\dlc2_hall_goo_machine_amb_01.mus",
+    "spec": 4294967295,
+    "size": 10468,
+    "md5": "44e350da33dac7fbfc6e0999e939dec9"
+   },
+   "optional": "dlc2"
+  },
+  {
+   "rel": "music/dlc2_hall_goo_machine_amb_01/dlc2_hall_goo_machine_amb_01.sam",
+   "md5": "7bed4c414e57f24e8358fd4c7926486c",
+   "size": 1024,
+   "patch": "patches/music__dlc2_hall_goo_machine_amb_01__dlc2_hall_goo_machine_amb_01.sam.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack11.000",
+    "name": "xenon-w\\music\\dlc2_hall_goo_machine_amb_01\\dlc2_hall_goo_machine_amb_01.sam",
+    "spec": 4294967295,
+    "size": 8512,
+    "md5": "50e737eaaaf3945a741ce48cbc2046a4"
+   },
+   "optional": "dlc2"
+  },
+  {
+   "rel": "music/dlc2_hall_goo_machine_amb_02/dlc2_hall_goo_machine_amb_02.mul",
+   "md5": "e4c29d3983aaf9b0c0272697cfdbd58f",
+   "size": 13103744,
+   "patch": "patches/music__dlc2_hall_goo_machine_amb_02__dlc2_hall_goo_machine_amb_02.mul.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack11.000",
+    "name": "xenon-w\\music\\dlc2_hall_goo_machine_amb_02\\dlc2_hall_goo_machine_amb_02.mul",
+    "spec": 4294967295,
+    "size": 6894768,
+    "md5": "d3c44fa070187e1301b2f598bb1c22b8"
+   },
+   "optional": "dlc2"
+  },
+  {
+   "rel": "music/dlc2_hall_goo_machine_amb_02/dlc2_hall_goo_machine_amb_02.mus",
+   "md5": "d3969e26802ea61180045f3d8921d38b",
+   "size": 10468,
+   "patch": "patches/music__dlc2_hall_goo_machine_amb_02__dlc2_hall_goo_machine_amb_02.mus.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack11.000",
+    "name": "xenon-w\\music\\dlc2_hall_goo_machine_amb_02\\dlc2_hall_goo_machine_amb_02.mus",
+    "spec": 4294967295,
+    "size": 10468,
+    "md5": "12fe854082f8b42a5f69d8d2117810c4"
+   },
+   "optional": "dlc2"
+  },
+  {
+   "rel": "music/dlc2_hall_goo_machine_amb_02/dlc2_hall_goo_machine_amb_02.sam",
+   "md5": "7bed4c414e57f24e8358fd4c7926486c",
+   "size": 1024,
+   "patch": "patches/music__dlc2_hall_goo_machine_amb_02__dlc2_hall_goo_machine_amb_02.sam.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack11.000",
+    "name": "xenon-w\\music\\dlc2_hall_goo_machine_amb_02\\dlc2_hall_goo_machine_amb_02.sam",
+    "spec": 4294967295,
+    "size": 8512,
+    "md5": "50e737eaaaf3945a741ce48cbc2046a4"
+   },
+   "optional": "dlc2"
+  },
+  {
+   "rel": "music/dlc2_hall_machine_ceremony_amb_01/dlc2_hall_machine_ceremony_amb_01.mul",
+   "md5": "acf4ffc82385848910c1b46241375529",
+   "size": 13103744,
+   "patch": "patches/music__dlc2_hall_machine_ceremony_amb_01__dlc2_hall_machine_ceremony_amb_01.mul.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack11.000",
+    "name": "xenon-w\\music\\dlc2_hall_machine_ceremony_amb_01\\dlc2_hall_machine_ceremony_amb_01.mul",
+    "spec": 4294967295,
+    "size": 6748272,
+    "md5": "36dd1660669d38aac78a8161f398f53b"
+   },
+   "optional": "dlc2"
+  },
+  {
+   "rel": "music/dlc2_hall_machine_ceremony_amb_01/dlc2_hall_machine_ceremony_amb_01.mus",
+   "md5": "72262319f56c1d946511bd3a39b4f1dd",
+   "size": 10380,
+   "patch": "patches/music__dlc2_hall_machine_ceremony_amb_01__dlc2_hall_machine_ceremony_amb_01.mus.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack11.000",
+    "name": "xenon-w\\music\\dlc2_hall_machine_ceremony_amb_01\\dlc2_hall_machine_ceremony_amb_01.mus",
+    "spec": 4294967295,
+    "size": 10380,
+    "md5": "aca65bdc53cc0ba04082bf2e8f0edc31"
+   },
+   "optional": "dlc2"
+  },
+  {
+   "rel": "music/dlc2_hall_machine_ceremony_amb_01/dlc2_hall_machine_ceremony_amb_01.sam",
+   "md5": "7bed4c414e57f24e8358fd4c7926486c",
+   "size": 1024,
+   "patch": "patches/music__dlc2_hall_machine_ceremony_amb_01__dlc2_hall_machine_ceremony_amb_01.sam.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack11.000",
+    "name": "xenon-w\\music\\dlc2_hall_machine_ceremony_amb_01\\dlc2_hall_machine_ceremony_amb_01.sam",
+    "spec": 4294967295,
+    "size": 8512,
+    "md5": "50e737eaaaf3945a741ce48cbc2046a4"
+   },
+   "optional": "dlc2"
+  },
+  {
+   "rel": "music/dlc2_hall_machine_ceremony_amb_02/dlc2_hall_machine_ceremony_amb_02.mul",
+   "md5": "b085cec736efa303c1a3e841f4e2809a",
+   "size": 13103744,
+   "patch": "patches/music__dlc2_hall_machine_ceremony_amb_02__dlc2_hall_machine_ceremony_amb_02.mul.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack11.000",
+    "name": "xenon-w\\music\\dlc2_hall_machine_ceremony_amb_02\\dlc2_hall_machine_ceremony_amb_02.mul",
+    "spec": 4294967295,
+    "size": 6733184,
+    "md5": "d0bde2b073eed7ca2c4c798bdd340499"
+   },
+   "optional": "dlc2"
+  },
+  {
+   "rel": "music/dlc2_hall_machine_ceremony_amb_02/dlc2_hall_machine_ceremony_amb_02.mus",
+   "md5": "927aa678a00237856116469b5e03a9b7",
+   "size": 10380,
+   "patch": "patches/music__dlc2_hall_machine_ceremony_amb_02__dlc2_hall_machine_ceremony_amb_02.mus.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack11.000",
+    "name": "xenon-w\\music\\dlc2_hall_machine_ceremony_amb_02\\dlc2_hall_machine_ceremony_amb_02.mus",
+    "spec": 4294967295,
+    "size": 10380,
+    "md5": "c3d5e52715620312386ebc0d410e4d8f"
+   },
+   "optional": "dlc2"
+  },
+  {
+   "rel": "music/dlc2_hall_machine_ceremony_amb_02/dlc2_hall_machine_ceremony_amb_02.sam",
+   "md5": "7bed4c414e57f24e8358fd4c7926486c",
+   "size": 1024,
+   "patch": "patches/music__dlc2_hall_machine_ceremony_amb_02__dlc2_hall_machine_ceremony_amb_02.sam.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack11.000",
+    "name": "xenon-w\\music\\dlc2_hall_machine_ceremony_amb_02\\dlc2_hall_machine_ceremony_amb_02.sam",
+    "spec": 4294967295,
+    "size": 8512,
+    "md5": "50e737eaaaf3945a741ce48cbc2046a4"
+   },
+   "optional": "dlc2"
+  },
+  {
+   "rel": "music/dlc2_level2_start_amb_01/dlc2_level2_start_amb_01.mul",
+   "md5": "ffc44b8ba5d5365b4ab876120c20c799",
+   "size": 13103744,
+   "patch": "patches/music__dlc2_level2_start_amb_01__dlc2_level2_start_amb_01.mul.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack11.000",
+    "name": "xenon-w\\music\\dlc2_level2_start_amb_01\\dlc2_level2_start_amb_01.mul",
+    "spec": 4294967295,
+    "size": 6537440,
+    "md5": "bd8e62712510d381bd00f5c48cb6880f"
+   },
+   "optional": "dlc2"
+  },
+  {
+   "rel": "music/dlc2_level2_start_amb_01/dlc2_level2_start_amb_01.mus",
+   "md5": "b82f1b4065c3635ff3cb21a4c45ac6d8",
+   "size": 10848,
+   "patch": "patches/music__dlc2_level2_start_amb_01__dlc2_level2_start_amb_01.mus.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack11.000",
+    "name": "xenon-w\\music\\dlc2_level2_start_amb_01\\dlc2_level2_start_amb_01.mus",
+    "spec": 4294967295,
+    "size": 10848,
+    "md5": "ed75b201f85f7fa275fddc62fb6f847c"
+   },
+   "optional": "dlc2"
+  },
+  {
+   "rel": "music/dlc2_level2_start_amb_01/dlc2_level2_start_amb_01.sam",
+   "md5": "7bed4c414e57f24e8358fd4c7926486c",
+   "size": 1024,
+   "patch": "patches/music__dlc2_level2_start_amb_01__dlc2_level2_start_amb_01.sam.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack11.000",
+    "name": "xenon-w\\music\\dlc2_level2_start_amb_01\\dlc2_level2_start_amb_01.sam",
+    "spec": 4294967295,
+    "size": 8512,
+    "md5": "50e737eaaaf3945a741ce48cbc2046a4"
+   },
+   "optional": "dlc2"
+  },
+  {
+   "rel": "music/dlc2_level2_start_mus_01/dlc2_level2_start_mus_01.mul",
+   "md5": "804edf67cfb75b04f8bdd7dd475caee2",
+   "size": 5967456,
+   "patch": "patches/music__dlc2_level2_start_mus_01__dlc2_level2_start_mus_01.mul.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack11.000",
+    "name": "xenon-w\\music\\dlc2_level2_start_mus_01\\dlc2_level2_start_mus_01.mul",
+    "spec": 4294967295,
+    "size": 3701088,
+    "md5": "1685efac78e1972f296082ea35ff7f9a"
+   },
+   "optional": "dlc2"
+  },
+  {
+   "rel": "music/dlc2_level2_start_mus_01/dlc2_level2_start_mus_01.mus",
+   "md5": "1722795be6eb35682558f399eb33e119",
+   "size": 10020,
+   "patch": "patches/music__dlc2_level2_start_mus_01__dlc2_level2_start_mus_01.mus.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack11.000",
+    "name": "xenon-w\\music\\dlc2_level2_start_mus_01\\dlc2_level2_start_mus_01.mus",
+    "spec": 4294967295,
+    "size": 10020,
+    "md5": "fb88a6e6e78c8b2923afc5fb9298e1fb"
+   },
+   "optional": "dlc2"
+  },
+  {
+   "rel": "music/dlc2_level2_start_mus_01/dlc2_level2_start_mus_01.sam",
+   "md5": "7bed4c414e57f24e8358fd4c7926486c",
+   "size": 1024,
+   "patch": "patches/music__dlc2_level2_start_mus_01__dlc2_level2_start_mus_01.sam.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack11.000",
+    "name": "xenon-w\\music\\dlc2_level2_start_mus_01\\dlc2_level2_start_mus_01.sam",
+    "spec": 4294967295,
+    "size": 8512,
+    "md5": "50e737eaaaf3945a741ce48cbc2046a4"
+   },
+   "optional": "dlc2"
+  },
+  {
+   "rel": "music/dlc2_machine_room_amb_01/dlc2_machine_room_amb_01.mul",
+   "md5": "e23bab17517aca8db296effadee546a1",
+   "size": 13103744,
+   "patch": "patches/music__dlc2_machine_room_amb_01__dlc2_machine_room_amb_01.mul.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack11.000",
+    "name": "xenon-w\\music\\dlc2_machine_room_amb_01\\dlc2_machine_room_amb_01.mul",
+    "spec": 4294967295,
+    "size": 7078816,
+    "md5": "6cef5abcf2e8677f5757d9d0482e3c33"
+   },
+   "optional": "dlc2"
+  },
+  {
+   "rel": "music/dlc2_machine_room_amb_01/dlc2_machine_room_amb_01.mus",
+   "md5": "cbc210b90be2695cc5daceb46ca7bc98",
+   "size": 10468,
+   "patch": "patches/music__dlc2_machine_room_amb_01__dlc2_machine_room_amb_01.mus.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack11.000",
+    "name": "xenon-w\\music\\dlc2_machine_room_amb_01\\dlc2_machine_room_amb_01.mus",
+    "spec": 4294967295,
+    "size": 10468,
+    "md5": "22286af9d06ab893f9120a9d7344d643"
+   },
+   "optional": "dlc2"
+  },
+  {
+   "rel": "music/dlc2_machine_room_amb_01/dlc2_machine_room_amb_01.sam",
+   "md5": "7bed4c414e57f24e8358fd4c7926486c",
+   "size": 1024,
+   "patch": "patches/music__dlc2_machine_room_amb_01__dlc2_machine_room_amb_01.sam.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack11.000",
+    "name": "xenon-w\\music\\dlc2_machine_room_amb_01\\dlc2_machine_room_amb_01.sam",
+    "spec": 4294967295,
+    "size": 8512,
+    "md5": "50e737eaaaf3945a741ce48cbc2046a4"
+   },
+   "optional": "dlc2"
+  },
+  {
+   "rel": "music/dlc2_machine_room_amb_02/dlc2_machine_room_amb_02.mul",
+   "md5": "c12cb026fbf9c408dc48757ff7d21258",
+   "size": 6615680,
+   "patch": "patches/music__dlc2_machine_room_amb_02__dlc2_machine_room_amb_02.mul.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack11.000",
+    "name": "xenon-w\\music\\dlc2_machine_room_amb_02\\dlc2_machine_room_amb_02.mul",
+    "spec": 4294967295,
+    "size": 3205008,
+    "md5": "0d54cd9e4909e9cfb668a8e1b164c0c6"
+   },
+   "optional": "dlc2"
+  },
+  {
+   "rel": "music/dlc2_machine_room_amb_02/dlc2_machine_room_amb_02.mus",
+   "md5": "1b8846ab3973e711782a74882a5abd31",
+   "size": 10292,
+   "patch": "patches/music__dlc2_machine_room_amb_02__dlc2_machine_room_amb_02.mus.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack11.000",
+    "name": "xenon-w\\music\\dlc2_machine_room_amb_02\\dlc2_machine_room_amb_02.mus",
+    "spec": 4294967295,
+    "size": 10292,
+    "md5": "d2978b6ce2bfed62a5ee40d01a4856d3"
+   },
+   "optional": "dlc2"
+  },
+  {
+   "rel": "music/dlc2_machine_room_amb_02/dlc2_machine_room_amb_02.sam",
+   "md5": "7bed4c414e57f24e8358fd4c7926486c",
+   "size": 1024,
+   "patch": "patches/music__dlc2_machine_room_amb_02__dlc2_machine_room_amb_02.sam.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack11.000",
+    "name": "xenon-w\\music\\dlc2_machine_room_amb_02\\dlc2_machine_room_amb_02.sam",
+    "spec": 4294967295,
+    "size": 8512,
+    "md5": "50e737eaaaf3945a741ce48cbc2046a4"
+   },
+   "optional": "dlc2"
+  },
+  {
+   "rel": "music/dlc2_machine_room_amb_03/dlc2_machine_room_amb_03.mul",
+   "md5": "086c43902e794c1d0806f374577dd4fb",
+   "size": 6615680,
+   "patch": "patches/music__dlc2_machine_room_amb_03__dlc2_machine_room_amb_03.mul.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack11.000",
+    "name": "xenon-w\\music\\dlc2_machine_room_amb_03\\dlc2_machine_room_amb_03.mul",
+    "spec": 4294967295,
+    "size": 3866320,
+    "md5": "e9c3fa12d5e92fab978f030cd3a59efe"
+   },
+   "optional": "dlc2"
+  },
+  {
+   "rel": "music/dlc2_machine_room_amb_03/dlc2_machine_room_amb_03.mus",
+   "md5": "7dfa8b3a452ca86051e6ace8115a7339",
+   "size": 10292,
+   "patch": "patches/music__dlc2_machine_room_amb_03__dlc2_machine_room_amb_03.mus.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack11.000",
+    "name": "xenon-w\\music\\dlc2_machine_room_amb_03\\dlc2_machine_room_amb_03.mus",
+    "spec": 4294967295,
+    "size": 10292,
+    "md5": "2dfa1f9ad1898108e21191928af806a2"
+   },
+   "optional": "dlc2"
+  },
+  {
+   "rel": "music/dlc2_machine_room_amb_03/dlc2_machine_room_amb_03.sam",
+   "md5": "7bed4c414e57f24e8358fd4c7926486c",
+   "size": 1024,
+   "patch": "patches/music__dlc2_machine_room_amb_03__dlc2_machine_room_amb_03.sam.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack11.000",
+    "name": "xenon-w\\music\\dlc2_machine_room_amb_03\\dlc2_machine_room_amb_03.sam",
+    "spec": 4294967295,
+    "size": 8512,
+    "md5": "50e737eaaaf3945a741ce48cbc2046a4"
+   },
+   "optional": "dlc2"
+  },
+  {
+   "rel": "music/dlc2_yggdrasil_end_mus_01/dlc2_yggdrasil_end_mus_01.mul",
+   "md5": "7fe362262f7ab4c22e9a1bd88f9cec3d",
+   "size": 5022464,
+   "patch": "patches/music__dlc2_yggdrasil_end_mus_01__dlc2_yggdrasil_end_mus_01.mul.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack11.000",
+    "name": "xenon-w\\music\\dlc2_yggdrasil_end_mus_01\\dlc2_yggdrasil_end_mus_01.mul",
+    "spec": 4294967295,
+    "size": 2196992,
+    "md5": "b5a9514d0d06acecc25e0069a6cf2b35"
+   },
+   "optional": "dlc2"
+  },
+  {
+   "rel": "music/dlc2_yggdrasil_end_mus_01/dlc2_yggdrasil_end_mus_01.mus",
+   "md5": "28c89bfc0e75619284ced1c85cb02871",
+   "size": 10024,
+   "patch": "patches/music__dlc2_yggdrasil_end_mus_01__dlc2_yggdrasil_end_mus_01.mus.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack11.000",
+    "name": "xenon-w\\music\\dlc2_yggdrasil_end_mus_01\\dlc2_yggdrasil_end_mus_01.mus",
+    "spec": 4294967295,
+    "size": 10024,
+    "md5": "f0bfee570a34c9c84717a57d1700f50f"
+   },
+   "optional": "dlc2"
+  },
+  {
+   "rel": "music/dlc2_yggdrasil_end_mus_01/dlc2_yggdrasil_end_mus_01.sam",
+   "md5": "7bed4c414e57f24e8358fd4c7926486c",
+   "size": 1024,
+   "patch": "patches/music__dlc2_yggdrasil_end_mus_01__dlc2_yggdrasil_end_mus_01.sam.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack11.000",
+    "name": "xenon-w\\music\\dlc2_yggdrasil_end_mus_01\\dlc2_yggdrasil_end_mus_01.sam",
+    "spec": 4294967295,
+    "size": 8512,
+    "md5": "50e737eaaaf3945a741ce48cbc2046a4"
+   },
+   "optional": "dlc2"
+  },
+  {
+   "rel": "music/dlc2_yggdrasil_hall01_mus_01/dlc2_yggdrasil_hall01_mus_01.mul",
+   "md5": "1e94d9df7bf5e6e8002723c6e81f3611",
+   "size": 6615680,
+   "patch": "patches/music__dlc2_yggdrasil_hall01_mus_01__dlc2_yggdrasil_hall01_mus_01.mul.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack11.000",
+    "name": "xenon-w\\music\\dlc2_yggdrasil_hall01_mus_01\\dlc2_yggdrasil_hall01_mus_01.mul",
+    "spec": 4294967295,
+    "size": 3216912,
+    "md5": "e975da208b097a56a27ad3f91ea03a49"
+   },
+   "optional": "dlc2"
+  },
+  {
+   "rel": "music/dlc2_yggdrasil_hall01_mus_01/dlc2_yggdrasil_hall01_mus_01.mus",
+   "md5": "8e198bcb13cca82a32d6210589af52cb",
+   "size": 10028,
+   "patch": "patches/music__dlc2_yggdrasil_hall01_mus_01__dlc2_yggdrasil_hall01_mus_01.mus.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack11.000",
+    "name": "xenon-w\\music\\dlc2_yggdrasil_hall01_mus_01\\dlc2_yggdrasil_hall01_mus_01.mus",
+    "spec": 4294967295,
+    "size": 10028,
+    "md5": "bcae41f55c0182786d9c5f1bc0f91e5f"
+   },
+   "optional": "dlc2"
+  },
+  {
+   "rel": "music/dlc2_yggdrasil_hall01_mus_01/dlc2_yggdrasil_hall01_mus_01.sam",
+   "md5": "7bed4c414e57f24e8358fd4c7926486c",
+   "size": 1024,
+   "patch": "patches/music__dlc2_yggdrasil_hall01_mus_01__dlc2_yggdrasil_hall01_mus_01.sam.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack11.000",
+    "name": "xenon-w\\music\\dlc2_yggdrasil_hall01_mus_01\\dlc2_yggdrasil_hall01_mus_01.sam",
+    "spec": 4294967295,
+    "size": 8512,
+    "md5": "50e737eaaaf3945a741ce48cbc2046a4"
+   },
+   "optional": "dlc2"
+  },
+  {
+   "rel": "music/dlc_dungeon_mus_01/dlc_dungeon_mus_01.mul",
+   "md5": "c6a1824da0d966736c049de9ac82ca38",
+   "size": 19591808,
+   "patch": "patches/music__dlc_dungeon_mus_01__dlc_dungeon_mus_01.mul.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\music\\dlc_dungeon_mus_01\\dlc_dungeon_mus_01.mul",
+    "spec": 4294967295,
+    "size": 10335280,
+    "md5": "c0a66cb6ea3cee5ddb9825a839edb526"
+   },
+   "optional": null
+  },
+  {
+   "rel": "music/dlc_dungeon_mus_01/dlc_dungeon_mus_01.mus",
+   "md5": "18d5ec1a5abd5199224a4936f6db042f",
+   "size": 10956,
+   "patch": "patches/music__dlc_dungeon_mus_01__dlc_dungeon_mus_01.mus.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\music\\dlc_dungeon_mus_01\\dlc_dungeon_mus_01.mus",
+    "spec": 4294967295,
+    "size": 10956,
+    "md5": "bba3be6e76e41f058dcfcf70df704991"
+   },
+   "optional": null
+  },
+  {
+   "rel": "music/dlc_dungeon_mus_01/dlc_dungeon_mus_01.sam",
+   "md5": "7bed4c414e57f24e8358fd4c7926486c",
+   "size": 1024,
+   "patch": "patches/music__dlc_dungeon_mus_01__dlc_dungeon_mus_01.sam.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\music\\dlc_dungeon_mus_01\\dlc_dungeon_mus_01.sam",
+    "spec": 4294967295,
+    "size": 8512,
+    "md5": "50e737eaaaf3945a741ce48cbc2046a4"
+   },
+   "optional": null
+  },
+  {
+   "rel": "music/dlc_water_wheel_mus_01/dlc_water_wheel_mus_01.mul",
+   "md5": "c61658163b94f857fd0603a469f5bd08",
+   "size": 13103744,
+   "patch": "patches/music__dlc_water_wheel_mus_01__dlc_water_wheel_mus_01.mul.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\music\\dlc_water_wheel_mus_01\\dlc_water_wheel_mus_01.mul",
+    "spec": 4294967295,
+    "size": 7807568,
+    "md5": "10589dd96821e4c5692e8cf7cc59874d"
+   },
+   "optional": null
+  },
+  {
+   "rel": "music/dlc_water_wheel_mus_01/dlc_water_wheel_mus_01.mus",
+   "md5": "6feb6fad3ccf87e1bfd62b7f9e2a8283",
+   "size": 10680,
+   "patch": "patches/music__dlc_water_wheel_mus_01__dlc_water_wheel_mus_01.mus.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\music\\dlc_water_wheel_mus_01\\dlc_water_wheel_mus_01.mus",
+    "spec": 4294967295,
+    "size": 10680,
+    "md5": "c9a17639612cf8b558b90f0d41bc5039"
+   },
+   "optional": null
+  },
+  {
+   "rel": "music/dlc_water_wheel_mus_01/dlc_water_wheel_mus_01.sam",
+   "md5": "7bed4c414e57f24e8358fd4c7926486c",
+   "size": 1024,
+   "patch": "patches/music__dlc_water_wheel_mus_01__dlc_water_wheel_mus_01.sam.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\music\\dlc_water_wheel_mus_01\\dlc_water_wheel_mus_01.sam",
+    "spec": 4294967295,
+    "size": 8512,
+    "md5": "50e737eaaaf3945a741ce48cbc2046a4"
+   },
+   "optional": null
+  },
+  {
+   "rel": "music/l3_caverns_hall_mus_01/l3_caverns_hall_mus_01.mul",
+   "md5": "b82dd94d85cfb04d949efdb646ae3eb1",
+   "size": 13103744,
+   "patch": "patches/music__l3_caverns_hall_mus_01__l3_caverns_hall_mus_01.mul.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\music\\l3_caverns_hall_mus_01\\l3_caverns_hall_mus_01.mul",
+    "spec": 4294967295,
+    "size": 8394336,
+    "md5": "8c47b682f2b461e867f7cb50f24a73f7"
+   },
+   "optional": null
+  },
+  {
+   "rel": "music/l3_caverns_hall_mus_01/l3_caverns_hall_mus_01.mus",
+   "md5": "61edc53802faa0b5829ba87013b84a2e",
+   "size": 10724,
+   "patch": "patches/music__l3_caverns_hall_mus_01__l3_caverns_hall_mus_01.mus.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\music\\l3_caverns_hall_mus_01\\l3_caverns_hall_mus_01.mus",
+    "spec": 4294967295,
+    "size": 10724,
+    "md5": "4386e9e5becf3d9a30eba1065e269687"
+   },
+   "optional": null
+  },
+  {
+   "rel": "music/l3_caverns_hall_mus_01/l3_caverns_hall_mus_01.sam",
+   "md5": "7bed4c414e57f24e8358fd4c7926486c",
+   "size": 1024,
+   "patch": "patches/music__l3_caverns_hall_mus_01__l3_caverns_hall_mus_01.sam.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\music\\l3_caverns_hall_mus_01\\l3_caverns_hall_mus_01.sam",
+    "spec": 4294967295,
+    "size": 8512,
+    "md5": "50e737eaaaf3945a741ce48cbc2046a4"
+   },
+   "optional": null
+  },
+  {
+   "rel": "music/l3_caverns_mus_01/l3_caverns_mus_01.mul",
+   "md5": "515afea49863a8206b4d1cd97d86cc74",
+   "size": 6615680,
+   "patch": "patches/music__l3_caverns_mus_01__l3_caverns_mus_01.mul.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\music\\l3_caverns_mus_01\\l3_caverns_mus_01.mul",
+    "spec": 4294967295,
+    "size": 3912656,
+    "md5": "40b81b3fd7793c77c90d8cb13e66a0b7"
+   },
+   "optional": null
+  },
+  {
+   "rel": "music/l3_caverns_mus_01/l3_caverns_mus_01.mus",
+   "md5": "bc65e53054ff9f189da683b4e8be25ee",
+   "size": 10476,
+   "patch": "patches/music__l3_caverns_mus_01__l3_caverns_mus_01.mus.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\music\\l3_caverns_mus_01\\l3_caverns_mus_01.mus",
+    "spec": 4294967295,
+    "size": 10476,
+    "md5": "74fa2c485e2c3d93a787a39980ddcea5"
+   },
+   "optional": null
+  },
+  {
+   "rel": "music/l3_caverns_mus_01/l3_caverns_mus_01.sam",
+   "md5": "7bed4c414e57f24e8358fd4c7926486c",
+   "size": 1024,
+   "patch": "patches/music__l3_caverns_mus_01__l3_caverns_mus_01.sam.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\music\\l3_caverns_mus_01\\l3_caverns_mus_01.sam",
+    "spec": 4294967295,
+    "size": 8512,
+    "md5": "50e737eaaaf3945a741ce48cbc2046a4"
+   },
+   "optional": null
+  },
+  {
+   "rel": "music/l3_dungeon_hall_a_mus_01/l3_dungeon_hall_a_mus_01.mul",
+   "md5": "871b250ab32dc2a6738a11852a3ab7f8",
+   "size": 13103744,
+   "patch": "patches/music__l3_dungeon_hall_a_mus_01__l3_dungeon_hall_a_mus_01.mul.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\music\\l3_dungeon_hall_a_mus_01\\l3_dungeon_hall_a_mus_01.mul",
+    "spec": 4294967295,
+    "size": 7135600,
+    "md5": "e803e08db95b6f34138fcab5e3211897"
+   },
+   "optional": null
+  },
+  {
+   "rel": "music/l3_dungeon_hall_a_mus_01/l3_dungeon_hall_a_mus_01.mus",
+   "md5": "25398b2b34ea9a5e7c9e44a65ef797e9",
+   "size": 11188,
+   "patch": "patches/music__l3_dungeon_hall_a_mus_01__l3_dungeon_hall_a_mus_01.mus.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\music\\l3_dungeon_hall_a_mus_01\\l3_dungeon_hall_a_mus_01.mus",
+    "spec": 4294967295,
+    "size": 11188,
+    "md5": "f5fe378f33613ba9c5a5644caf1e5b9e"
+   },
+   "optional": null
+  },
+  {
+   "rel": "music/l3_dungeon_hall_a_mus_01/l3_dungeon_hall_a_mus_01.sam",
+   "md5": "7bed4c414e57f24e8358fd4c7926486c",
+   "size": 1024,
+   "patch": "patches/music__l3_dungeon_hall_a_mus_01__l3_dungeon_hall_a_mus_01.sam.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\music\\l3_dungeon_hall_a_mus_01\\l3_dungeon_hall_a_mus_01.sam",
+    "spec": 4294967295,
+    "size": 8512,
+    "md5": "50e737eaaaf3945a741ce48cbc2046a4"
+   },
+   "optional": null
+  },
+  {
+   "rel": "music/l3_dungeon_hall_b_mus_01/l3_dungeon_hall_b_mus_01.mul",
+   "md5": "d3599deec7d4db30f126f8537447db56",
+   "size": 13103744,
+   "patch": "patches/music__l3_dungeon_hall_b_mus_01__l3_dungeon_hall_b_mus_01.mul.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\music\\l3_dungeon_hall_b_mus_01\\l3_dungeon_hall_b_mus_01.mul",
+    "spec": 4294967295,
+    "size": 8171008,
+    "md5": "fc8e0ea8034355f654bd81538501a452"
+   },
+   "optional": null
+  },
+  {
+   "rel": "music/l3_dungeon_hall_b_mus_01/l3_dungeon_hall_b_mus_01.mus",
+   "md5": "36897076b60833f3765b1e1add7a44b2",
+   "size": 11188,
+   "patch": "patches/music__l3_dungeon_hall_b_mus_01__l3_dungeon_hall_b_mus_01.mus.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\music\\l3_dungeon_hall_b_mus_01\\l3_dungeon_hall_b_mus_01.mus",
+    "spec": 4294967295,
+    "size": 11188,
+    "md5": "b8940c23be069ee49368f89cd91e0b4c"
+   },
+   "optional": null
+  },
+  {
+   "rel": "music/l3_dungeon_hall_b_mus_01/l3_dungeon_hall_b_mus_01.sam",
+   "md5": "7bed4c414e57f24e8358fd4c7926486c",
+   "size": 1024,
+   "patch": "patches/music__l3_dungeon_hall_b_mus_01__l3_dungeon_hall_b_mus_01.sam.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\music\\l3_dungeon_hall_b_mus_01\\l3_dungeon_hall_b_mus_01.sam",
+    "spec": 4294967295,
+    "size": 8512,
+    "md5": "50e737eaaaf3945a741ce48cbc2046a4"
+   },
+   "optional": null
+  },
+  {
+   "rel": "padshock/padshocklib.tfb",
+   "md5": "2d04b75464b654cb54670acedacbc829",
+   "size": 8400,
+   "patch": "patches/padshock__padshocklib.tfb.bsdiff",
+   "source": {
+    "kind": "pc",
+    "archive": "bigfile.000",
+    "name": "pc-w\\padshock\\padshocklib.tfb",
+    "spec": 4294967295,
+    "size": 8088,
+    "md5": "902a80ad859bb652b9b0e654090c9e86"
+   },
+   "optional": null
+  },
+  {
+   "rel": "pr_dlc_gold_shotgunbullet.drm",
+   "md5": "8a41f01a6bf41bbcc03740d92f1c1d2c",
+   "size": 20051,
+   "patch": "patches/pr_dlc_gold_shotgunbullet.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\pr_dlc_gold_shotgunbullet.drm",
+    "spec": 4294967295,
+    "size": 22844,
+    "md5": "e19848f7a66eeb23ada40592dc4f350b"
+   },
+   "optional": null
+  },
+  {
+   "rel": "pr_handgunbullet.drm",
+   "md5": "81b58963ac6fadc8cd335d0cf06e9f03",
+   "size": 20276,
+   "patch": "patches/pr_handgunbullet.drm.bsdiff",
+   "source": {
+    "kind": "pc",
+    "archive": "bigfile.000",
+    "name": "pc-w\\pr_handgunbullet.drm",
+    "spec": 4294967295,
+    "size": 20136,
+    "md5": "c0bd5e493aaa30bad22a5ec6f5d0684f"
+   },
+   "optional": null
+  },
+  {
+   "rel": "streamgroups/dlc_dungeon_dungeon_main.drm",
+   "md5": "1f2272973dd99998a6d6fe11c158680d",
+   "size": 52702346,
+   "patch": "patches/streamgroups__dlc_dungeon_dungeon_main.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\streamgroups\\dlc_dungeon_dungeon_main.drm",
+    "spec": 4294967295,
+    "size": 56216375,
+    "md5": "8d07409feb66e01ec49e4fade6a88ef7"
+   },
+   "optional": null
+  },
+  {
+   "rel": "streamgroups/dlc_dungeon_dungeon_sewer.drm",
+   "md5": "c31ce76d617ed6887b0443c0b620995a",
+   "size": 17948956,
+   "patch": "patches/streamgroups__dlc_dungeon_dungeon_sewer.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\streamgroups\\dlc_dungeon_dungeon_sewer.drm",
+    "spec": 4294967295,
+    "size": 19524652,
+    "md5": "78c38a54f33c8229db62d328d6c5f551"
+   },
+   "optional": null
+  },
+  {
+   "rel": "streamgroups/dlc_dungeon_dungeon_to_halla.drm",
+   "md5": "a242fd74f70dd8f368c1c8e268e44900",
+   "size": 15082491,
+   "patch": "patches/streamgroups__dlc_dungeon_dungeon_to_halla.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\streamgroups\\dlc_dungeon_dungeon_to_halla.drm",
+    "spec": 4294967295,
+    "size": 16512817,
+    "md5": "e5956ca201593b6dc6a0d25a2129ff33"
+   },
+   "optional": null
+  },
+  {
+   "rel": "streamgroups/dlc_dungeon_dungeon_to_hallb.drm",
+   "md5": "7fb6a7157a94e407a69004e20d61bba8",
+   "size": 15095412,
+   "patch": "patches/streamgroups__dlc_dungeon_dungeon_to_hallb.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\streamgroups\\dlc_dungeon_dungeon_to_hallb.drm",
+    "spec": 4294967295,
+    "size": 16442480,
+    "md5": "91f1dcde183ee9ab92f10ec2407714a8"
+   },
+   "optional": null
+  },
+  {
+   "rel": "streamgroups/dlc_dungeon_dungeon_to_sewer.drm",
+   "md5": "e9c65a8c725834b230dc95cc7aa52506",
+   "size": 14229265,
+   "patch": "patches/streamgroups__dlc_dungeon_dungeon_to_sewer.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\streamgroups\\dlc_dungeon_dungeon_to_sewer.drm",
+    "spec": 4294967295,
+    "size": 15538293,
+    "md5": "36cb37ef5e6862fee553f29785c47a3b"
+   },
+   "optional": null
+  },
+  {
+   "rel": "streamgroups/dlc_dungeon_dungeon_to_watertunnel.drm",
+   "md5": "6caafd469d3e0a7c87e420d402f66b66",
+   "size": 20029745,
+   "patch": "patches/streamgroups__dlc_dungeon_dungeon_to_watertunnel.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\streamgroups\\dlc_dungeon_dungeon_to_watertunnel.drm",
+    "spec": 4294967295,
+    "size": 21806565,
+    "md5": "1999de66357ee5c1068a1d5b6a6e918a"
+   },
+   "optional": null
+  },
+  {
+   "rel": "streamgroups/dlc_dungeonhalla_dungeonhalla_a.drm",
+   "md5": "3021ea60c553d7c7a493c04eaf0cdfb3",
+   "size": 29204667,
+   "patch": "patches/streamgroups__dlc_dungeonhalla_dungeonhalla_a.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\streamgroups\\dlc_dungeonhalla_dungeonhalla_a.drm",
+    "spec": 4294967295,
+    "size": 31801566,
+    "md5": "144fb2aca1f99be44bd271603ecbdfc0"
+   },
+   "optional": null
+  },
+  {
+   "rel": "streamgroups/dlc_dungeonhalla_dungeonhalla_b.drm",
+   "md5": "7d9f3daa8f971441f8ff96a97f9cc33f",
+   "size": 31041907,
+   "patch": "patches/streamgroups__dlc_dungeonhalla_dungeonhalla_b.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\streamgroups\\dlc_dungeonhalla_dungeonhalla_b.drm",
+    "spec": 4294967295,
+    "size": 33783770,
+    "md5": "a04821c86f7d417f969f4f2b0617d454"
+   },
+   "optional": null
+  },
+  {
+   "rel": "streamgroups/dlc_dungeonhallb_dungeonhallb_a.drm",
+   "md5": "c33a6c9d6f54c5731894a7b2ce30bfc2",
+   "size": 26829523,
+   "patch": "patches/streamgroups__dlc_dungeonhallb_dungeonhallb_a.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\streamgroups\\dlc_dungeonhallb_dungeonhallb_a.drm",
+    "spec": 4294967295,
+    "size": 29005431,
+    "md5": "f28bc55a70f1f3ec0f34aeba3a1bee6d"
+   },
+   "optional": null
+  },
+  {
+   "rel": "streamgroups/dlc_dungeonhallb_dungeonhallb_b.drm",
+   "md5": "4719dff942b3771fa0405c2348a6da58",
+   "size": 26800328,
+   "patch": "patches/streamgroups__dlc_dungeonhallb_dungeonhallb_b.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\streamgroups\\dlc_dungeonhallb_dungeonhallb_b.drm",
+    "spec": 4294967295,
+    "size": 29160763,
+    "md5": "381388d48f497a94cf0664cc373c951d"
+   },
+   "optional": null
+  },
+  {
+   "rel": "streamgroups/dlc_dungeonhallb_dungeonhallb_dungeoncorner.drm",
+   "md5": "4184783cf4cd647473669bb666fa80ac",
+   "size": 17956086,
+   "patch": "patches/streamgroups__dlc_dungeonhallb_dungeonhallb_dungeoncorner.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\streamgroups\\dlc_dungeonhallb_dungeonhallb_dungeoncorner.drm",
+    "spec": 4294967295,
+    "size": 19533288,
+    "md5": "5ebbc2cef6183eeaa650aef544a0361c"
+   },
+   "optional": null
+  },
+  {
+   "rel": "streamgroups/dlc_pillory_pillory_b.drm",
+   "md5": "a6aa831cc8ed2d9a006f2ec610f9e586",
+   "size": 14271135,
+   "patch": "patches/streamgroups__dlc_pillory_pillory_b.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\streamgroups\\dlc_pillory_pillory_b.drm",
+    "spec": 4294967295,
+    "size": 15651452,
+    "md5": "137a01033054eaca205be79b82345234"
+   },
+   "optional": null
+  },
+  {
+   "rel": "streamgroups/dlc_pillory_pillorya.drm",
+   "md5": "6f8714fc9a8a91cde3e46bd0d0c4fdea",
+   "size": 15824121,
+   "patch": "patches/streamgroups__dlc_pillory_pillorya.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\streamgroups\\dlc_pillory_pillorya.drm",
+    "spec": 4294967295,
+    "size": 17329772,
+    "md5": "9f38fe529fa8921bb90142911d8cc73f"
+   },
+   "optional": null
+  },
+  {
+   "rel": "streamgroups/dlc_pillory_pillorymain.drm",
+   "md5": "d1eb42f493d65d7f0dcb2df1d99644fe",
+   "size": 27367447,
+   "patch": "patches/streamgroups__dlc_pillory_pillorymain.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\streamgroups\\dlc_pillory_pillorymain.drm",
+    "spec": 4294967295,
+    "size": 29559077,
+    "md5": "ba896584b551721546366f96e889f354"
+   },
+   "optional": null
+  },
+  {
+   "rel": "streamgroups/dlc_treasureroom_treasureroom_main.drm",
+   "md5": "9432fb3b9d8cfd095ea11510b649a535",
+   "size": 26989910,
+   "patch": "patches/streamgroups__dlc_treasureroom_treasureroom_main.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\streamgroups\\dlc_treasureroom_treasureroom_main.drm",
+    "spec": 4294967295,
+    "size": 29496811,
+    "md5": "d00bded4cc1586f0f06f65909d3230d8"
+   },
+   "optional": null
+  },
+  {
+   "rel": "streamgroups/dlc_water_wheel_waterwheel_main.drm",
+   "md5": "0785127744623b734354043712f791ee",
+   "size": 36421010,
+   "patch": "patches/streamgroups__dlc_water_wheel_waterwheel_main.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\streamgroups\\dlc_water_wheel_waterwheel_main.drm",
+    "spec": 4294967295,
+    "size": 39260037,
+    "md5": "813bbf206d74af90e4a8977c4d9add99"
+   },
+   "optional": null
+  },
+  {
+   "rel": "streamgroups/dlc_watertunnel_watertunnel_main.drm",
+   "md5": "a48d696ec39bda7a57381a8c01e25d79",
+   "size": 19932908,
+   "patch": "patches/streamgroups__dlc_watertunnel_watertunnel_main.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\streamgroups\\dlc_watertunnel_watertunnel_main.drm",
+    "spec": 4294967295,
+    "size": 21264608,
+    "md5": "6068ccc6f47c1bbc217755fd2d24e1fb"
+   },
+   "optional": null
+  },
+  {
+   "rel": "tr8/pc-w/objectlist.txt",
+   "md5": "45dc3b4c78e975ce8744a027246276bd",
+   "size": 28009,
+   "patch": "patches/tr8__pc-w__objectlist.txt.bsdiff",
+   "source": {
+    "kind": "pc",
+    "archive": "bigfile.000",
+    "name": "\\tr8\\pc-w\\objectlist.txt",
+    "spec": 4294967295,
+    "size": 21437,
+    "md5": "5917501731d2a8a4929603465b3c84fa"
+   },
+   "optional": null
+  },
+  {
+   "rel": "tr8/pc-w/objlist.dat",
+   "md5": "e4f12246d527df9e27d5da4f23374119",
+   "size": 29218,
+   "patch": "patches/tr8__pc-w__objlist.dat.bsdiff",
+   "source": {
+    "kind": "pc",
+    "archive": "bigfile.000",
+    "name": "\\tr8\\pc-w\\objlist.dat",
+    "spec": 4294967295,
+    "size": 21478,
+    "md5": "8d038699e5ec943a7a5e71f6afd30750"
+   },
+   "optional": null
+  },
+  {
+   "rel": "tr8/pc-w/unitlist.txt",
+   "md5": "2203e9bdda56efc5316187451794b217",
+   "size": 3533,
+   "patch": "patches/tr8__pc-w__unitlist.txt.bsdiff",
+   "source": {
+    "kind": "pc",
+    "archive": "bigfile.000",
+    "name": "\\tr8\\pc-w\\unitlist.txt",
+    "spec": 4294967295,
+    "size": 2416,
+    "md5": "aa0184cec9bae6ab78712348f6bfeccd"
+   },
+   "optional": null
+  },
+  {
+   "rel": "wp_dlc_gold_shotgun.drm",
+   "md5": "dab13a8ed9dca9c5c4acdc212555ab70",
+   "size": 1797222,
+   "patch": "patches/wp_dlc_gold_shotgun.drm.bsdiff",
+   "source": {
+    "kind": "xbox",
+    "archive": "pack10.000",
+    "name": "xenon-w\\wp_dlc_gold_shotgun.drm",
+    "spec": 4294967295,
+    "size": 1771257,
+    "md5": "2691ad434605d9e02d6b5f93af40e72e"
+   },
+   "optional": null
+  }
+ ],
+ "extra": [
+  {
+   "rel": "tru.exe",
+   "md5": "5560abacbc6968cdc17871c3ec8ca21c",
+   "size": 6422528,
+   "patch": "patches/tru.exe.bsdiff",
+   "source": {
+    "file": "tru.exe",
+    "where": "game",
+    "md5": "b36da327a320eab8b5c8464b27685840",
+    "size": 6766592
+   }
+  },
+  {
+   "rel": "movies/credits_DLC1.bik",
+   "md5": "3030af1f79158d68f4ec4b19650080ea",
+   "size": 35448664,
+   "patch": "patches/movies__credits_DLC1.bik.bsdiff",
+   "source": {
+    "file": "credits_DLC1.wmv",
+    "where": "dlc_content",
+    "md5": "386ee1c176ce7f296873733fd45b91b9",
+    "size": 44101260
+   }
+  }
+ ]
+}

@@ -5,7 +5,9 @@ This project ports the **Xbox 360-only DLC of Tomb Raider: Underworld** to the *
 - **Beneath the Ashes** (DLC1) can be played from the start to the end credits.
 - **Lara's Shadow** (DLC2) can be played as the doppelganger through its levels. Its ending is fixed offline but has not yet been confirmed in game.
 
-Latest build: **B269** → [Releases](https://github.com/andrearicci93/trudlcport/releases/latest)
+Latest build: **B269** (release build `B269_nativo`) → [Releases](https://github.com/andrearicci93/trudlcport/releases/latest)
+
+B269_nativo is B269_tubi plus native-D3D9 shader fixes. B269_tubi was tested in the VM; B269_nativo itself has not been played yet.
 
 ![Lara's Shadow on PC: the doppelganger in the ceremony room (build B269, 1920x1080)](docs/screenshots/dlc2_ceremony_room_1080p.jpg)
 
@@ -46,7 +48,7 @@ Full guide: [docs/INSTALL.md](docs/INSTALL.md).
   - the NVIDIA *Max Frame Rate* or AMD *Frame Rate Target Control* limiter;
   - RTSS;
   - [dxwrapper](https://github.com/elishacloud/dxwrapper) with `LimitPerFrameFPS = 60`.
-- **Windows' own Direct3D 9** should accept every shader of B269. Builds B147-B268 contained 240 pixel shaders that real AMD drivers rejected, which showed up as *"A problem has occurred with your display driver"*. In B269 the expected count is 0. This is checked offline only; the native test still has to confirm it on a real GPU.
+- **Windows' own Direct3D 9** should accept every shader of B269. Builds B147-B268 contained up to 240 pixel shaders (counted on B269_tubi) with forms that a real AMD driver rejected, which showed up as *"A problem has occurred with your display driver"*. In B269 the expected count is 0. This is checked offline only; the native test still has to confirm it on a real GPU.
 - **[DXVK](https://github.com/doitsujin/dxvk/releases)** is the fallback if a GPU still refuses something: copy `x32\d3d9.dll` next to `tru.exe`. dgVoodoo2 also works.
 
 ## Troubleshooting

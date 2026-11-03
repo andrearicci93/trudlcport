@@ -133,12 +133,12 @@ public static class NT {
 }
 "@
 Add-Type -TypeDefinition $src
-$HR = @{ 0 = 'S_OK'; 1 = 'S_FALSE'; -2005530516 = 'D3DERR_INVALIDCALL'; -2005530585 = 'D3DERR_DRIVERINTERNALERROR'; -2005530520 = 'D3DERR_DEVICELOST';
+$HRNAMES = @{ 0 = 'S_OK'; 1 = 'S_FALSE'; -2005530516 = 'D3DERR_INVALIDCALL'; -2005530585 = 'D3DERR_DRIVERINTERNALERROR'; -2005530520 = 'D3DERR_DEVICELOST';
          -2005530519 = 'D3DERR_DEVICENOTRESET'; -2005530518 = 'D3DERR_NOTAVAILABLE'; -2005532292 = 'D3DERR_OUTOFVIDEOMEMORY'; -2005530522 = 'D3DERR_NOTFOUND';
          -2005530521 = 'D3DERR_MOREDATA'; -2005530512 = 'D3DERR_DEVICEREMOVED'; -2005530591 = 'D3DERR_CONFLICTINGRENDERSTATE';
          -2005530590 = 'D3DERR_UNSUPPORTEDTEXTUREFILTER'; -2005530600 = 'D3DERR_WRONGTEXTUREFORMAT'; -2005530515 = 'D3DERR_DRIVERINVALIDCALL';
          -2005532132 = 'D3DERR_WASSTILLDRAWING'; -2005530517 = 'D3DERR_INVALIDDEVICE'; -2147024882 = 'E_OUTOFMEMORY'; -2147467259 = 'E_FAIL' }
-function HrName([int]$h) { if ($HR.ContainsKey($h)) { $HR[$h] } elseif ($h -ge 0) { 'success' } else { 'unknown' } }
+function HrName([int]$h) { if ($HRNAMES.ContainsKey($h)) { $HRNAMES[$h] } elseif ($h -ge 0) { 'success' } else { 'unknown' } }
 $prog = Join-Path $Dir 'native_progress.txt'
 function Progress($s) { [IO.File]::AppendAllText($prog, ("{0:HH:mm:ss.fff} {1}`r`n" -f (Get-Date), $s)) }
 Set-Content -Encoding ASCII $prog "native_test v3 progress (if the PC/driver crashed, the last line is the step that was running)"
@@ -167,11 +167,11 @@ $IDX = @{}
 $ix = Join-Path $Dir 'shaders_index.tsv'
 if (Test-Path $ix) { Import-Csv -Delimiter "`t" $ix | ForEach-Object { $IDX[$_.file] = $_ } }
 $fail = 0; $tot = 0; $failRows = New-Object System.Collections.Generic.List[string]; $cat = @{}
-function Row($kind, $name, $hr, $extra) {
+function Row($kind, $name, $code, $extra) {
   $script:tot++; $c = $script:cat[$kind]; if (-not $c) { $c = @(0, 0); $script:cat[$kind] = $c }
   $c[0]++
-  $st = if ($hr -lt 0) { $script:fail++; $c[1]++; 'FAIL' } else { 'ok' }
-  $line = "{0}`t{1}`t{2}`t0x{3:X8} {4}`t{5}" -f $st, $kind, $name, $hr, (HrName $hr), $extra
+  $st = if ($code -lt 0) { $script:fail++; $c[1]++; 'FAIL' } else { 'ok' }
+  $line = "{0}`t{1}`t{2}`t0x{3:X8} {4}`t{5}" -f $st, $kind, $name, $code, (HrName $code), $extra
   $L.Add($line); if ($st -eq 'FAIL') { $script:failRows.Add($line) }
 }
 function ShaderInfo($n) {
@@ -226,8 +226,8 @@ if ($init -like 'HAL*') {
   }
   foreach ($sb in @(@(1, 'ALL'), @(2, 'PIXELSTATE'), @(3, 'VERTEXSTATE'))) { Progress "stateblock $($sb[1])"; Row 'stateblock' $sb[1] ([NT]::StateBlock([uint32]$sb[0])) '' }
   if ($Draw) {
-    $hr = [NT]::DrawInit(); Row 'draw' 'init (vs_3_0 + FVF)' $hr ''
-    if ($hr -ge 0) {
+    $hrInit = [NT]::DrawInit(); Row 'draw' 'init (vs_3_0 + FVF)' $hrInit ''
+    if ($hrInit -ge 0) {
       foreach ($f in Get-ChildItem (Join-Path $Dir 'shaders') -Filter '*_ps_*.bin' -ErrorAction SilentlyContinue | Sort-Object Name) {
         Progress "draw $($f.Name)"
         $r = [NT]::Draw([IO.File]::ReadAllBytes($f.FullName)) -split ';'

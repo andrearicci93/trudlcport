@@ -21,7 +21,7 @@ Time: about 15 minutes, plus 5-20 minutes per credits movie. Disk: about 2.5 GB 
 | # | What | Where it comes from | Check |
 |---|---|---|---|
 | 1 | **Tomb Raider: Underworld, Steam, PC** (exe v1.1) | Steam | `tru.exe` MD5 `b36da327a320eab8b5c8464b27685840` |
-| 2 | [**Steamless**](https://github.com/atom0s/Steamless/releases) | GitHub | run it once on your `tru.exe`. It writes `tru.exe.unpacked.exe` (MD5 `56d1ce2dffa62f16354063da2df44d5a`) |
+| 2 | [**Steamless**](https://github.com/atom0s/Steamless/releases) (tested: the March 2024 release, v3.1.0.x, default options) | GitHub | run it once on your `tru.exe`. It writes `tru.exe.unpacked.exe` (MD5 `56d1ce2dffa62f16354063da2df44d5a`) |
 | 3 | **Beneath the Ashes**: `pack10.000` (+ `credits_DLC1.wmv`) | your Xbox 360 content folder `Content/<profile>/534307EC/00000002/9CA70CF0EDA43654D158C2E37470D301DFA850E753/` | checked by the installer |
 | 4 | **Lara's Shadow**: `pack11.000` (+ `credits_DLC2.wmv`) | same, folder `600A12643FCDAC84003E6E0DBD0A1A8F7DAE9DD153/` | required. Use `--dlc1-only` (untested) if you do not have it |
 | 5 | **ModLoader** (`ModLoader.asi` + its `binkw32.dll` proxy) | <https://github.com/TombRaiderModding/ModLoader/releases> | makes the game read the `mods` folder |
@@ -49,7 +49,7 @@ Other versions of the game (GOG, retail DVD, other exe) are **not supported**. T
    ```
    --credits --rad "C:\Tools\RADVideo\radvideo64.exe" --ffmpeg "C:\Tools\ffmpeg\bin\ffmpeg.exe"
    ```
-   You can also run it again later with only `--credits`. Files that are already installed are kept.
+   If the credits fail (RAD sometimes needs a second try), run the same command again with `--credits`. When this build is already installed and intact, only the credits are built and nothing else is touched (`--reinstall` forces a full install).
 
 What the installer writes (nothing is deleted):
 

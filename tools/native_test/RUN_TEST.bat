@@ -9,6 +9,7 @@ set "PY="
 where py >nul 2>nul && set "PY=py -3"
 if not defined PY ( where python >nul 2>nul && set "PY=python" )
 if "%GAME%"=="" goto :run
+if "%GAME:~-1%"=="\" set "GAME=%GAME:~0,-1%"
 if not defined PY (
   echo Python 3 not found: the port's shaders cannot be extracted, only the synthetic probes will be tested.
   goto :run

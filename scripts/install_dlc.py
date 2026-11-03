@@ -13,7 +13,8 @@ Requirements: Python 3.9+ and   python -m pip install bsdiff4 numpy
 Usage:
   python install_dlc.py --game "<game folder>" --dlc "<folder with the Xbox DLC files>" --kit kit --check   verify only
   python install_dlc.py --game ... --dlc ... --kit kit                       install (DLC1 + DLC2)
-  python install_dlc.py --game ... --dlc ... --kit kit --credits --rad "<...\\radvideo64.exe>"   + end credits (Windows)
+  python install_dlc.py --game ... --dlc ... --kit kit --credits --rad "<...\\radvideo64.exe>"   + end credits (Windows);
+                                                       if this build is already installed and intact, only the credits are built
   python install_dlc.py --game ... --verify                                  re-check the installed files against the record
   python install_dlc.py --game ... --restore                                 undo the last install (mods/, tru.exe, credits)
 Options: --no-exe (keep tru.exe), --dlc1-only (UNTESTED: skip DLC2 files, pack11.000 not needed).
@@ -220,6 +221,7 @@ def main():
     ap.add_argument('--dlc1-only', action='store_true', help='UNTESTED: skip the Lara\'s Shadow files (pack11.000 not needed)')
     ap.add_argument('--credits', action='store_true', help='also build movies/credits_DLC1.bik and credits_DLC2.bik (Windows, ffmpeg + RAD Video Tools)')
     ap.add_argument('--redo-credits', action='store_true'); ap.add_argument('--rad'); ap.add_argument('--ffmpeg'); ap.add_argument('--ffprobe')
+    ap.add_argument('--reinstall', action='store_true', help='install again even if the same build is installed and intact')
     ap.add_argument('--verify', action='store_true', help='re-check the installed files against the install record')
     ap.add_argument('--restore', action='store_true', help='undo the last install (old mods/, tru.exe; credits renamed)')
     a = ap.parse_args()
@@ -245,6 +247,14 @@ def main():
         except ImportError:
             sys.exit('Missing module: run   python -m pip install numpy')
     print('Reference build:', man['build'])
+    rec = load_record(g)
+    if a.credits and rec and rec.get('build') == man['build'] and not a.check and not a.reinstall:
+        bad = verify(g, rec)
+        if not bad:                                      # same build already installed and intact: only (re)build the credits
+            print('Build %s is already installed and intact: only the credits are built (use --reinstall to install again).' % man['build'])
+            rec['credits'] = sorted(set(rec.get('credits', []) + run_credits(a, g)))
+            json.dump(rec, open(os.path.join(g, RECORD), 'w'), indent=1); return
+        print('Installed files differ from the record (%d problems): installing again.' % len(bad))
     for f in ('tru.exe', 'bigfile.000', 'patch.000'):
         if not os.path.isfile(os.path.join(g, f)): sys.exit('Not a TRU game folder (missing %s): %s' % (f, g))
     packs = {}
@@ -274,10 +284,16 @@ def main():
             if f.get('pc_also'):
                 q = f['pc_also']; pb = arcs[q['archive']].read(q['name'], q['spec'])
                 if pb is None or md5(pb) != q['md5']: bad.append('%s: PC file %s missing or different' % (f['rel'], q['name'])); continue
-            if a.check: ok += 1; continue
-            old = build_old(f, sb, pb)
+            old = build_old(f, sb, pb)                       # also in --check: catches numpy/Python conversion drift before installing
             if f.get('old_md5') and md5(old) != f['old_md5']:
-                bad.append('%s: converted source differs from the kit (numpy/python difference?)' % f['rel']); continue
+                why = ''
+                if f.get('tex_md5') and 'tex' in f['aux']:
+                    why = ' (texture conversion differs: numpy %s)' % __import__('numpy').__version__ if md5(tex_aux(cdrm_decode(sb, 'be'))) != f['tex_md5'] else ' (decompression differs)'
+                bad.append('%s: converted source differs from the kit%s. Please report your Python and numpy versions.' % (f['rel'], why or ' (numpy/python difference?)')); continue
+            if a.check:
+                ok += 1
+                if k % 50 == 0: print('  checked %d/%d  %.0fs' % (k, len(todo), time.time() - t0), flush=True)
+                continue
             tb, st = finish(f, bsdiff4.patch(old, open(os.path.join(a.kit, f['patch']), 'rb').read()))
             if tb is None: bad.append('%s: %s' % (f['rel'], st)); continue
         if st == 'bad': bad.append('%s: kit file damaged' % f['rel']); continue
@@ -298,7 +314,7 @@ def main():
             sp = next((c for c in cands if c and os.path.isfile(c) and md5_file(c) == x['source']['md5']), None)
             if not sp:
                 bad.append('tru.exe: need the Steamless-unpacked v1.1 exe (MD5 %s). Your tru.exe is %s%s. Run Steamless on tru.exe '
-                           '(it writes tru.exe.unpacked.exe next to it) and start again, or use --no-exe.' % (
+                           'with default options (it writes tru.exe.unpacked.exe next to it) and start again, or use --no-exe.' % (
                                x['source']['md5'], cur, ' (the Steam original, as expected)' if cur == STEAM_EXE_MD5 else ''))
             elif not a.check:
                 tb = bsdiff4.patch(open(sp, 'rb').read(), open(os.path.join(a.kit, x['patch']), 'rb').read())

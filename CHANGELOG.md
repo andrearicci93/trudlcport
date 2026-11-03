@@ -12,7 +12,8 @@
   - Xbox textures are converted on your PC (`tex_convert.py`, needs `numpy`) instead of travelling inside the patches.
   - Each installed file is re-read from disk and checked. `--verify` and `--restore` use an install record.
 - **End credits.** The credits movies are no longer in the kit. `--credits` builds `credits_DLC1.bik` and `credits_DLC2.bik` on your PC from your own `.wmv` files (Windows, ffmpeg + RAD Video Tools). Without them the game hangs on a black screen after each final cutscene.
-- **Native Direct3D 9.** The 240 pixel shaders with forms that Windows' own D3D9 rejects on AMD are rewritten: 228 `cmp` with `-|c|`, 12 `sincos` with destination = source. This is offline only; please run the native test v3.
+- **Native Direct3D 9.** The pixel shaders with forms that Windows' own D3D9 rejects on AMD are rewritten. On B269_tubi there were 240 of them: 228 `cmp` with `-|c|` and 12 `sincos` with destination = source. This is offline only; please run the native test v3.
+- **What was played.** The release build is **B269_nativo**, which is B269_tubi plus the shader rewrite. B269_tubi was tested in the VM; B269_nativo itself has not been played yet.
 - **Lock the game to 60 fps**, as before.
 
 ### What changed since B138, in plain words
@@ -20,7 +21,7 @@
 |---|---|---|
 | B139–B141 | DLC2 start | 210 new files converted from `pack11`. The opening cutscene starts, the doppelganger outfit is forced, and the effect ids of the first fight are mapped to PC ids |
 | B147–B158 | Materials (DLC2, back-ported to DLC1) | 98 lit materials rebuilt with new shader libraries, dedicated libraries for the materials with no PC donor, missing-texture placeholders, back-buffer flags, and the RGB light bridge in transplanted libraries |
-| B159–B213 | Doppelganger and thrall data | Tens of thousands of data words that the generic converter had byte-swapped the wrong way: behaviour graph, tuning, action lists, block tables, id references. Each was decided against an independent PC oracle (the PC Lara class 850) and back-ported to the DLC1 costumes |
+| B159–B213 | Doppelganger and thrall data | Tens of thousands of data words that the generic converter had byte-swapped the wrong way: behaviour graph, tuning, action lists, block tables, id references. Where possible each word was checked against an independent PC oracle (the PC Lara class 850); the rest was decided with context models trained on the base game and cross-checked with the data audit. The fixes were back-ported to the DLC1 costumes |
 | B202, B216, B218 | DLC menu | Mission descriptions no longer overlap the title (wrapped as on Xbox) |
 | B215–B236 | Doppelganger crashes and controls | Fixed crashes on spawn, actions, animation index and node lists. The black screen when jumping at a rock vein is gone (movement profile 26 was big-endian), and so is a vein marker with swapped bytes |
 | B230–B231, B238–B245 | Doppelganger look | Green arms (normal map on the colour sampler), cube map, flat normals, trousers |

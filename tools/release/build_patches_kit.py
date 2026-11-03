@@ -47,6 +47,7 @@ def work(job):
             e['mode'] = 'cdrm'; e['raw_md5'] = hashlib.md5(raw).hexdigest(); new = raw
             if r['source']['kind'] == 'xbox': e['aux'].insert(0, 'tex')
     old = I.build_old(e, sb, pb); e['old_md5'] = hashlib.md5(old).hexdigest()
+    if 'tex' in e['aux']: e['tex_md5'] = hashlib.md5(I.tex_aux(I.cdrm_decode(sb, 'be'))).hexdigest()   # diagnosi deriva numpy
     d = bsdiff4.diff(old, new)
     chk, st = I.finish(e, bsdiff4.patch(old, d))
     if st != 'exact': raise RuntimeError('%s: verifica patch fallita (%s)' % (rel, st))

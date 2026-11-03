@@ -7,7 +7,7 @@ This project ports the **Xbox 360-only DLC of Tomb Raider: Underworld** to the *
 
 Latest build: **B270** (release build `B270_acqua`) → [Releases](https://github.com/andrearicci93/trudlcport/releases/latest)
 
-B270_acqua is B269_nativo (B269_tubi plus native-D3D9 shader fixes) plus a fix for black water in the DLC1 dungeons. B269_tubi was tested in the VM; B269_nativo is in its first VM test; B270_acqua has not been installed or played yet.
+B270_acqua is B269_nativo (B269_tubi plus native-D3D9 shader fixes) plus a fix for black water in the DLC1 dungeons. B269_tubi was tested in the VM; B269_nativo is in its first VM test; B270_acqua was installed in the VM: the black water of the DLC1 dungeons is fixed (it now looks translucent, like on Xbox).
 
 
 ## Screenshots
@@ -30,7 +30,7 @@ On the Steam PC game, no emulator:
 
 ## Install
 
-> **The B270 installer kit is not published yet.** B270 is waiting for the AMD native-driver test, and the kit will be released only once the installer can recreate every file from your own game data (no literal game data in the release). Until then, only the tools and the native D3D9 test are in the Releases.
+> **Temporary test kit.** The B270 kit attached to the release is a test build for a few testers. It still carries about 37% of the installed bytes literally inside the patches (see Legal). The final release will not: the installer will recreate every file from your own game data.
 
 1. From [Releases](https://github.com/andrearicci93/trudlcport/releases/latest) download `install_dlc.py`, `tex_convert.py`, `credits_convert.py` and `trudlcport-kit-B270.zip`. Put them in one folder and unzip the kit there into a folder named `kit`.
 2. Run Steamless on `<game folder>\tru.exe`. It writes `tru.exe.unpacked.exe` next to it; leave that file there.
@@ -110,7 +110,7 @@ Per-area detail: [docs/STATUS.md](docs/STATUS.md). Changes since B138: [CHANGELO
 Tomb Raider: Underworld and its DLC belong to their respective owners. This is an unofficial fan project for people who own both the PC game and the Xbox 360 DLC.
 
 - **No game data in the repository.** It contains only code, documentation and tables of checksums.
-- **The planned release kit (not published yet) is a set of binary patches** that the installer applies to your own files, after checking their MD5s.
+- **The release kit is a set of binary patches** that the installer applies to your own files, after checking their MD5s.
   - Xbox textures are converted on your PC by `tex_convert.py`, not shipped.
   - The exe patch is computed against the Steamless output of your own `tru.exe`, so the kit does not carry the game's code.
   - What the installer cannot yet recreate on your PC is still **literal inside the patches**. Measured on the B269/B270 builds with `tools/release/patch_audit.py`, as a share of the installed bytes (decompressed):

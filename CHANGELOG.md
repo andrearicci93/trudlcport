@@ -4,7 +4,7 @@
 
 ## B270 — Nov 2026 (release build `B270_acqua`; kit not published)
 
-B270_acqua is B269_nativo plus two fixes to how a vertex shader feeds a pixel shader (COLOR0). Both are verified offline only; this build has **not been installed or played yet**.
+B270_acqua is B269_nativo plus two fixes to how a vertex shader feeds a pixel shader (COLOR0). Both are verified offline only; B270_acqua was installed in the VM and the dungeon water is no longer black; the rest of the build is as B269_nativo (not played through yet).
 
 | Area | Change | Why |
 |---|---|---|

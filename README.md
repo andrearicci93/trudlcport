@@ -101,6 +101,12 @@ Tomb Raider: Underworld and its DLC belong to their respective owners. This is a
 - **The release kit is a set of binary patches** that the installer applies to your own files, after checking their MD5s.
   - Xbox textures are converted on your PC by `tex_convert.py`, not shipped.
   - The exe patch is computed against the Steamless output of your own `tru.exe`, so the kit does not carry the game's code.
-  - Data the installer cannot recreate on your PC (mainly re-encoded audio, animation and mesh sections) is still inside the patches as differences. `tools/release/patch_audit.py` measures how much, per file.
+  - What the installer cannot yet recreate on your PC is still **literal inside the patches**. Measured on the B269 dry run with `tools/release/patch_audit.py`, as a share of the installed bytes (decompressed):
+    - about 37% overall;
+    - about 29% of the DRM bytes: animation, mesh, audio and shader sections;
+    - about 99% of the re-encoded `.mul` audio;
+    - about 42% of the menu images;
+    - 0.2% of the exe, which is code written for the port.
+    Previous kits (B132/B138) were about 97% literal and included the credits movie.
 - **The credits movies (`.bik`) are never distributed.** You make them on your PC from your own `.wmv` files with `credits_convert.py`.
 - Code is MIT-licensed (see `LICENSE`).

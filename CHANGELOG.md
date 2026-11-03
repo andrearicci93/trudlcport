@@ -13,7 +13,7 @@
   - Each installed file is re-read from disk and checked. `--verify` and `--restore` use an install record.
 - **End credits.** The credits movies are no longer in the kit. `--credits` builds `credits_DLC1.bik` and `credits_DLC2.bik` on your PC from your own `.wmv` files (Windows, ffmpeg + RAD Video Tools). Without them the game hangs on a black screen after each final cutscene.
 - **Native Direct3D 9.** The pixel shaders with forms that Windows' own D3D9 rejects on AMD are rewritten. On B269_tubi there were 240 of them: 228 `cmp` with `-|c|` and 12 `sincos` with destination = source. This is offline only; please run the native test v3.
-- **What was played.** The release build is **B269_nativo**, which is B269_tubi plus the shader rewrite. B269_tubi was tested in the VM; B269_nativo itself has not been played yet.
+- **What was played.** The release build is **B269_nativo**, which is B269_tubi plus the shader rewrite. B269_tubi was tested in the VM; B269_nativo is in its first VM test (TEST 56) and has not been played through yet.
 - **Lock the game to 60 fps**, as before.
 
 ### What changed since B138, in plain words

@@ -10,7 +10,7 @@ The installer works only from files you own and checks every one of them:
 
 If it says "Installed" and "Final check ... OK", your files match the author's.
 
-Time: about 15 minutes, plus 5-20 minutes per credits movie. Disk: about 2.5 GB free in the game folder, plus about 1.5 GB temporary space for the credits.
+Time: about 15 minutes, plus 5-20 minutes per credits movie. Disk: about 4 GB free: the new `mods\` (2 GB), the backup of your previous one and the unzipped kit (0.9 GB). The credits need about 1.5 GB of temporary space. The `--check` run takes several minutes, because it converts the textures too.
 
 > Italiano: istruzioni brevi in fondo alla pagina.
 
@@ -62,6 +62,13 @@ What the installer writes (nothing is deleted):
 
 - `--no-exe` keeps your exe. DLC2 will not work properly without the patched one.
 - If a file is reported as *content-identical but recompressed by a different zlib build*, that is fine. Its decompressed content matches the author's byte for byte.
+
+### Updating from B132/B138
+
+Your `tru.exe` is the one patched by the old build, and the Steam exe is in `tru.exe.steam_original`.
+
+1. Run Steamless on `tru.exe.steam_original`. It writes `tru.exe.steam_original.unpacked.exe`, which the installer finds by itself.
+2. Run the installer as above. Your old `mods\` is kept as `mods_backup_<date>`.
 
 ## 4. Play
 

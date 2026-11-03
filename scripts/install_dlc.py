@@ -310,9 +310,13 @@ def main():
         cur = md5_file(os.path.join(g, 'tru.exe'))
         if cur == x['md5']: print('tru.exe is already the patched one')
         else:
-            cands = [a.exe_source] if a.exe_source else [os.path.join(g, 'tru.exe.unpacked.exe'), os.path.join(g, 'tru.exe'), os.path.join(g, 'tru.exe.steamless_original')]
+            cands = [a.exe_source] if a.exe_source else [os.path.join(g, n) for n in (
+                'tru.exe.unpacked.exe', 'tru.exe', 'tru.exe.steam_original.unpacked.exe', 'tru.exe.steamless_original')]
             sp = next((c for c in cands if c and os.path.isfile(c) and md5_file(c) == x['source']['md5']), None)
-            if not sp:
+            if not sp and os.path.isfile(os.path.join(g, 'tru.exe.steam_original')) and cur != STEAM_EXE_MD5:
+                bad.append('tru.exe: your tru.exe was patched by an older build of this port (MD5 %s). Run Steamless (default options) on '
+                           'tru.exe.steam_original: it writes tru.exe.steam_original.unpacked.exe (MD5 %s), then start again.' % (cur, x['source']['md5']))
+            elif not sp:
                 bad.append('tru.exe: need the Steamless-unpacked v1.1 exe (MD5 %s). Your tru.exe is %s%s. Run Steamless on tru.exe '
                            'with default options (it writes tru.exe.unpacked.exe next to it) and start again, or use --no-exe.' % (
                                x['source']['md5'], cur, ' (the Steam original, as expected)' if cur == STEAM_EXE_MD5 else ''))

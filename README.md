@@ -7,9 +7,17 @@ This project ports the **Xbox 360-only DLC of Tomb Raider: Underworld** to the *
 
 Latest build: **B269** (release build `B269_nativo`) → [Releases](https://github.com/andrearicci93/trudlcport/releases/latest)
 
-B269_nativo is B269_tubi plus native-D3D9 shader fixes. B269_tubi was tested in the VM; B269_nativo itself has not been played yet.
+B269_nativo is B269_tubi plus native-D3D9 shader fixes. B269_tubi was tested in the VM; B269_nativo is in its first VM test and has not been played through yet.
 
-![Lara's Shadow on PC: the doppelganger in the ceremony room (build B269, 1920x1080)](docs/screenshots/dlc2_ceremony_room_1080p.jpg)
+
+## Screenshots
+
+On the Steam PC game, no emulator:
+
+| Beneath the Ashes (DLC1) | Lara's Shadow (DLC2) |
+|---|---|
+| ![Beneath the Ashes: the cobwebbed bridge (B269_nativo)](docs/screenshots/dlc1_webbed_bridge_2576.jpg) | ![Lara's Shadow: the doppelganger in the ceremony room (B269)](docs/screenshots/dlc2_ceremony_room_1080p.jpg) |
+| The cobwebbed bridge, build B269_nativo | The doppelganger in the ceremony room, build B269 |
 
 ## What you need
 

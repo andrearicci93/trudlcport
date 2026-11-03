@@ -46,3 +46,10 @@ All documentation is in English. Source-code comments, docstrings and some log s
 ## Credits and third-party software
 
 Not included, needed by the setup: [ModLoader](https://github.com/TombRaiderModding/ModLoader) (GPL-3.0), [TRLAU-Menu-Hook](https://github.com/TheIndra55/TRLAU-menu-hook), [dgVoodoo2](http://dege.fw.hu/), [Steamless](https://github.com/atom0s/Steamless), and (for analysis) Ghidra. The Xbox 360 executable analysis used XenonRecomp's `xex_dump`/`XenonAnalyse`. Thanks to the Tomb Raider modding community for the cdcEngine tooling.
+
+## Building a release kit (format 2)
+
+`tools/release/` (paths are the author's; adapt `T` at the top of each script):
+1. `map_sources_kit.py --baseline <name>`: for each file of the baseline, the user-owned source it is patched from (`pack10`/`pack11`/PC archives, donor for clones) and the DLC it belongs to.
+2. `build_patches_kit.py --baseline <name> --exe <final exe> --exe-md5 <md5>`: bsdiff4 patches between decompressed DRMs, with the Xbox textures converted by `scripts/tex_convert.py` as an extra source (the installer runs the very same `build_old`/`finish` code from `scripts/install_dlc.py`); the exe patch starts from the Steamless output. Every patch is re-applied and checked before it is written.
+3. `patch_audit.py <kit>`: per file, how many output bytes are literal inside the patch (bsdiff "extra" block) instead of derived from the user's files. Use it before every release.

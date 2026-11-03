@@ -6,10 +6,9 @@
   "height": 512,
   "depth": 1,
   "levels": 1,
-  "in_pc": true,
   "count": 1,
   "example": "generalbank.drm/5",
-  "source": "drm"
+  "source": "B269 reference list"
  },
  {
   "kind": "2d",
@@ -18,10 +17,9 @@
   "height": 256,
   "depth": 1,
   "levels": 1,
-  "in_pc": true,
   "count": 1,
   "example": "generalbank.drm/109",
-  "source": "drm"
+  "source": "B269 reference list"
  },
  {
   "kind": "2d",
@@ -30,10 +28,9 @@
   "height": 512,
   "depth": 1,
   "levels": 10,
-  "in_pc": true,
-  "count": 26,
-  "example": "dlc_caverns.drm/6552",
-  "source": "drm"
+  "count": 78,
+  "example": "dlc2_goo_spout.drm/4985",
+  "source": "B269 reference list"
  },
  {
   "kind": "2d",
@@ -42,10 +39,9 @@
   "height": 256,
   "depth": 1,
   "levels": 9,
-  "in_pc": true,
-  "count": 319,
+  "count": 690,
   "example": "cine_dlc1_start_spangs.drm/159",
-  "source": "drm"
+  "source": "B269 reference list"
  },
  {
   "kind": "2d",
@@ -54,10 +50,9 @@
   "height": 128,
   "depth": 1,
   "levels": 1,
-  "in_pc": true,
   "count": 1,
   "example": "generalbank.drm/52",
-  "source": "drm"
+  "source": "B269 reference list"
  },
  {
   "kind": "2d",
@@ -66,10 +61,9 @@
   "height": 128,
   "depth": 1,
   "levels": 1,
-  "in_pc": true,
-  "count": 241,
+  "count": 508,
   "example": "cine_dlc1_start_spangs.drm/187",
-  "source": "drm"
+  "source": "B269 reference list"
  },
  {
   "kind": "2d",
@@ -78,10 +72,9 @@
   "height": 128,
   "depth": 1,
   "levels": 8,
-  "in_pc": true,
-  "count": 438,
+  "count": 789,
   "example": "cine_dlc1_start_spangs.drm/160",
-  "source": "drm"
+  "source": "B269 reference list"
  },
  {
   "kind": "2d",
@@ -90,10 +83,9 @@
   "height": 64,
   "depth": 1,
   "levels": 1,
-  "in_pc": true,
-  "count": 142,
+  "count": 258,
   "example": "cine_dlc1_start_spangs.drm/169",
-  "source": "drm"
+  "source": "B269 reference list"
  },
  {
   "kind": "2d",
@@ -102,10 +94,9 @@
   "height": 4,
   "depth": 1,
   "levels": 1,
-  "in_pc": true,
   "count": 1,
   "example": "generalbank.drm/105",
-  "source": "drm"
+  "source": "B269 reference list"
  },
  {
   "kind": "2d",
@@ -114,10 +105,9 @@
   "height": 64,
   "depth": 1,
   "levels": 7,
-  "in_pc": true,
-  "count": 25,
+  "count": 32,
   "example": "dlc1_uo_pillar_of_doom_a.drm/759",
-  "source": "drm"
+  "source": "B269 reference list"
  },
  {
   "kind": "2d",
@@ -126,10 +116,9 @@
   "height": 64,
   "depth": 1,
   "levels": 6,
-  "in_pc": true,
-  "count": 6,
+  "count": 9,
   "example": "dlc_costume_b.drm/213",
-  "source": "drm"
+  "source": "B269 reference list"
  },
  {
   "kind": "2d",
@@ -138,10 +127,9 @@
   "height": 32,
   "depth": 1,
   "levels": 6,
-  "in_pc": true,
-  "count": 6,
+  "count": 9,
   "example": "dlc_costume_b.drm/214",
-  "source": "drm"
+  "source": "B269 reference list"
  },
  {
   "kind": "2d",
@@ -150,10 +138,9 @@
   "height": 32,
   "depth": 1,
   "levels": 1,
-  "in_pc": true,
-  "count": 120,
+  "count": 262,
   "example": "cine_dlc1_start_spangs.drm/145",
-  "source": "drm"
+  "source": "B269 reference list"
  },
  {
   "kind": "2d",
@@ -162,10 +149,9 @@
   "height": 64,
   "depth": 1,
   "levels": 1,
-  "in_pc": true,
   "count": 8,
   "example": "generalbank.drm/57",
-  "source": "drm"
+  "source": "B269 reference list"
  },
  {
   "kind": "2d",
@@ -174,10 +160,9 @@
   "height": 32,
   "depth": 1,
   "levels": 6,
-  "in_pc": true,
-  "count": 55,
+  "count": 112,
   "example": "dlc1_health_pack.drm/151",
-  "source": "drm"
+  "source": "B269 reference list"
  },
  {
   "kind": "2d",
@@ -186,10 +171,9 @@
   "height": 32,
   "depth": 1,
   "levels": 1,
-  "in_pc": true,
-  "count": 6,
+  "count": 9,
   "example": "dlc_costume_b.drm/206",
-  "source": "drm"
+  "source": "B269 reference list"
  },
  {
   "kind": "2d",
@@ -198,10 +182,9 @@
   "height": 16,
   "depth": 1,
   "levels": 1,
-  "in_pc": true,
-  "count": 6,
+  "count": 9,
   "example": "dlc_costume_b.drm/207",
-  "source": "drm"
+  "source": "B269 reference list"
  },
  {
   "kind": "2d",
@@ -210,10 +193,9 @@
   "height": 16,
   "depth": 1,
   "levels": 1,
-  "in_pc": true,
-  "count": 186,
+  "count": 286,
   "example": "cine_dlc1_start_spangs.drm/147",
-  "source": "drm"
+  "source": "B269 reference list"
  },
  {
   "kind": "2d",
@@ -222,10 +204,9 @@
   "height": 16,
   "depth": 1,
   "levels": 5,
-  "in_pc": true,
-  "count": 3,
-  "example": "fx_ma_waterwheel_current_ist.drm/1103",
-  "source": "drm"
+  "count": 9,
+  "example": "dlc2_uo_goo_drips_sml_spawned.drm/1103",
+  "source": "B269 reference list"
  },
  {
   "kind": "2d",
@@ -234,10 +215,9 @@
   "height": 8,
   "depth": 1,
   "levels": 1,
-  "in_pc": true,
   "count": 1,
   "example": "generalbank.drm/67",
-  "source": "drm"
+  "source": "B269 reference list"
  },
  {
   "kind": "2d",
@@ -246,10 +226,9 @@
   "height": 4,
   "depth": 1,
   "levels": 3,
-  "in_pc": false,
-  "count": 48,
+  "count": 98,
   "example": "cine_dlc1_start_spangs.drm/719",
-  "source": "drm"
+  "source": "B269 reference list"
  },
  {
   "kind": "2d",
@@ -258,10 +237,9 @@
   "height": 2048,
   "depth": 1,
   "levels": 11,
-  "in_pc": false,
   "count": 20,
   "example": "dlc1_uo_sewer_gate.drm/6471",
-  "source": "drm"
+  "source": "B269 reference list"
  },
  {
   "kind": "2d",
@@ -270,10 +248,20 @@
   "height": 1024,
   "depth": 1,
   "levels": 11,
-  "in_pc": true,
   "count": 1,
   "example": "dlc_caverns.drm/6747",
-  "source": "drm"
+  "source": "B269 reference list"
+ },
+ {
+  "kind": "2d",
+  "format": 827611204,
+  "width": 1024,
+  "height": 1024,
+  "depth": 1,
+  "levels": 1,
+  "count": 1,
+  "example": "streamgroups/dlc2_goo_room_goo_room_all.drm/7367",
+  "source": "B269 reference list"
  },
  {
   "kind": "2d",
@@ -282,10 +270,9 @@
   "height": 1024,
   "depth": 1,
   "levels": 11,
-  "in_pc": true,
-  "count": 122,
-  "example": "dlc1_uo_pillory.drm/6705",
-  "source": "drm"
+  "count": 340,
+  "example": "co_ceremony_room_door.drm/6921",
+  "source": "B269 reference list"
  },
  {
   "kind": "2d",
@@ -294,10 +281,9 @@
   "height": 1024,
   "depth": 1,
   "levels": 10,
-  "in_pc": true,
-  "count": 23,
-  "example": "dlc1_uo_sewer_gate.drm/6472",
-  "source": "drm"
+  "count": 62,
+  "example": "co_dlc2_uo_natlapod_broken.drm/7374",
+  "source": "B269 reference list"
  },
  {
   "kind": "2d",
@@ -306,10 +292,9 @@
   "height": 512,
   "depth": 1,
   "levels": 10,
-  "in_pc": true,
-  "count": 15,
+  "count": 22,
   "example": "dlc_caverns.drm/6750",
-  "source": "drm"
+  "source": "B269 reference list"
  },
  {
   "kind": "2d",
@@ -318,10 +303,9 @@
   "height": 512,
   "depth": 1,
   "levels": 1,
-  "in_pc": true,
-  "count": 13,
-  "example": "dlc_caverns.drm/144",
-  "source": "drm"
+  "count": 25,
+  "example": "dlc2_ceremony_room.drm/144",
+  "source": "B269 reference list"
  },
  {
   "kind": "2d",
@@ -330,10 +314,9 @@
   "height": 256,
   "depth": 1,
   "levels": 9,
-  "in_pc": true,
-  "count": 8,
-  "example": "dlc_level1_start.drm/4267",
-  "source": "drm"
+  "count": 20,
+  "example": "dlc2_uo_corkscrew_200cm.drm/7275",
+  "source": "B269 reference list"
  },
  {
   "kind": "2d",
@@ -342,10 +325,9 @@
   "height": 512,
   "depth": 1,
   "levels": 10,
-  "in_pc": true,
-  "count": 876,
-  "example": "co_dlc_earphonecam.drm/7154",
-  "source": "drm"
+  "count": 1648,
+  "example": "co_ceremony_room_door.drm/6914",
+  "source": "B269 reference list"
  },
  {
   "kind": "2d",
@@ -354,10 +336,9 @@
   "height": 128,
   "depth": 1,
   "levels": 8,
-  "in_pc": true,
-  "count": 1,
+  "count": 14,
   "example": "dlc_level1_start.drm/4281",
-  "source": "drm"
+  "source": "B269 reference list"
  },
  {
   "kind": "2d",
@@ -366,10 +347,9 @@
   "height": 512,
   "depth": 1,
   "levels": 9,
-  "in_pc": true,
-  "count": 47,
-  "example": "co_dlc_eitr_stone.drm/7037",
-  "source": "drm"
+  "count": 77,
+  "example": "co_dlc2_uo_natlapod_broken.drm/7860",
+  "source": "B269 reference list"
  },
  {
   "kind": "2d",
@@ -378,10 +358,9 @@
   "height": 256,
   "depth": 1,
   "levels": 9,
-  "in_pc": true,
-  "count": 58,
-  "example": "dlc1_uo_bend_switches.drm/6682",
-  "source": "drm"
+  "count": 92,
+  "example": "co_dlc_lara.drm/288",
+  "source": "B269 reference list"
  },
  {
   "kind": "2d",
@@ -390,10 +369,9 @@
   "height": 256,
   "depth": 1,
   "levels": 1,
-  "in_pc": true,
   "count": 9,
   "example": "co_dlc_knight_thrall.drm/6588",
-  "source": "drm"
+  "source": "B269 reference list"
  },
  {
   "kind": "2d",
@@ -402,10 +380,9 @@
   "height": 128,
   "depth": 1,
   "levels": 8,
-  "in_pc": true,
-  "count": 6,
-  "example": "dlc_caverns.drm/6817",
-  "source": "drm"
+  "count": 17,
+  "example": "dlc2_uo_machine_column.drm/7273",
+  "source": "B269 reference list"
  },
  {
   "kind": "2d",
@@ -414,10 +391,9 @@
   "height": 512,
   "depth": 1,
   "levels": 8,
-  "in_pc": true,
-  "count": 1,
+  "count": 5,
   "example": "dlc_level1_start.drm/4288",
-  "source": "drm"
+  "source": "B269 reference list"
  },
  {
   "kind": "2d",
@@ -426,10 +402,20 @@
   "height": 256,
   "depth": 1,
   "levels": 9,
-  "in_pc": true,
-  "count": 571,
-  "example": "co_dlc_earphonecam.drm/7152",
-  "source": "drm"
+  "count": 1197,
+  "example": "co_ceremony_room_door.drm/7687",
+  "source": "B269 reference list"
+ },
+ {
+  "kind": "2d",
+  "format": 827611204,
+  "width": 512,
+  "height": 64,
+  "depth": 1,
+  "levels": 7,
+  "count": 13,
+  "example": "dlc_level2_start.drm/6928",
+  "source": "B269 reference list"
  },
  {
   "kind": "2d",
@@ -438,10 +424,9 @@
   "height": 256,
   "depth": 1,
   "levels": 8,
-  "in_pc": true,
   "count": 8,
   "example": "co_dlc_letter_with_stonephoto.drm/7129",
-  "source": "drm"
+  "source": "B269 reference list"
  },
  {
   "kind": "2d",
@@ -450,10 +435,9 @@
   "height": 128,
   "depth": 1,
   "levels": 8,
-  "in_pc": true,
-  "count": 7,
+  "count": 28,
   "example": "dlc1_uo_crushers.drm/6681",
-  "source": "drm"
+  "source": "B269 reference list"
  },
  {
   "kind": "2d",
@@ -462,22 +446,9 @@
   "height": 128,
   "depth": 1,
   "levels": 8,
-  "in_pc": true,
-  "count": 129,
+  "count": 362,
   "example": "cine_dlc1_start_spangs.drm/2401",
-  "source": "drm"
- },
- {
-  "kind": "2d",
-  "format": 827611204,
-  "width": 64,
-  "height": 128,
-  "depth": 1,
-  "levels": 7,
-  "in_pc": true,
-  "count": 3,
-  "example": "dlc1_uo_pillory.drm/6708",
-  "source": "drm"
+  "source": "B269 reference list"
  },
  {
   "kind": "2d",
@@ -486,10 +457,20 @@
   "height": 64,
   "depth": 1,
   "levels": 7,
-  "in_pc": true,
-  "count": 13,
-  "example": "dlc_costume_b.drm/311",
-  "source": "drm"
+  "count": 17,
+  "example": "co_dlc_lara.drm/311",
+  "source": "B269 reference list"
+ },
+ {
+  "kind": "2d",
+  "format": 827611204,
+  "width": 64,
+  "height": 128,
+  "depth": 1,
+  "levels": 7,
+  "count": 3,
+  "example": "dlc1_uo_pillory.drm/6708",
+  "source": "B269 reference list"
  },
  {
   "kind": "2d",
@@ -498,10 +479,9 @@
   "height": 64,
   "depth": 1,
   "levels": 1,
-  "in_pc": true,
-  "count": 76,
-  "example": "cinstream/pdlc1_010_intro.drm/557",
-  "source": "drm"
+  "count": 149,
+  "example": "co_dlc_knight_thrall.drm/3108",
+  "source": "B269 reference list"
  },
  {
   "kind": "2d",
@@ -510,10 +490,20 @@
   "height": 64,
   "depth": 1,
   "levels": 7,
-  "in_pc": true,
-  "count": 430,
+  "count": 576,
   "example": "cine_dlc1_start_spangs.drm/937",
-  "source": "drm"
+  "source": "B269 reference list"
+ },
+ {
+  "kind": "2d",
+  "format": 827611204,
+  "width": 32,
+  "height": 64,
+  "depth": 1,
+  "levels": 6,
+  "count": 1,
+  "example": "wp_dlc_handgun.drm/572",
+  "source": "B269 reference list"
  },
  {
   "kind": "2d",
@@ -522,10 +512,9 @@
   "height": 32,
   "depth": 1,
   "levels": 1,
-  "in_pc": true,
-  "count": 64,
-  "example": "cinstream/pdlc1_010_intro.drm/559",
-  "source": "drm"
+  "count": 122,
+  "example": "dlc1_health_pack.drm/172",
+  "source": "B269 reference list"
  },
  {
   "kind": "2d",
@@ -534,10 +523,9 @@
   "height": 4,
   "depth": 1,
   "levels": 1,
-  "in_pc": true,
   "count": 1,
   "example": "generalbank.drm/115",
-  "source": "drm"
+  "source": "B269 reference list"
  },
  {
   "kind": "2d",
@@ -546,10 +534,9 @@
   "height": 32,
   "depth": 1,
   "levels": 6,
-  "in_pc": true,
-  "count": 10,
-  "example": "dlc1_uo_raft_bridge.drm/6673",
-  "source": "drm"
+  "count": 15,
+  "example": "co_dlc_lara.drm/319",
+  "source": "B269 reference list"
  },
  {
   "kind": "2d",
@@ -558,10 +545,9 @@
   "height": 4,
   "depth": 1,
   "levels": 1,
-  "in_pc": true,
   "count": 3,
-  "example": "cinstream/pdlc1_010_intro.drm/2",
-  "source": "drm"
+  "example": "generalbank.drm/1",
+  "source": "B269 reference list"
  },
  {
   "kind": "2d",
@@ -570,10 +556,9 @@
   "height": 4,
   "depth": 1,
   "levels": 3,
-  "in_pc": true,
-  "count": 199,
+  "count": 434,
   "example": "cine_dlc1_start_spangs.drm/121",
-  "source": "drm"
+  "source": "B269 reference list"
  },
  {
   "kind": "2d",
@@ -582,10 +567,9 @@
   "height": 1024,
   "depth": 1,
   "levels": 11,
-  "in_pc": true,
   "count": 3,
   "example": "dlc_caverns.drm/6746",
-  "source": "drm"
+  "source": "B269 reference list"
  },
  {
   "kind": "2d",
@@ -594,10 +578,9 @@
   "height": 1024,
   "depth": 1,
   "levels": 1,
-  "in_pc": true,
   "count": 1,
   "example": "generalbank.drm/17",
-  "source": "drm"
+  "source": "B269 reference list"
  },
  {
   "kind": "2d",
@@ -606,10 +589,9 @@
   "height": 1024,
   "depth": 1,
   "levels": 11,
-  "in_pc": true,
-  "count": 114,
-  "example": "dlc_caverns.drm/6475",
-  "source": "drm"
+  "count": 226,
+  "example": "co_ceremony_room_door.drm/6918",
+  "source": "B269 reference list"
  },
  {
   "kind": "2d",
@@ -618,10 +600,9 @@
   "height": 1024,
   "depth": 1,
   "levels": 10,
-  "in_pc": true,
-  "count": 46,
-  "example": "dlc_caverns.drm/6518",
-  "source": "drm"
+  "count": 64,
+  "example": "dlc2_uo_gooconverter.drm/7322",
+  "source": "B269 reference list"
  },
  {
   "kind": "2d",
@@ -630,10 +611,9 @@
   "height": 512,
   "depth": 1,
   "levels": 10,
-  "in_pc": true,
-  "count": 22,
+  "count": 26,
   "example": "dlc_caverns.drm/6751",
-  "source": "drm"
+  "source": "B269 reference list"
  },
  {
   "kind": "2d",
@@ -642,10 +622,9 @@
   "height": 512,
   "depth": 1,
   "levels": 1,
-  "in_pc": true,
   "count": 9,
   "example": "co_dlc_knight_thrall.drm/6666",
-  "source": "drm"
+  "source": "B269 reference list"
  },
  {
   "kind": "2d",
@@ -654,10 +633,9 @@
   "height": 256,
   "depth": 1,
   "levels": 1,
-  "in_pc": true,
   "count": 1,
   "example": "generalbank.drm/106",
-  "source": "drm"
+  "source": "B269 reference list"
  },
  {
   "kind": "2d",
@@ -666,10 +644,9 @@
   "height": 512,
   "depth": 1,
   "levels": 10,
-  "in_pc": true,
-  "count": 478,
-  "example": "co_dlc_knight_thrall.drm/6785",
-  "source": "drm"
+  "count": 821,
+  "example": "co_dlc2_goo.drm/7001",
+  "source": "B269 reference list"
  },
  {
   "kind": "2d",
@@ -678,10 +655,9 @@
   "height": 256,
   "depth": 1,
   "levels": 1,
-  "in_pc": true,
   "count": 2,
   "example": "generalbank.drm/55",
-  "source": "drm"
+  "source": "B269 reference list"
  },
  {
   "kind": "2d",
@@ -690,10 +666,9 @@
   "height": 128,
   "depth": 1,
   "levels": 8,
-  "in_pc": true,
-  "count": 1,
+  "count": 14,
   "example": "dlc_level1_start.drm/4282",
-  "source": "drm"
+  "source": "B269 reference list"
  },
  {
   "kind": "2d",
@@ -702,10 +677,9 @@
   "height": 512,
   "depth": 1,
   "levels": 9,
-  "in_pc": true,
-  "count": 46,
+  "count": 72,
   "example": "co_dlc_eitr_stone.drm/7039",
-  "source": "drm"
+  "source": "B269 reference list"
  },
  {
   "kind": "2d",
@@ -714,10 +688,9 @@
   "height": 256,
   "depth": 1,
   "levels": 9,
-  "in_pc": true,
-  "count": 26,
-  "example": "dlc1_uo_cavern_hall_gate.drm/6776",
-  "source": "drm"
+  "count": 58,
+  "example": "co_dlc_lara.drm/287",
+  "source": "B269 reference list"
  },
  {
   "kind": "2d",
@@ -726,10 +699,9 @@
   "height": 64,
   "depth": 1,
   "levels": 1,
-  "in_pc": true,
   "count": 1,
   "example": "generalbank.drm/10",
-  "source": "drm"
+  "source": "B269 reference list"
  },
  {
   "kind": "2d",
@@ -738,10 +710,9 @@
   "height": 256,
   "depth": 1,
   "levels": 1,
-  "in_pc": true,
   "count": 1,
   "example": "generalbank.drm/50",
-  "source": "drm"
+  "source": "B269 reference list"
  },
  {
   "kind": "2d",
@@ -750,10 +721,9 @@
   "height": 128,
   "depth": 1,
   "levels": 1,
-  "in_pc": true,
   "count": 1,
   "example": "generalbank.drm/78",
-  "source": "drm"
+  "source": "B269 reference list"
  },
  {
   "kind": "2d",
@@ -762,10 +732,9 @@
   "height": 128,
   "depth": 1,
   "levels": 8,
-  "in_pc": true,
-  "count": 4,
-  "example": "dlc_level1_start.drm/4278",
-  "source": "drm"
+  "count": 15,
+  "example": "dlc2_uo_machine_column.drm/7274",
+  "source": "B269 reference list"
  },
  {
   "kind": "2d",
@@ -774,10 +743,9 @@
   "height": 512,
   "depth": 1,
   "levels": 8,
-  "in_pc": true,
-  "count": 1,
+  "count": 3,
   "example": "dlc_level1_start.drm/4287",
-  "source": "drm"
+  "source": "B269 reference list"
  },
  {
   "kind": "2d",
@@ -786,10 +754,9 @@
   "height": 256,
   "depth": 1,
   "levels": 9,
-  "in_pc": true,
-  "count": 369,
-  "example": "co_dlc_knight_thrall.drm/7158",
-  "source": "drm"
+  "count": 607,
+  "example": "co_dlc2_uo_natlapod_broken.drm/7417",
+  "source": "B269 reference list"
  },
  {
   "kind": "2d",
@@ -798,10 +765,9 @@
   "height": 128,
   "depth": 1,
   "levels": 1,
-  "in_pc": true,
-  "count": 9,
-  "example": "dlc_costume_b.drm/291",
-  "source": "drm"
+  "count": 14,
+  "example": "co_dlc_lara.drm/291",
+  "source": "B269 reference list"
  },
  {
   "kind": "2d",
@@ -810,10 +776,9 @@
   "height": 64,
   "depth": 1,
   "levels": 7,
-  "in_pc": true,
   "count": 2,
   "example": "dlc_caverns_hall.drm/1196",
-  "source": "drm"
+  "source": "B269 reference list"
  },
  {
   "kind": "2d",
@@ -822,10 +787,9 @@
   "height": 256,
   "depth": 1,
   "levels": 8,
-  "in_pc": true,
-  "count": 11,
+  "count": 18,
   "example": "co_dlc_eitr_stone.drm/7027",
-  "source": "drm"
+  "source": "B269 reference list"
  },
  {
   "kind": "2d",
@@ -834,10 +798,9 @@
   "height": 128,
   "depth": 1,
   "levels": 8,
-  "in_pc": true,
-  "count": 11,
+  "count": 20,
   "example": "dlc1_uo_bend_switches.drm/6683",
-  "source": "drm"
+  "source": "B269 reference list"
  },
  {
   "kind": "2d",
@@ -846,10 +809,9 @@
   "height": 128,
   "depth": 1,
   "levels": 1,
-  "in_pc": true,
   "count": 7,
   "example": "generalbank.drm/11",
-  "source": "drm"
+  "source": "B269 reference list"
  },
  {
   "kind": "2d",
@@ -858,10 +820,9 @@
   "height": 64,
   "depth": 1,
   "levels": 1,
-  "in_pc": true,
   "count": 3,
   "example": "generalbank.drm/14",
-  "source": "drm"
+  "source": "B269 reference list"
  },
  {
   "kind": "2d",
@@ -870,10 +831,9 @@
   "height": 128,
   "depth": 1,
   "levels": 8,
-  "in_pc": true,
-  "count": 415,
+  "count": 729,
   "example": "cine_dlc1_start_spangs.drm/179",
-  "source": "drm"
+  "source": "B269 reference list"
  },
  {
   "kind": "2d",
@@ -882,10 +842,9 @@
   "height": 32,
   "depth": 1,
   "levels": 1,
-  "in_pc": true,
   "count": 2,
   "example": "generalbank.drm/12",
-  "source": "drm"
+  "source": "B269 reference list"
  },
  {
   "kind": "2d",
@@ -894,10 +853,9 @@
   "height": 128,
   "depth": 1,
   "levels": 1,
-  "in_pc": true,
   "count": 1,
   "example": "generalbank.drm/75",
-  "source": "drm"
+  "source": "B269 reference list"
  },
  {
   "kind": "2d",
@@ -906,10 +864,9 @@
   "height": 64,
   "depth": 1,
   "levels": 1,
-  "in_pc": true,
   "count": 9,
   "example": "generalbank.drm/92",
-  "source": "drm"
+  "source": "B269 reference list"
  },
  {
   "kind": "2d",
@@ -918,10 +875,9 @@
   "height": 64,
   "depth": 1,
   "levels": 7,
-  "in_pc": true,
-  "count": 14,
-  "example": "dlc_costume_b.drm/305",
-  "source": "drm"
+  "count": 21,
+  "example": "co_dlc_lara.drm/305",
+  "source": "B269 reference list"
  },
  {
   "kind": "2d",
@@ -930,10 +886,9 @@
   "height": 64,
   "depth": 1,
   "levels": 1,
-  "in_pc": true,
-  "count": 29,
-  "example": "cinstream/pdlc1_010_intro.drm/555",
-  "source": "drm"
+  "count": 44,
+  "example": "dlc1_health_pack.drm/192",
+  "source": "B269 reference list"
  },
  {
   "kind": "2d",
@@ -942,10 +897,9 @@
   "height": 128,
   "depth": 1,
   "levels": 1,
-  "in_pc": true,
   "count": 1,
   "example": "generalbank.drm/76",
-  "source": "drm"
+  "source": "B269 reference list"
  },
  {
   "kind": "2d",
@@ -954,10 +908,9 @@
   "height": 8,
   "depth": 1,
   "levels": 1,
-  "in_pc": true,
   "count": 1,
   "example": "generalbank.drm/104",
-  "source": "drm"
+  "source": "B269 reference list"
  },
  {
   "kind": "2d",
@@ -966,10 +919,9 @@
   "height": 32,
   "depth": 1,
   "levels": 1,
-  "in_pc": true,
   "count": 2,
   "example": "generalbank.drm/107",
-  "source": "drm"
+  "source": "B269 reference list"
  },
  {
   "kind": "2d",
@@ -978,10 +930,9 @@
   "height": 64,
   "depth": 1,
   "levels": 7,
-  "in_pc": true,
-  "count": 38,
-  "example": "dlc1_uo_pillar_of_doom_a.drm/758",
-  "source": "drm"
+  "count": 55,
+  "example": "co_dlc2_goo.drm/7856",
+  "source": "B269 reference list"
  },
  {
   "kind": "2d",
@@ -990,10 +941,9 @@
   "height": 64,
   "depth": 1,
   "levels": 1,
-  "in_pc": true,
   "count": 1,
   "example": "generalbank.drm/77",
-  "source": "drm"
+  "source": "B269 reference list"
  },
  {
   "kind": "2d",
@@ -1002,22 +952,9 @@
   "height": 16,
   "depth": 1,
   "levels": 1,
-  "in_pc": true,
   "count": 2,
   "example": "generalbank.drm/79",
-  "source": "drm"
- },
- {
-  "kind": "2d",
-  "format": 894720068,
-  "width": 32,
-  "height": 32,
-  "depth": 1,
-  "levels": 1,
-  "in_pc": true,
-  "count": 8,
-  "example": "cinstream/pdlc1_010_intro.drm/560",
-  "source": "drm"
+  "source": "B269 reference list"
  },
  {
   "kind": "2d",
@@ -1026,10 +963,31 @@
   "height": 16,
   "depth": 1,
   "levels": 1,
-  "in_pc": true,
   "count": 2,
   "example": "generalbank.drm/89",
-  "source": "drm"
+  "source": "B269 reference list"
+ },
+ {
+  "kind": "2d",
+  "format": 894720068,
+  "width": 32,
+  "height": 32,
+  "depth": 1,
+  "levels": 1,
+  "count": 17,
+  "example": "natla_thrall.drm/907",
+  "source": "B269 reference list"
+ },
+ {
+  "kind": "2d",
+  "format": 894720068,
+  "width": 32,
+  "height": 32,
+  "depth": 1,
+  "levels": 6,
+  "count": 1,
+  "example": "natla_thrall.drm/1133",
+  "source": "B269 reference list"
  },
  {
   "kind": "2d",
@@ -1038,10 +996,9 @@
   "height": 16,
   "depth": 1,
   "levels": 1,
-  "in_pc": true,
   "count": 2,
   "example": "generalbank.drm/111",
-  "source": "drm"
+  "source": "B269 reference list"
  },
  {
   "kind": "2d",
@@ -1050,10 +1007,9 @@
   "height": 32,
   "depth": 1,
   "levels": 1,
-  "in_pc": true,
   "count": 2,
   "example": "generalbank.drm/113",
-  "source": "drm"
+  "source": "B269 reference list"
  },
  {
   "kind": "2d",
@@ -1062,10 +1018,9 @@
   "height": 16,
   "depth": 1,
   "levels": 1,
-  "in_pc": true,
   "count": 6,
   "example": "generalbank.drm/3",
-  "source": "drm"
+  "source": "B269 reference list"
  },
  {
   "kind": "2d",
@@ -1074,10 +1029,9 @@
   "height": 16,
   "depth": 1,
   "levels": 5,
-  "in_pc": true,
-  "count": 33,
+  "count": 63,
   "example": "dlc1_health_pack.drm/234",
-  "source": "drm"
+  "source": "B269 reference list"
  },
  {
   "kind": "2d",
@@ -1086,10 +1040,9 @@
   "height": 8,
   "depth": 1,
   "levels": 1,
-  "in_pc": true,
   "count": 3,
   "example": "generalbank.drm/83",
-  "source": "drm"
+  "source": "B269 reference list"
  },
  {
   "kind": "2d",
@@ -1098,10 +1051,9 @@
   "height": 4,
   "depth": 1,
   "levels": 3,
-  "in_pc": true,
-  "count": 81,
+  "count": 165,
   "example": "cine_dlc1_start_spangs.drm/286",
-  "source": "drm"
+  "source": "B269 reference list"
  },
  {
   "kind": "cube",
@@ -1110,10 +1062,9 @@
   "height": 512,
   "depth": 1,
   "levels": 10,
-  "in_pc": true,
   "count": 2,
   "example": "dlc_caverns_hall.drm/1205",
-  "source": "drm"
+  "source": "B269 reference list"
  },
  {
   "kind": "cube",
@@ -1122,10 +1073,9 @@
   "height": 256,
   "depth": 1,
   "levels": 9,
-  "in_pc": true,
-  "count": 2,
-  "example": "l3_main_bedroom.drm/3899",
-  "source": "drm"
+  "count": 8,
+  "example": "dlc2_uo_capsuleadren_switch.drm/6954",
+  "source": "B269 reference list"
  },
  {
   "kind": "cube",
@@ -1134,10 +1084,9 @@
   "height": 128,
   "depth": 1,
   "levels": 8,
-  "in_pc": true,
-  "count": 8,
-  "example": "co_dlc_knight_thrall.drm/7159",
-  "source": "drm"
+  "count": 34,
+  "example": "co_dlc2_goo.drm/6958",
+  "source": "B269 reference list"
  },
  {
   "kind": "cube",
@@ -1146,10 +1095,9 @@
   "height": 64,
   "depth": 1,
   "levels": 7,
-  "in_pc": true,
-  "count": 27,
-  "example": "dlc1_ei_hpole_a.drm/1072",
-  "source": "drm"
+  "count": 47,
+  "example": "co_dlc_lara.drm/257",
+  "source": "B269 reference list"
  },
  {
   "kind": "cube",
@@ -1158,10 +1106,9 @@
   "height": 4,
   "depth": 1,
   "levels": 3,
-  "in_pc": true,
-  "count": 1,
-  "example": "dlc_level1_start.drm/678",
-  "source": "drm"
+  "count": 2,
+  "example": "dlc2_uo_energy_ball.drm/678",
+  "source": "B269 reference list"
  },
  {
   "kind": "cube",
@@ -1170,105 +1117,19 @@
   "height": 256,
   "depth": 1,
   "levels": 9,
-  "in_pc": true,
-  "count": 15,
-  "example": "dlc_caverns.drm/6549",
-  "source": "drm"
+  "count": 34,
+  "example": "co_dlc2_uo_natlapod_broken.drm/7413",
+  "source": "B269 reference list"
  },
  {
-  "kind": "2d",
-  "format": 21,
-  "width": 16,
-  "height": 21,
+  "kind": "cube",
+  "format": 894720068,
+  "width": 128,
+  "height": 128,
   "depth": 1,
-  "levels": 1,
-  "in_pc": true,
-  "count": 4,
-  "example": "image/dlc_outfit_doppel_costume_a.raw",
-  "source": "raw"
- },
- {
-  "kind": "2d",
-  "format": 21,
-  "width": 64,
-  "height": 36,
-  "depth": 1,
-  "levels": 1,
-  "in_pc": true,
-  "count": 4,
-  "example": "image/dlc_level3_preview.raw",
-  "source": "raw"
- },
- {
-  "kind": "2d",
-  "format": 21,
-  "width": 205,
-  "height": 275,
-  "depth": 1,
-  "levels": 1,
-  "in_pc": true,
-  "count": 16,
-  "example": "image/dlc_outfit_costume_a.raw",
-  "source": "raw"
- },
- {
-  "kind": "2d",
-  "format": 21,
-  "width": 480,
-  "height": 185,
-  "depth": 1,
-  "levels": 1,
-  "in_pc": true,
-  "count": 1,
-  "example": "image/pda_gold_shotgun.raw",
-  "source": "raw"
- },
- {
-  "kind": "2d",
-  "format": 21,
-  "width": 640,
-  "height": 360,
-  "depth": 1,
-  "levels": 1,
-  "in_pc": true,
-  "count": 1,
-  "example": "image/dlc_level1_preview.raw",
-  "source": "raw"
- },
- {
-  "kind": "2d",
-  "format": 21,
-  "width": 640,
-  "height": 480,
-  "depth": 1,
-  "levels": 1,
-  "in_pc": true,
+  "levels": 8,
   "count": 3,
-  "example": "image/concept_natla_early.raw",
-  "source": "raw"
- },
- {
-  "kind": "2d",
-  "format": 21,
-  "width": 960,
-  "height": 720,
-  "depth": 1,
-  "levels": 1,
-  "in_pc": true,
-  "count": 1,
-  "example": "image/pda_dlc2_bg_960.raw",
-  "source": "raw"
- },
- {
-  "kind": "2d",
-  "format": 21,
-  "width": 1280,
-  "height": 720,
-  "depth": 1,
-  "levels": 1,
-  "in_pc": true,
-  "count": 8,
-  "example": "image/controls_dlc2_d.raw",
-  "source": "raw"
+  "example": "dlc2_uo_natlapod.drm/7765",
+  "source": "B269 reference list"
  }
 ]

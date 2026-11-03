@@ -14,10 +14,10 @@ B269_nativo is B269_tubi plus native-D3D9 shader fixes. B269_tubi was tested in 
 
 On the Steam PC game, no emulator:
 
-| Beneath the Ashes (DLC1) | Lara's Shadow (DLC2) |
-|---|---|
-| ![Beneath the Ashes: the cobwebbed bridge (B269_nativo)](docs/screenshots/dlc1_webbed_bridge_2576.jpg) | ![Lara's Shadow: the doppelganger in the ceremony room (B269)](docs/screenshots/dlc2_ceremony_room_1080p.jpg) |
-| The cobwebbed bridge, build B269_nativo | The doppelganger in the ceremony room, build B269 |
+| Beneath the Ashes (DLC1) | Beneath the Ashes (DLC1) | Lara's Shadow (DLC2) |
+|---|---|---|
+| ![Beneath the Ashes: the cobwebbed bridge (B269_nativo)](docs/screenshots/dlc1_webbed_bridge_2576.jpg) | ![Beneath the Ashes: the water wheel hall (B269_nativo)](docs/screenshots/dlc1_water_wheel_1080p.jpg) | ![Lara's Shadow: the doppelganger in the ceremony room (B269)](docs/screenshots/dlc2_ceremony_room_1080p.jpg) |
+| The cobwebbed bridge, build B269_nativo | The water wheel hall, build B269_nativo | The doppelganger in the ceremony room, build B269 |
 
 ## What you need
 

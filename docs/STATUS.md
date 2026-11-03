@@ -1,11 +1,40 @@
-# Status — B138 (21 Oct 2026; last build played end to end: B132, 19 Oct 2026)
+# Status — B269 (Nov 2026)
 
-B133–B138 (native-D3D9 shaders, mechanism joints in pillory/dungeon, bat generators, audio re-encode) are **offline only** — see [../CHANGELOG.md](../CHANGELOG.md) for what they change and what should now be fixed. The tables below describe B132 and still apply, except where the changelog says otherwise.
+"Confirmed" means the project owner played it (Windows 11 VM, dgVoodoo2). "Offline" means static checks only, not yet seen in game. Changes since B138: [../CHANGELOG.md](../CHANGELOG.md).
 
-"Confirmed" = the project owner played it (Windows 11 VM). "Offline" = static checks only, not yet seen in game.
+- **DLC1 *Beneath the Ashes*** was played from the start to the end credits on B132. The tables further down describe that build.
+  - Later builds carry back to DLC1 the data fixes found for DLC2: costumes, materials, scripts. All of them pass the DLC1 gates offline.
+  - A full replay of DLC1 on B269 is still to do.
+- **DLC2 *Lara's Shadow*** is converted and played as the doppelganger. Install it with [INSTALL.md](INSTALL.md).
 
-DLC1 *Beneath the Ashes* is **playable from the start to the end credits** on the native PC game. DLC2 *Lara's Shadow* is not converted.
-Install it with [INSTALL.md](INSTALL.md).
+## DLC2: what works (confirmed in VM tests, Oct-Nov 2026)
+| Area | Notes |
+|---|---|
+| Start, opening cutscene, doppelganger outfit | B140+ |
+| Doppelganger look | colours near goo and while shooting fixed with the irradiance probes (B260); hair with time scaling fixed with the exe cloth patch |
+| Combat | Q/E deal damage, Shift+E distortion and trail without black overlay, finisher on a downed thrall |
+| Thralls, goo cannons, pools, torches, goo columns, bridges | working after the B251–B258 data audit |
+| Ceremony-room cutscene | starts (B259) |
+| Goo waterfalls | correct with the ceremony-room goo FX switched off (B265) |
+| Flying with F2 (debug) between the wings | no crash (SweepAndPrune 3000 and camera-shake guard in the exe) |
+
+## DLC2: fixed offline, not yet seen in game
+- Final sequence 045 → 050 → credits (B266, needs `credits_DLC2.bik`).
+- Script vtable slots 14 and 31 (B267–B268).
+- Black extending bridges and goo pipes in the machine room (B269).
+- Native-D3D9 shader forms (B269).
+
+## DLC2: known open issues
+| Issue | Notes |
+|---|---|
+| Flicker in the Natla cutscene | block-shaped patches on Natla, the doppelganger and the throne. Cause not found |
+| Wall-run on rock veins | does not grab in some places (`NONE` in the F8 menu in front of the doppelganger) |
+| Ceremony-room goo FX | switched off: they drew wrong shapes |
+| Machine-room terrain, material 26622 | black. The fix needs the Xbox vertex shader (UV scale) as well |
+| Material 25165 (goo grinder / converter) | black surrogate shader |
+| Glow pass without alpha clip in some goo libraries | translator bug found in B269. Libraries to regenerate |
+
+# DLC1 details (B132, last full play-through)
 
 ## What works (confirmed)
 | Area | Notes |
@@ -26,7 +55,7 @@ pillar_of_doom data reference (dungeon) · global sound-info table from the Xbox
 | Issue | Impact |
 |---|---|
 | Occasional crash right at game start (FMOD audio init fails and the game ignores the error) | start the game again |
-| "A problem has occured with your display driver" on a real GPU (reported 20 Oct 2026; the author tests through dgVoodoo2) | main suspect: 113 port shaders longer than 512 instructions; workaround dgVoodoo2, native test in [TROUBLESHOOTING.md](TROUBLESHOOTING.md) |
+| "A problem has occurred with your display driver" on a real GPU (reported 20 Oct 2026) | cause: 2 shader forms rejected by Windows' D3D9 on AMD; fixed in B133, came back in B147–B268, fixed again in B269 (offline). See [TROUBLESHOOTING.md](TROUBLESHOOTING.md) |
 | Physics and camera tied to the frame rate (base game) | lock the game to 60 fps |
 | Golden shotgun (unlocked after all treasures) depends on title-update scripts/tables the PC exe lacks | may not work or crash when equipped; untested |
 | Material 23211 (dungeon) texture layout | small visual defect |
@@ -39,4 +68,4 @@ point, uid checks) and a per-area audit Xbox vs PC: same number of meshes/animat
 files, all scripts parse, no silent audio, all 29 DLC1 treasures in the reward table.
 
 ## Lineage
-`… B90_gold_L4 → B92–B105 (water volumes, instance data, triggers, texts, DTP words) → B106 (cell streaming) → B107 (audio channels) → B108/B116 (cobwebs) → B109 (save-slot name) → B117 (light colour bridge) → B119–B121 (thrall data) → B122 (navmesh) → B123/B124 (cobwebs, black water textures) → B125 (reward table) → B126 (pillar_of_doom) → B127 (sound info) → B129 (cobweb 20264) → B130 (QUIT) → B131/B132 (moss) → B133 (native D3D9 shaders) → B134–B137 (joints, bat generators) → B138 (audio .mul)`.
+`… B90_gold_L4 → B92–B105 (water volumes, instance data, triggers, texts, DTP words) → B106 (cell streaming) → B107 (audio channels) → B108/B116 (cobwebs) → B109 (save-slot name) → B117 (light colour bridge) → B119–B121 (thrall data) → B122 (navmesh) → B123/B124 (cobwebs, black water textures) → B125 (reward table) → B126 (pillar_of_doom) → B127 (sound info) → B129 (cobweb 20264) → B130 (QUIT) → B131/B132 (moss) → B133 (native D3D9 shaders) → B134–B137 (joints, bat generators) → B138 (audio .mul) → B139–B141 (DLC2) → B147–B158 (materials) → B159–B213 (doppelganger/thrall data) → B215–B247 (crashes, look, combat) → B251–B258 (audits) → B259–B268 (cutscenes, light probes, goo, ending, vtables) → B269 (machine room) → B269_nativo (native-D3D9 shaders, release)`.

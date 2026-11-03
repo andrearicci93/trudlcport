@@ -17,7 +17,7 @@ boxes, ragdolls and physics puzzles can break, in the base game and even more in
 - `cmp` with an abs/-abs constant source, for example `cmp r0, -|c221|, ...`;
 - `sincos` whose destination is also its source.
 
-**Status.** B133 fixed the 274 shaders of B132. The converter brought the forms back from B147, and B147-B268 contain 240 of them (DLC1 and DLC2). In **B269** they are rewritten (bit-equivalent in our shader VM), the converter is fixed, and a build gate blocks them. This is verified offline only, so please run the test below once on B269.
+**Status.** B133 fixed the 274 shaders of B132. The converter brought the forms back from B147, and B147-B268 contain 240 of them (DLC1 and DLC2). In **B269** they are rewritten (bit-equivalent in our shader VM), the converter is fixed, and a build gate blocks them. This is verified offline only, so please run the test below once on B269 or later.
 
 ### Workaround: DXVK (or dgVoodoo2)
 

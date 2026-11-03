@@ -1,10 +1,11 @@
-# Status — B269 (Nov 2026)
+# Status — B270 (Nov 2026, release build B270_acqua)
 
 "Confirmed" means the project owner played it (Windows 11 VM, dgVoodoo2). "Offline" means static checks only, not yet seen in game. Changes since B138: [../CHANGELOG.md](../CHANGELOG.md).
 
 - **DLC1 *Beneath the Ashes*** was played from the start to the end credits on B132. The tables further down describe that build.
   - Later builds carry back to DLC1 the data fixes found for DLC2: costumes, materials, scripts. All of them pass the DLC1 gates offline.
-  - A full replay of DLC1 on B269 is still to do.
+  - A full replay of DLC1 on B270 is still to do.
+  - B270 fixes the black water of the DLC1 dungeons offline (material 20262: VS 976 → 164, COLOR0 now written). It is not yet seen in game.
 - **DLC2 *Lara's Shadow*** is converted and played as the doppelganger. Install it with [INSTALL.md](INSTALL.md).
 
 ## DLC2: what works (confirmed in VM tests, Oct-Nov 2026)
@@ -23,6 +24,7 @@
 - Script vtable slots 14 and 31 (B267–B268).
 - Black extending bridges and goo pipes in the machine room (B269).
 - Native-D3D9 shader forms (B269).
+- Treasure-room material 26584: VS 831 → 243, which now passes the vertex colour (B270).
 
 ## DLC2: known open issues
 | Issue | Notes |
@@ -54,6 +56,8 @@ pillar_of_doom data reference (dungeon) · global sound-info table from the Xbox
 ## Known open issues
 | Issue | Impact |
 |---|---|
+| Guillotine `dlc1_uo_guillotine` (B270) | pixel shaders 738/739 discard on `v0.w`, which vertex shader 211 never writes. Not fixed |
+| Black water in the dungeons with newer drivers | fixed offline in B270 (VS 976 → 164); to confirm in game |
 | Occasional crash right at game start (FMOD audio init fails and the game ignores the error) | start the game again |
 | "A problem has occurred with your display driver" on a real GPU (reported 20 Oct 2026) | cause: 2 shader forms rejected by Windows' D3D9 on AMD; fixed in B133, came back in B147–B268, fixed again in B269 (offline). See [TROUBLESHOOTING.md](TROUBLESHOOTING.md) |
 | Physics and camera tied to the frame rate (base game) | lock the game to 60 fps |

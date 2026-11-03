@@ -2,6 +2,21 @@
 
 "Played" means the project owner ran it in game (Windows 11 VM). "Offline" means it was checked only with static gates and data comparisons against the Xbox/PC originals and has **not yet been seen in game**.
 
+## B270 — Nov 2026 (release build `B270_acqua`; kit not published)
+
+B270_acqua is B269_nativo plus two fixes to how a vertex shader feeds a pixel shader (COLOR0). Both are verified offline only; this build has **not been installed or played yet**.
+
+| Area | Change | Why |
+|---|---|---|
+| DLC1 dungeons: water (material 20262 in `dlc_caverns`, `dungeon_main`, `dungeon_sewer`) | VS 976 → 164. VS 164 is the same base-game vertex shader with vertex colour, copied byte for byte from the PC game | Surrogate VS 976 did not write COLOR0. The water PS takes its alpha from it (`oC0.w = MaterialOpacity * v0.w`), so with a newer driver the input was 0 and the water was invisible: "black water". The Xbox shader passes the vertex colour |
+| DLC2 treasure room (material 26584) | VS 831 → 243, the twin with vertex colour already in the file | same missing COLOR0, here the alpha of an additive layer |
+
+Still open in B270, in addition to the B269 list below:
+
+| Issue | Notes |
+|---|---|
+| Guillotine `dlc1_uo_guillotine` | pixel shaders 738/739 discard on `v0.w`, which vertex shader 211 never writes. Not fixed |
+
 ## B269 — Nov 2026 (kit `trudlcport-kit-B269.zip`, kit format 2)
 
 **Lara's Shadow (DLC2) is now converted and can be played.** This release also needs a new install procedure:

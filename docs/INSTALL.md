@@ -1,6 +1,6 @@
 # Install the DLC on your PC (players)
 
-This turns your **Steam PC copy of Tomb Raider: Underworld** into the build the author plays (latest build **B269**), using **your own** Xbox 360 DLC files.
+This turns your **Steam PC copy of Tomb Raider: Underworld** into the build the author plays (latest build **B270**), using **your own** Xbox 360 DLC files.
 
 The installer works only from files you own and checks every one of them:
 
@@ -27,7 +27,7 @@ Time: about 15 minutes, plus 5-20 minutes per credits movie. Disk: about 4 GB fr
 | 5 | **ModLoader** (`ModLoader.asi` + its `binkw32.dll` proxy) | <https://github.com/TombRaiderModding/ModLoader/releases> | makes the game read the `mods` folder |
 | 6 | **Python 3.9+** with `bsdiff4` and `numpy` | <https://www.python.org/>, then `python -m pip install bsdiff4 numpy` | `python --version` |
 | 7 | *(credits, Windows only)* **ffmpeg** and **RAD Video Tools** | <https://www.gyan.dev/ffmpeg/builds/>, <https://www.radgametools.com/bnkdown.htm> | needed to finish each DLC (see step 4) |
-| 8 | The **kit**: `trudlcport-kit-B269.zip`, `install_dlc.py`, `tex_convert.py`, `credits_convert.py` | this repository's **Releases** page | the kit's MD5 is in the release notes |
+| 8 | The **kit**: `trudlcport-kit-B270.zip`, `install_dlc.py`, `tex_convert.py`, `credits_convert.py` | this repository's **Releases** page | the kit's MD5 is in the release notes |
 
 Other versions of the game (GOG, retail DVD, other exe) are **not supported**. The installer refuses them instead of producing a broken build.
 
@@ -115,7 +115,7 @@ Open this repository in your agent (Claude Code, Codex, …) and say:
    - **ModLoader**;
    - **Python 3.9+** con `pip install bsdiff4 numpy`;
    - per i crediti, solo su Windows: ffmpeg e RAD Video Tools.
-2. Dalla pagina *Releases* scarica `install_dlc.py`, `tex_convert.py`, `credits_convert.py` e `trudlcport-kit-B269.zip`, e scompatta il kit nella cartella `kit`.
+2. Dalla pagina *Releases* scarica `install_dlc.py`, `tex_convert.py`, `credits_convert.py` e `trudlcport-kit-B270.zip`, e scompatta il kit nella cartella `kit`.
 3. A gioco chiuso fai la prova a secco: `python install_dlc.py --game "<cartella gioco>" --dlc "<cartella file Xbox>" --kit .\kit --check`.
 4. Se risponde *All inputs OK*, ripeti il comando senza `--check`. Per creare anche i crediti aggiungi `--credits --rad "<radvideo64.exe>" --ffmpeg "<ffmpeg.exe>"`: sono necessari per finire i DLC.
 5. Avvia una **nuova partita** DLC e **blocca il gioco a 60 fps**.

@@ -144,6 +144,55 @@ def finish(entry, new):
     return (new, 'exact') if md5(new) == entry['md5'] else (None, 'result MD5 mismatch')
 
 
+# ------------------------------------------------------------------ per-file work (runs in worker processes)
+_W = {}
+
+
+def _init_worker(pack_paths, game, kit, stage, check):
+    arcs = {k: Archive(q, 'be') for k, q in pack_paths.items()}
+    arcs['patch.000'] = Archive(os.path.join(game, 'patch.000'), 'le')
+    arcs['bigfile.000'] = Archive(os.path.join(game, 'bigfile.000'), 'le')
+    import bsdiff4
+    _W.update(arcs=arcs, kit=kit, stage=stage, check=check, bsdiff4=bsdiff4)
+
+
+def _process_file(f):
+    """Rebuild one kit file. Returns dict(rel, err, st, h). The result is written straight to the stage folder."""
+    arcs, kit, stage, check = _W['arcs'], _W['kit'], _W['stage'], _W['check']
+    s = f['source']
+    if s is None:                                     # port-authored text (MD5.txt, notes): shipped as is
+        if check: return dict(rel=f['rel'], err=None)
+        tb = open(os.path.join(kit, f['patch']), 'rb').read(); st = 'exact' if md5(tb) == f['md5'] else 'bad'
+    else:
+        sb = arcs[s['archive']].read(s['name'], s['spec']) if s['archive'] in arcs else None
+        if sb is None or md5(sb) != s['md5']:
+            return dict(rel=f['rel'], err='%s: source %s in %s %s' % (f['rel'], s['name'], s['archive'], 'missing' if sb is None else 'has a different MD5 (different game/DLC version?)'))
+        pb = None
+        if f.get('pc_also'):
+            q = f['pc_also']; pb = arcs[q['archive']].read(q['name'], q['spec'])
+            if pb is None or md5(pb) != q['md5']: return dict(rel=f['rel'], err='%s: PC file %s missing or different' % (f['rel'], q['name']))
+        old = build_old(f, sb, pb)                       # also in --check: catches numpy/Python conversion drift before installing
+        if f.get('old_md5') and md5(old) != f['old_md5']:
+            why = ''
+            if f.get('tex_md5') and 'tex' in f['aux']:
+                why = ' (texture conversion differs: numpy %s)' % __import__('numpy').__version__ if md5(tex_aux(cdrm_decode(sb, 'be'))) != f['tex_md5'] else ' (decompression differs)'
+            return dict(rel=f['rel'], err='%s: converted source differs from the kit%s. Please report your Python and numpy versions.' % (f['rel'], why or ' (numpy/python difference?)'))
+        if check: return dict(rel=f['rel'], err=None)
+        tb, st = finish(f, _W['bsdiff4'].patch(old, open(os.path.join(kit, f['patch']), 'rb').read()))
+        if tb is None: return dict(rel=f['rel'], err='%s: %s' % (f['rel'], st))
+    if st == 'bad': return dict(rel=f['rel'], err='%s: kit file damaged' % f['rel'])
+    out = os.path.join(stage, f['rel']); os.makedirs(os.path.dirname(out), exist_ok=True)
+    with open(out, 'wb') as fo: fo.write(tb)
+    h = md5_file(out)                                  # re-read from disk: catches disk/antivirus problems
+    if h != md5(tb): return dict(rel=f['rel'], err='%s: written file differs from memory (disk problem?)' % f['rel'])
+    return dict(rel=f['rel'], err=None, st=st, h=h)
+
+
+def _process_safe(f):
+    try: return _process_file(f)
+    except Exception as e: return dict(rel=f['rel'], err='%s: unexpected error %s: %s' % (f['rel'], type(e).__name__, e))
+
+
 # ------------------------------------------------------------------ install
 def find_file(root, name):
     for dp, dn, fn in os.walk(root, followlinks=True):
@@ -221,6 +270,7 @@ def main():
     ap.add_argument('--dlc1-only', action='store_true', help='UNTESTED: skip the Lara\'s Shadow files (pack11.000 not needed)')
     ap.add_argument('--credits', action='store_true', help='also build movies/credits_DLC1.bik and credits_DLC2.bik (Windows, ffmpeg + RAD Video Tools)')
     ap.add_argument('--redo-credits', action='store_true'); ap.add_argument('--rad'); ap.add_argument('--ffmpeg'); ap.add_argument('--ffprobe')
+    ap.add_argument('--jobs', '-j', type=int, default=0, help='parallel worker processes (default: CPU cores, max 8; 1 = sequential). Lower it if the PC runs out of RAM')
     ap.add_argument('--reinstall', action='store_true', help='install again even if the same build is installed and intact')
     ap.add_argument('--verify', action='store_true', help='re-check the installed files against the install record')
     ap.add_argument('--restore', action='store_true', help='undo the last install (old mods/, tru.exe; credits renamed)')
@@ -260,50 +310,39 @@ def main():
     packs = {}
     for p in ('pack10.000', 'pack11.000'):
         q = find_file(a.dlc, p)
-        if q: packs[p] = Archive(q, 'be'); print('found', p, '->', q)
+        if q: packs[p] = q; print('found', p, '->', q)
     if 'pack10.000' not in packs: sys.exit('pack10.000 (Beneath the Ashes) not found under %s' % a.dlc)
     if 'pack11.000' not in packs and not a.dlc1_only:
         sys.exit('pack11.000 (Lara\'s Shadow) not found under %s.\nThe shared files of this build are made for both DLCs; '
                  'use --dlc1-only to install without it (UNTESTED).' % a.dlc)
-    arcs = dict(packs); arcs['patch.000'] = Archive(os.path.join(g, 'patch.000'), 'le'); arcs['bigfile.000'] = Archive(os.path.join(g, 'bigfile.000'), 'le')
     ts = time.strftime('%Y%m%d_%H%M%S'); stage = os.path.join(g, 'mods.new_' + ts)
-    ok = skip = 0; bad = []; equiv = []; written = {}
+    ok = skip = 0; bad = []; equiv = []; res = {}
     todo = [f for f in man['files'] if not (a.dlc1_only and f['dlc'] == 'dlc2')]
     skip = len(man['files']) - len(todo)
-    t0 = time.time()
-    for k, f in enumerate(todo):
-        s = f['source']
-        if s is None:                                     # port-authored text (MD5.txt, notes): shipped as is
-            if a.check: ok += 1; continue
-            tb = open(os.path.join(a.kit, f['patch']), 'rb').read(); st = 'exact' if md5(tb) == f['md5'] else 'bad'
-        else:
-            sb = arcs[s['archive']].read(s['name'], s['spec']) if s['archive'] in arcs else None
-            if sb is None or md5(sb) != s['md5']:
-                bad.append('%s: source %s in %s %s' % (f['rel'], s['name'], s['archive'], 'missing' if sb is None else 'has a different MD5 (different game/DLC version?)')); continue
-            pb = None
-            if f.get('pc_also'):
-                q = f['pc_also']; pb = arcs[q['archive']].read(q['name'], q['spec'])
-                if pb is None or md5(pb) != q['md5']: bad.append('%s: PC file %s missing or different' % (f['rel'], q['name'])); continue
-            old = build_old(f, sb, pb)                       # also in --check: catches numpy/Python conversion drift before installing
-            if f.get('old_md5') and md5(old) != f['old_md5']:
-                why = ''
-                if f.get('tex_md5') and 'tex' in f['aux']:
-                    why = ' (texture conversion differs: numpy %s)' % __import__('numpy').__version__ if md5(tex_aux(cdrm_decode(sb, 'be'))) != f['tex_md5'] else ' (decompression differs)'
-                bad.append('%s: converted source differs from the kit%s. Please report your Python and numpy versions.' % (f['rel'], why or ' (numpy/python difference?)')); continue
-            if a.check:
-                ok += 1
-                if k % 50 == 0: print('  checked %d/%d  %.0fs' % (k, len(todo), time.time() - t0), flush=True)
-                continue
-            tb, st = finish(f, bsdiff4.patch(old, open(os.path.join(a.kit, f['patch']), 'rb').read()))
-            if tb is None: bad.append('%s: %s' % (f['rel'], st)); continue
-        if st == 'bad': bad.append('%s: kit file damaged' % f['rel']); continue
-        out = os.path.join(stage, f['rel']); os.makedirs(os.path.dirname(out), exist_ok=True)
-        with open(out, 'wb') as fo: fo.write(tb)
-        h = md5_file(out)                                  # re-read from disk: catches disk/antivirus problems
-        if h != md5(tb): bad.append('%s: written file differs from memory (disk problem?)' % f['rel']); continue
-        written[f['rel']] = h; ok += 1
-        if st == 'equivalent': equiv.append(f['rel'])
-        if k % 25 == 0: print('  %d/%d %s  %.0fs' % (k, len(todo), f['rel'], time.time() - t0), flush=True)
+    jobs = a.jobs if a.jobs > 0 else min(os.cpu_count() or 1, 8)
+    jobs = max(1, min(jobs, len(todo) or 1))
+    print('Processing %d files with %d worker process%s' % (len(todo), jobs, '' if jobs == 1 else 'es'), flush=True)
+    t0 = time.time(); done = 0
+    initargs = (packs, g, a.kit, stage, a.check)
+    def note(r):
+        nonlocal done
+        done += 1; res[r['rel']] = r
+        if done % 25 == 0 or done == len(todo): print('  %d/%d  %.0fs' % (done, len(todo), time.time() - t0), flush=True)
+    if jobs == 1:
+        _init_worker(*initargs)
+        for f in todo: note(_process_safe(f))
+    else:
+        from concurrent.futures import ProcessPoolExecutor, as_completed
+        with ProcessPoolExecutor(max_workers=jobs, initializer=_init_worker, initargs=initargs) as ex:
+            for fu in as_completed([ex.submit(_process_safe, f) for f in todo]): note(fu.result())
+    written = {}
+    for f in todo:                                         # manifest order, so messages and the record are deterministic
+        r = res[f['rel']]
+        if r['err']: bad.append(r['err']); continue
+        ok += 1
+        if not a.check:
+            written[f['rel']] = r['h']
+            if r['st'] == 'equivalent': equiv.append(f['rel'])
     exe_out = None
     x = man.get('exe')
     if x and not a.no_exe:

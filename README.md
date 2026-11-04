@@ -44,6 +44,7 @@ On the Steam PC game, no emulator:
 What the installer does:
 
 - **Checks everything.** It verifies every source file and every installed file against MD5s.
+- **Uses all your CPU cores.** Files are rebuilt in parallel (up to 8 processes; about 1.5 minutes for the 484 files on a 10-core PC instead of ~8). If the PC runs out of RAM, lower it with `--jobs 2` (`--jobs 1` = sequential).
 - **Keeps backups.** Your previous `mods\` folder and `tru.exe` are kept.
 - **Writes an install record.** `trudlcport_install.json` lists what was installed:
   - `python install_dlc.py --game "<game folder>" --verify` re-checks the installed files.

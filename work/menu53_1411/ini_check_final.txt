@@ -1,0 +1,66 @@
+ok: regression lists (dlc1.txt 6 steps + 12 checks, 3 shortcuts, dlc2.txt 8 steps + 23 checks, 4 shortcuts)
+ok: radial menu file (172 entries in 19 levels (top 6 sectors), pages: claude (10), spieler (9), spieler/barrierefreiheit (9), spieler/debug (17), spieler/debug/darstellung (18), spieler/debug/ki (20), spieler/debug/leveldaten (18), spieler/debug/namen (11), spieler/debug/render (16), spieler/debug/ton (10), zeit (11))
+ok: tour file (46 entries in 14 levels (top 5 sectors), below Tests/Rundgang)
+ok: top level 8 sectors with the built-ins (Tests + Spiel beenden), 1 page(s); 256 entries, 35 levels
+ok: [Radial] Mode / Freeze / QuitSector / TestsLevel / FreezeSound / FreezeShaderClock values
+ok: [Shot] Enabled / Folder / Clean / Hotkey / MaxPerMinute values, shot items + exports, Claude marks now good bug gfx sound stutter, flow entries flow.next flow.skip flow.back flow.status; file top levels Cheats, Marken, Zeit, Waffen, Spieler, Claude
+ok: [Flow] Enabled / File / Overlay / Position / Size / Lines / AutoAdvance / ToastSeconds / PollMs values, 10 flow items, TruFlowCore.h included
+ok: [Debug] Enabled / NavDraw / NavMask values, 4 nav items, 7 switches in kNavSwitches, 10 nav entries in the radial file (7 switches), 1 dbg.labels entry, 18 debug view layers, 46 debug view entries
+ok: [Quick] / [Shot] OnCine* / CheckpointHide values, 889 bar rows in 12 tables (every one of 18 layers reachable), 12 new items, [Quick] 7 keys, ring entries
+ok: 0.18 keys / items / bar pages: 17 pages (5 special), 1 label + 20 planned rows, 64 confirm rows, 3 new items, 4 keys
+ok: 0.19 dumb AI: 5 [AI] keys, 5 items, presets all/sharks/spiders/thralls, 8 bar ai.dumb rows, 10 ring ai.* entries
+ok: 0.20: 5 items, [Media] 2 keys, 7 bar rows, 4 ring entries, defaults DumbMode gate, Depth 2, FlatPasses 0x600
+ok: 0.21 arachnophobia / camera / ai.remove: 12 items, [Arachno] 17 + [Camera] 2 keys, 7 bar rows, Koop page, 0 ring entries, tables kArDrawChecks / kArSoundChecks / kCsChecks / kRbChecks / kLfChecks / kAdChecks, owner-picture rules
+ok: 0.21.1 ai.kill / sticky / room check / physics / spawn / bar: 11 items, [Quick] 3 keys, pages 0 / Tests, 93 groups, 0 ring entries, tables kAkChecks / kStChecks / kRkChecks / kPhChecks / kSpChecks / kHpChecks, kill path, sticky, room check, pot rule, Prepare
+ok: 0.21.3 quick bar X / Y, sound list width: kQbOwn 0xC30F, Y > X > left / right, X / Y rules, footer + confirm texts, TruMenuPadBlock, sound list width
+ok: 0.21.4 hall02 counter: 2 items, page Tests rows, fix.hall02 help / guards / order / 18509 rule / reply, alive rule, +8 address, read-only scriptval, no E3 safety net, kH2Checks
+Q0215 TruMenu.switches.txt: TruTrace.ini:70 [Trace] ModelInst has no row
+Q0215 TruMenu.switches.txt: TruTrace.ini:72 [Trace] ModelInstMaxPerSecond has no row
+Q0215 TruMenu.switches.txt: TruTrace.ini:75 [Trace] NullModelGuard has no row
+Q0215 TruMenu.switches.txt: TruTrace.ini:78 [Trace] SkipNullModelDraw has no row
+ok: 0.21.6 costumes / flight line / quick command line: FlightHint key, page Kostueme after Lara (17 pages), settle 500 ms, 16 slot names, flight line rule, one command path, 31 toggle rows all bool
+ok: 0.21.7 footer / help / umlauts / costumes / chapters / label layers: 178 help rows, umlauts, costume check on the game thread, 10 chapter groups / 111 units, uber / shader / navmesh layers read only with 13 keys
+ok: 0.21.8 checks / command line / favourites / story / sound groups: byte check 0x6203e9, 0 checks on the 0.6.5 sites, SAP both forms, 34 danger ids, one keyboard, favourites with arguments, 6 story values, 8 sound sliders
+ok: 0.20.1 sound list: 13 items, [Sound] 11 keys + [Debug] EnemyStateLog, 10 bar rows, 11 ring snd.* entries, tables kSnChecks / kSmChecks / kEsChecks
+ok: 0.22.13 pad sub-combos on release, subtitle clock 0x583f24, settings save 0x478010, panel text, ring.bits info, 64 fight.trace columns (15 new at the end)
+ok: 0.22.14 record ring (2 whole records), calls 0x4574ec / 0x453a17, rewrite after setter + save, box +0 / +0x100 only
+ok: 0.22.15 25 byte checks, read only, 40 TruAim.log columns, items + bar rows, AmTick per frame
+ok: 0.22.16 29 byte checks, 24 settings items in kGsDefs order, ApplySettings only in GfTick (PadHook), [Settings] keys, U3, 17 pages
+ok: 0.22.17 SubtitleFallback key, SfUse rule, stream reset, stream list offsets pinned by kCnChecks
+ok: 0.22.18 defaults, volume save, 92 groups (no labels), step mode, alignment / voice / demote checks, settings written back, drip columns, Set-TruMenu
+ok: 0.22.19 29 menu pages, 17 bar page names, power.infinite row / item / greying
+ok: 0.22.20 menu.noattract: [Menu] NoAttract=0, item / row / help / greying, capture + hold, 13 byte checks
+ok: 0.22.21 menu.attracttimer: [Menu] AttractTimerShow=0 / AttractTimerPosition=tr, item / row / help / greying, read-only shadow + flash, front end only, 45 byte checks unchanged
+ok: 0.22.22 teaser timer line in the bar language, game clock / wall clock, pause bit marker (0.5 + bit), 4 byte checks read only, precheck_02222 = 45 + 4 rows
+ok: 0.22.23 switches limit 512 / 24 groups (file 242 rows in 16 groups, 270 free), lines over it logged, page Fixes at most 60 rows (group dlc2kampf open) <= 384, no new byte checks
+ok: 0.22.24 fall watch (records 742/743/1068/1080, states 1008 / 1015, watchdog, safe ground, 40 lines / 10 s), [Rescue] FallNet default 0 live, net after 3 s / 3000 units through UnstuckPlace, 2 + 1 byte checks, switch row
+ok: 0.22.25 settings.reset: default text 56335 bytes (320 keys) built in a measured buffer, no fixed array; table texts fit: Log line 2048 (light.cut 1400), [Quick] Closed 833 of 1024, OpenPages 220 of 400, Cheats 69 of 256, NavDraw 120 of 256, settings.show 10422 of 16384
+ok: 0.22.26 test arena: 6 kAdmChecks rows (0x6e6646 patch left out), meter-full once in __try, CheatGate on fill / keep, AdmTick per frame, ai.remove spawned by address + stamp, page Tests 3 arena rows, no new INI key
+ok: 0.22.32 arena: ai.spawn LP / EnemyHP / one-hit-kill note and kind list (read only), arena.mode + mode-aware arena.go (level.load for a main-game spot with the doppelganger flag), 6 spots (1a 1b 1c 1d 1e 1f), no INI key
+ok: 0.22.33 photo mode (FreeCamera mode 5, pause bit, UI byte, way back, auto-leave; 23 byte checks), arena.load (26 kinds, 14 byte checks, ready before ai.spawn), glyphs.status, no INI key
+ok: 0.22.34 achievements (16 natives -> stubs, 23 byte checks, [Achievements] Enabled=1 restart), photo.pose (mode 0 / mode 1 back, 13 byte checks), ai.spawn child warning, chapter 1.2 at l1_kraken_entrance
+ok: 0.22.35 level chain Q113 (84 base rows, 309 checkpoint ids in walking order, loop / side-trip headings)
+ok: 0.22.36 label filter (dbg.labels + dbg.names -> LabelFilter -> the one LfNotDrawn; Lara's gear by parent +0x54 / weapon manager, 11 byte checks = precheck_02236; LabelCollected / LabelLaraGear 0, live)
+Q02237 TruTrace: 0.3.2 with the ProgressFilter default checkpoint,breakwall,trigger,door,gate,lever,plate,switch,spawner,_rw_,weightbreak,ping_map,grapple (source + sample .ini) wanted
+ok: 0.22.38 PD (DeviceGlyphs 1; co_ / fx_ after dlc_ / dlc<n>_: 1045 object names, 76 dlc*_fx_* hidden; trigger edges whole + faded by query pairs; 3 keys, 2 items)
+ok: 0.22.39 attract icon (Q126): the game's clock values through the 0.22.20 slot, AtOnLimit counts + blink, front end only, help / greying (keys / row / item: check_02240)
+ok: 0.22.40 attract display styles (Q126b): [Menu] AttractIcon = 7 live, the 8 styles 0 .. 7, 0.22.39 INI mapped once, item value, bar row with the style name (0.22.41 range: check_02241)
+ok: 0.22.41 compact attract styles (Q126c): [Menu] AttractIcon 0 .. 16 = 7 live, 17 styles, 8 .. 16 without a box (small circle + counter / terse text), no time next to a circle, one or two digits
+ok: 0.22.42 W3 debug view (RoomOnly + own stream unit / RoomNear with a reason log; DistMetres 1; OcclNear + test point +1 m; one label per instance and frame, uber labels after the debug view, LabelStack / LabelCellMax; HideEmptyPots; teaser icon main menu only, 3 byte checks = precheck_02242; 6 keys, 3 items)
+ok: 0.22.43 W5 markup (object markup through the bone matrix, query skip rules, type + id labels within 15 m, RoomOnly / occlusion, bar rows first; 6 byte checks = precheck_02243)
+ok: 0.22.44 W2 order (page Tests: TG block 157 rows - 9 groups, 59 checks, 6 switch, 9 notes, packages A B B2 C D E F G; archive tp_q90 ts_spots light_diag ts_diag ts_hall02; Barrierefreiheit planned rows in acc_planned, acc_arachno; old INI keeps the big window off; DeviceGlyphs on Spiel-Einstellungen; kQbViewMax 256)
+ok: 0.22.45 W6 sound switches (15 byte checks = precheck_02245; per channel ChannelI::setMute behind the validate, groups / ambience ChannelGroupI::setMute, tracks srmusic stop; wave log; 9 items, 3 keys, Paket B 8 rows, ton_einzeln 9 rows)
+ok: 0.22.46 arena from the main menu (10 byte checks = precheck_02246; +0xb9 in main state 10 = unserved request, level.load refused in the front end, arena.go -> level.start <unit> 0 + wait + spot + one-hit kill off + arena.mode)
+ok: 0.22.47 sound monitor (6 byte checks = precheck_02247; wave id from the entry +4 map, emitter via +0x74; sonar waves per channel / group 57 fallback; log overlay; 5 items, 7 keys, ton_monitor 9 rows, Paket B 5 rows)
+ok: 0.22.48 adrenaline at Lara (fig_adren: 15 rows, 8 TruShadowCombat [Adrenaline] switches + [Conditions], Tests copies only, 0.6.15 rows live); Sonar komplett (16 byte checks = precheck_02248, 5 sites, stub, 3 keys / 4 items / set_sonar 18 rows); chapter strings; Regression-DLC2 step 24
+ok: 0.22.49 AllFloors (A1 0x6e429b, 16 byte checks = precheck_02249), map info read only, adrenaline labels (5 checked) + stays full (INI keys only), snd.sonar log line
+ok: 0.22.50 sound log readable (27 byte checks = precheck_02250; hooks V1 / E1 through AiPatch, stubs exact; FMOD read without a call; monitor + box; owner walk throttled; category rules; one Ambient aus / Musik aus; Kapitel from the main menu; 9 items, 11 keys, ton_log 104 rows)
+ok: 0.22.51 sonar view + base PDA (22 byte checks = precheck_02251; D1 / F1 / F2 through SoWrite, stubs exact; PDA word only through S5PdaSafe; X default; cmd suggestions; DLC start from a level; 10 items, 5 keys)
+ok: 0.22.52 reverb mark + DSP graph (W10), shader fade S6 (6 byte checks), area colours, joint rows (j)
+ok: 0.22.53 sound log trees (8 kinds, 38 sub-groups, 174 weapon waves), S7 sonar loads (17 byte checks), markup in the sonar view
+ok: 0.22.27 save probe: 4 items read only on the TruLink thread, kSvChecks 32 + kSvHookChecks 5 + 2 prologues = precheck_02227_sv, memcpy 0x8148a0 only in the 2 copy hooks, [Log] Save default 0 live, switch row
+ok: 0.22.28 TP block: 109 rows (11 groups, 46 checks, 11 switches, 11 notes), all kQfTp, packages 1 2 3 4 5 6 7 8 9 A, no INI key
+ok: 0.22.29 radial lock: Enabled=0 closes, 4 drawn-frame guards, 6 entry calls in RadialTick
+ok: 0.22.30 log dates + session header, device glyphs (12 byte checks, 23-byte patch), quick bar / menu drawn guards, 320 INI keys
+ok: 0.22.31 units without data (9 + 6 names), base-game chapter table (84 rows), joint puzzles (27 byte checks, joint.set, page Kapitel Raetsel)
+ok: TruMenu.ini = defaults table (320 keys)

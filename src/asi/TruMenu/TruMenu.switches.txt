@@ -303,6 +303,11 @@ TruMenu | Sonar | FloorMarkers | bool | Sonar komplett: alle Stockwerk-Marker | 
 # 2026-11-14: TruMenu 0.22.49 - AllFloors draws the other floors' map units the sonar loaded itself (no extra load)
 TruMenu | Sonar | AllFloors | bool | Alle verbundenen Bereiche | All connected areas | live | 0 | Geladene Nachbar-Stockwerke auch (mit FullMap) // Loaded neighbour floors too (with FullMap) | TruMenu 0.22.49
 TruMenu | Sonar | TriangleCap | int:0..1000000:50000 | Sonar komplett: Dreiecks-Grenze | Full map: triangle cap | live | 300000 | Dreiecke je Bild (Spiel 93572, bis dahin = Spiel) // Triangles per frame (game 93572, up to it = game) | TruMenu 0.22.49
+# 2026-11-15: TruMenu 0.22.53 - the sonar loads more map units itself (with FullMap; released at the close); read about
+# once a second, act at the next open
+TruMenu | Sonar | LoadNeighbourFloors | bool | Sonar: Nachbar-Stockwerke nachladen | Sonar: load the neighbour floors | live | 0 | Eine Stufe weiter als das Spiel (mit FullMap) // One step further than the game (with FullMap) | TruMenu 0.22.53
+TruMenu | Sonar | LoadAllConnected | bool | Sonar: alles Verbundene laden | Sonar: load everything connected | live | 0 | Ganzer Level, alle Stockwerke (mit FullMap) // Whole level, every floor (with FullMap) | TruMenu 0.22.53
+TruMenu | Sonar | LoadMaxUnits | int:1..64:1 | Sonar: höchstens so viele Bereiche dazu | Sonar: at most this many more areas | live | 24 | Je Öffnen; stoppt auch an der Dreiecks-Grenze // Per open; also stops at the triangle cap | TruMenu 0.22.53
 # 2026-11-14: TruMenu 0.22.51 - the sonar view's fog (FadeFar: 0 = the game's, -1 = aus, n metres), the other areas
 # tinted, the DLC 2 base PDA (only with the DLC g_pda, written while the PDA is closed); re-read about once a second
 # 2026-11-14 late: TruMenu 0.22.52 - FadeFar drives the face shader's falloff / fade (the real dimming), TintOthers 0 / 1 / 2
@@ -314,7 +319,7 @@ TruMenu | PDA | ShadowPdaAsBasePda | bool | Shadow-PDA durch Basis-PDA ersetzen 
 # SourceHooks (the two code redirects V1 / E1) is read at the start (bar page Spiel-Einstellungen, group Ton-Log)
 group | tmtonlog | Ton-Log (TruMenu) | Sound log (TruMenu)
 TruMenu | Sound | SourceHooks | bool | Ton-Quelle genau (2 Hooks) | Exact sound source (2 hooks) | restart | 1 | Stimme -> Emitter -> Objekt / Lara; 0 = nur Liste // Voice -> emitter -> object / Lara; 0 = list only | TruMenu 0.22.50
-TruMenu | Sound | LogLara | bool | Ton-Log: Lara zeigen | Sound log: show Lara | live | 1 | Laras Körper, Ausrüstung, Waffen // Lara's body, gear, weapons | TruMenu 0.22.50
+TruMenu | Sound | LogLara | bool | Ton-Log: Lara zeigen | Sound log: show Lara | live | 1 | Laras Stimme, Körper, Ausrüstung (ohne Waffen) // Lara's voice, body, gear (no weapons) | TruMenu 0.22.50
 TruMenu | Sound | LogEnemies | bool | Ton-Log: Gegner zeigen | Sound log: show enemies | live | 1 | Gegner und Kreaturen // Enemies and creatures | TruMenu 0.22.50
 TruMenu | Sound | LogWorld | bool | Ton-Log: Welt / Umgebung zeigen | Sound log: show world / ambience | live | 1 | Umgebung, Wind, Wasser, Tiere // Ambience, wind, water, animals | TruMenu 0.22.50
 TruMenu | Sound | LogObjects | bool | Ton-Log: Objekte zeigen | Sound log: show objects | live | 1 | Mechanik, Fallen, Trümmer, Explosionen // Mechanisms, traps, debris, explosions | TruMenu 0.22.50
@@ -328,3 +333,7 @@ TruMenu | Sound | LogMaxDist | int:0..500:5 | Ton-Log: höchstens so weit weg (m
 # re-read about once a second (W9ReadSwitch)
 TruMenu | Sound | ReverbFollowsMute | bool | Hall folgt Stumm | Reverb follows mute | live | 1 | Stumme Töne ohne Spiel-Hall // Muted sounds without the game's reverb | TruMenu 0.22.51
 TruMenu | Sound | ReverbOff | bool | Hall aus | Reverb off | live | 0 | Spiel-Hall ganz aus // The game's reverb off | TruMenu 0.22.51
+# 2026-11-15: TruMenu 0.22.53 - the new kind Waffen, "Filter folgt Stumm" (the sub-group filters: [Sound] LogHideSubs,
+# a key list, set by the bar rows of Ton-Log / Filter (Zeigen))
+TruMenu | Sound | LogWeapons | bool | Ton-Log: Waffen zeigen | Sound log: show weapons | live | 1 | Ziehen, Schüsse, Nachladen, Hülsen, Einschläge // Draw, shots, reload, brass, impacts | TruMenu 0.22.53
+TruMenu | Sound | LogFollowMute | bool | Filter folgt Stumm | Filter follows mute | live | 1 | Was Stumm / Solo stummt, fehlt auch im Log // What mute / solo silences leaves the log too | TruMenu 0.22.53

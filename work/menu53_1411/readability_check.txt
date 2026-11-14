@@ -1,0 +1,4 @@
+part 1 Lara in: 2000 random cases, 0 disagree with the engine box test (6 skipped at a face); live 4537: rot z 1.5222 rad (87.21 deg), point 1 local (-46.9, -461.6, -47.3) inside True / engine True, point 2 local (275.3, -612.8, -47.3) inside False / engine False -> pass
+part 2 depth mapping: 2000 cameras (row / column, LH / RH, normal / reversed Z) x 5 points, 0 wrong (0 refused), worst |z - z_true| 4.28e-14; negative cases accepted 0 of 2 -> pass
+part 3 interpolation: 2000 segments x 4 points, worst |z_lin - z_true| 9.2e-15, worst |1/z - lerp| 5.7e-16 -> pass
+all pass

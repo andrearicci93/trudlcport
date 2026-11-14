@@ -63,7 +63,7 @@ extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg
 
 namespace {
 
-const char *const kVersion = "TruMenu 0.22.52 (reverb mark + DSP graph + sonar shader fade + area colours + joint row fix, owner wishes 2026-11-14 late evening: the whole FMOD DSP graph walked (live 22:02: 189 units - one SFX Reverb, two ParamEQ inserts of groups 58 / 59, stream codecs, 162 group heads; static: createDSPByType only 0x586fda / 0x5839f3 (oscillator, played as its own channel) / 0x5876df (group / node effects = ChannelGroup::addDSP inserts behind the mute), DSP::addInput only 0x58223b / 0x584188) - the reverb send is the only path past FMOD's mute; a reverb mark per line in box and monitor (arcs = reverb audible, struck = muted by ReverbFollowsMute / ReverbOff, dot = no send), monitor rows for the graph and every effect, a muted voice's send zeroed at once (W10Sweep, 50 ms) and the voice update rate counted; [Sonar] FadeFar drives the real dimming = the face shader lib 192 of materials 3348 / 3349 (1/d falloff floor c110.x 0.5, fade to black c108.w .. c109.w 200 .. 600 m; 6 byte checks), fog off for every value != 0; [Sonar] TintOthers 2 = a muted colour per area with a legend in the sonar view state; page Kapitel Raetsel: no drive for an open-ended range on a free hinge (motion detector), the range cut to the joint's limits, our lock taken back after a node change) - 0.22.51 (sonar view + base PDA + X default + DLC start from a level + reverb follows mute, owner wishes 2026-11-14 evening: the game's SFX reverb (holder [0xccde98]) gets a send from every pool voice that FMOD's mute never reaches - 'Hall folgt Stumm' [Sound] ReverbFollowsMute = call redirects 0x591591 / 0x5841bf -> W9SendStub (a muted voice sends 0), 'Hall aus' [Sound] ReverbOff = reverb -> master setMix 0 (old level back on off), audible = not paused and (dry > 0 or send > 0 with the reverb out > 0) in box / monitor, a reverb row, 11 more byte checks; 'Sonar: Abblenden Ferne' [Sonar] FadeFar = the sonar view's fog (0 game: near = far = 65536, n m = fog n/2 .. n, -1 aus; call redirects 0x6e4d94 / 0x6e4bf9 -> S5FogStub); 'Bereich anzeigen' = one unit of the sonar's own list drawn (0x6e42ac -> S5UnitStub, no load, no camera move); 'andere Bereiche einfaerben' [Sonar] TintOthers = units but Lara's drawn with an amber draw colour [0xee03bc] for their call; sonar.why + the open line log the view centre / axis and per unit the cut plane of 0x6dfa60 ((v0 - centre) . axis < -4000); 'Shadow-PDA durch Basis-PDA ersetzen' [PDA] ShadowPdaAsBasePda = g_pda script 3347 f1 word 04000001 -> 04000000 (ScriptSection hash map 0x8a6ed0, only the DLC g_pda, only while the PDA is closed); X on a value row = its default, footer 'X: Standard'; Kapitel DLC rows in a level = the pause menu's DLC start (RegisterAcceptChanges case 8 as the title update: f27(unit, rule, 0, 1), f7, f19); command line: level.start suggests every unit, level.load in the main menu suggests level.start; 22 byte checks) - 0.22.50 (sound log readable + FMOD channels + source hooks, chapters from the main menu, owner wishes 2026-11-14: the bottom-right sound box per line with an on / off box from FMOD's own mute bit (ChannelI +0x74 bit 3), the group as text, the source, a loop mark (FMOD mode 0x2 / 0x4), repetitions collapsed (same wave + source = one line xn, newest on top), a 'laeuft gerade' block of the looping channels; filters per kind (Lara, enemies, world, objects, PDA / UI, speech, music), only audible, collapse, max distance ([Sound] Log*, live); quick hearing per kind mute / solo (snd.catmute / snd.catsolo = snd.mute / snd.solo cat:<kind>: whole groups + per channel + the FMOD channels outside the pool), newest sound solo, everything back; two code redirects V1 0x591351 (the wave node's Play call: voice -> emitter of the node) and E1 0x5b99fc (6 bytes after the untouched create call of the anim event, TruTrace keys on it: emitter -> instance), [Sound] SourceHooks; the owner list walk at most once a second and only while shown, W6EmitterOwner gone; the monitor counts every used FMOD channel (SystemI +0x150), shows FMOD's mute / pause, 'Fremdkanal (DSP)' rows and the music slots; ONE 'Ambient aus' (media.muteambient = snd.ambmute: groups 15 .. 24 + the '_amb_' beds, kept) and ONE 'Musik aus'; page Kapitel from the main menu = the game's mission start (level.start, DLC starts as the DLC menu), the DLC start rows refused in a level (level.load keeps Lara's costume), cp.jump from the main menu; 27 byte checks) - 0.22.49 (sonar all floors + map info, adrenaline options, owner wishes 2026-11-14:[Sonar] AllFloors with FullMap = the frame 0x6e4130 also draws the map units of other floors the sonar loaded itself (0x6e429b je -> nop nop; the game's open path loads the floor's units and their direct portal neighbours - no load added), item sonar.allfloors 'Alle verbundenen Bereiche'; info row sonar.unitmap 'Karte dieser Unit' (real N faces / placeholder only / no file, read from the sonar's unit list while it is open) and one log line per sonar open (floor, radius, view distance, every map unit with mask / state / faces); [Sonar] TriangleCap with FullMap (default 300000; the imm32 of 0x6dfa69 = the per-frame budget 93572 - only a counter: the triangles are flushed in batches of 2000 into the device's growing vertex pool); 3 more byte checks (16); adren.keep renamed 'Nach Einsatz auffuellen' (it refills only outside the mode), adren.stayfull 'Adrenalin bleibt voll' = TruShadowCombat [Adrenaline] DrainPercent / DrainModePercent 0 (old values kept in TruMenu.ini, back when off); ModeWithoutTarget / StrikeWithoutButton options (no '(Test)'), AssistPointer 'Zielhilfe Kreis', a DLC 2 note; snd.sonar log line printed the wave list's address as SonarMute) - 0.22.48 (adrenaline at Lara + sonar full map, owner wishes 2026-11-14: page Figur group Adrenalin (Lara) owns adren.meter / adren.fill / adren.keep and the TruShadowCombat [Adrenaline] switches (FillPercent, DrainPercent, DrainModePercent, StrikeWithoutFullMeter, AssistPointer, ModeWithoutTarget, StrikeWithoutButton, Log), page Tests keeps copies; the switches rows ModeWithoutTarget / StrikeWithoutButton live (TruShadowCombat M15ReadSwitches, once a second); teaser display default 12 (small circle + count badge); page Kapitel without '(debug)', the unused slots named readable; Sonar komplett [Sonar] FullMap = every vertex counts as revealed in the draw 0x6e3a00 (0x6e3b25 / 0x6e3b59 / 0x6e3ba2, display only, no save data), HidePlaceholder = call stub at 0x6e3ab0 skips the 100-face / 56-vertex MAP mesh, FloorMarkers = 0x6e40c6, all live, the game's bytes when off, one line when the triangle cap [0xee03ec] is hit; 12 byte checks kSoChecks) - 0.22.47 (sound monitor, owner wishes 2026-11-14: the wave id of a voice from the wave entry +4 (0x591348 - 0.20.1 .. 0.22.46 read every voice as 'Stream') and the emitter through the node's params object +0x74 (0x5906e0); bar group Ton-Monitor (live) and Paket B: every voice playing / paused with name, wave / section, group name, volume, 2D / 3D, distance, state and source (object #intro / UI / music / stream), the last [Sound] HistoryMax starts, the active rules, right = mute w<id> / e<hex>; snd.monitor / snd.history to the log; the bottom-right box as a log ([Sound] OverlayStyle 1: newest on top, colour + ImGui-drawn icon per kind, fading); Sonar-Ton aus [Sound] SonarMute 1 = waves 914 / 915 / 916 of g_pda.drm per channel (2 = the whole group 57 incl. Lara's hints in child group 70), kept in TruMenu.ini; the list / switches also run from the Present hook while the game polls no pad (main menu); 6 byte checks) - 0.22.46 (arena from the main menu,owner live 2026-11-14 12:07 'arena.go 1a refused: level change pending (GameTracker+0xb9 = 1)': in the front end +0xb9 = 1 is a request nobody serves - only main state 1 serves one (0x5e0050 -> 0x5dab40), the next level start clears it (0x5de864), here TruMenu's own level.load of the unit.go step; LevelChangePending ignores it in main state 10, level.load is refused in the front end (main state 6 / 10), arena.go from the main menu starts the unit through the game's mission start (level.start <unit> 0 = uigamedata f22, f27(unit, 0, 0, 1), stdscreenmgr f19 + f7; new game data, fresh player tracker = main-game mode), waits for it, places Lara, cheat.onehitkill 0, arena.mode <spot> with unit + one-hit kill byte; refused outside the main menu itself (front-end state 0xfae8da != 3), during a one-shot movie or a cutscene, without a level; level.start [0|1] = f27's selection argument; 'level up' log line of the shortcut runner; 10 byte checks kFeChecks) - 0.22.45 (W6 sound switches,owner live notes 2026-11-13: snd.mute <target> [1|0] - single waves / SoundPlex sections / emitters per channel through FMOD's own ChannelI::setMute 0x7c92b5 behind the game's handle validate 0x7c7e5a, sound groups and ambience (group 15 + the '_amb_' srmusic beds) through ChannelGroupI::setMute, music tracks by name through the game's srmusic stop; snd.solo, snd.mutes, snd.ambmute, snd.now (voices with emitter + SoundPlex section), music.stop / music.next / music.mute; one 'snd.wave <id> START' log line per start of a watched wave ([Sound] WaveLog / WaveIds 10 / WaveLogMax) with unit, emitter (params - 0x14, vtable 0x851240), SoundPlex section and the object whose sound list [inst+0x248] holds it; 15 byte checks) - 0.22.44 (W2 order, owner live notes 2026-11-13: page Tests by the test guide packages A - F of 14.11. (group tg_1411, sub-groups tg_a .. tg_f with the items each package needs, checks tg<A-F>.<name>), the 11.11. Q90 packages, test spots, light / depth diagnosis and hall02 rows in the closed group Archiv / Alt (nothing deleted); Barrierefreiheit: no leading spaces, Arachnophobie in its own sub-group, the planned rows (no item) in the closed group Geplant; planned rows without the 3-space prefix; an INI without [Menu] Load (written before 0.22.18) reads Enabled the old way = Load, the big window stays off; row DeviceGlyphs on page Spiel-Einstellungen / Steuerung; kQbViewMax 256) - 0.22.43 (W5 markup, owner live notes 2026-11-13:draw.markup puts object markup (box +0xc owner) through the owner's bone matrix like the engine (0x5be360 / 0x49ba20, only with owner +0x2d8) - before every object ledge was drawn around the world origin (the dungeon 'coil' 21:53 = dlc1_uo_pillar_of_doom ledges); boxes the engine's markup query skips (record +0x32, disabled bit 31, owner flags, stream unit +5) are not drawn; label 'type #id' (DE / EN) within 15 m of Lara, nearest 24, one colour per type; dbg.roomonly and the occlusion fading apply to markup too; bar rows Markup / Nur Kanten first in their group; 6 byte checks) - 0.22.42 (W3 debug view, owner live notes 2026-11-13: RoomOnly keeps an object of another unit when its own stream unit +0xe0 is Lara's or it is within [Debug] RoomNear 3000 (dlc_level1_start holds copies of the dlc_caverns bridge objects), each drop / keep logged once; DistMetres default 1; labels within [Debug] OcclNear 600 and Lara's own never fade, test point 1 m above the origin; labels de-cluttered - one label per instance and frame (uber labels join it with their state line), same object x n, LabelStack 3, LabelCellMax 5 per screen cell; [Debug] HideEmptyPots 1 - no labels at plain / empty jars; teaser icon only in the main menu (front-end state 3, no one-shot Bink movie - not in the credits)) - 0.22.41 (Q126c compact attract styles, owner 2026-11-14 after trying 0.22.40: [Menu] AttractIcon 8 .. 16 appended, all without a box - 8 / 9 small circle without / with the red strike, 10 / 11 / 12 small circle + only the counter beside / below / as a badge on its edge, 13 terse 12s . 3, 14 terse 12/40 . x3, 15 / 16 only the counter as a word / with a skip arrow; no time next to a circle; blink at the limit for all; 0 .. 7 unchanged, default 7) - 0.22.40 (Q126b attract display styles, owner 2026-11-13: one cycle switch [Menu] AttractIcon 0 .. 7 (menu.attracticon, bar row Teaser-Anzeige with the style name) instead of AttractIcon 0 / 1 + AttractIconText - 0 off, 1 text only, 2 circle, 3 circle + red strike, 4 text inside the circle, 5 text below, 6 = 4 + strike, 7 the 0.22.39 look (default); a 0.22.39 INI is mapped once (1 + 1 -> 7, 1 + 0 -> 3) and AttractIconText removed; blink at the limit for all) - 0.22.39 (Q126 attract icon,owner idea 2026-11-13: [Menu] AttractIcon default 1 (menu.attracticon): top right in the main menu a circle that fills with the game's AttractTimer clock toward its limit (elapsed +0x10 / alarm +0x14 of the captured clock, NoAttract holding: the shadow count modulo the alarm), a play icon in the middle (crossed out while NoAttract holds), [Menu] AttractIconText seconds + counter skipped / teaser started, 3 orange blinks at each limit; read only through the 0.22.20 update slot, live re-read of both keys) - 0.22.38 (PD, owner decisions 2026-11-13: [Input] DeviceGlyphs default 1 (pad / keyboard prompts by the last used device); the co_ / fx_ filter also takes dlc_ / dlc1_ / dlc2_ in front (dlc_fx_*, dlc1_fx_*; exceptions co_rock*, *_grab_prompt kept); trigger edges with occlusion on are drawn whole and faded instead of cut by the depth test (one occlusion query pair per edge / circle, Occlusion 2 drops hidden edges), [Debug] TriggerNearest (dbg.trignear: only triggers with Lara + the n nearest) and TriggerCornerId (dbg.trigcorner: the intro id at one box corner)) - 0.22.37 (debug view P5, Paket R / Q119:labels as name / symbol / both per layer ([Debug] Style*, dbg.labelstyle; ImGui symbols + legend), room always + readable (kRoomNames, LabelRoom) and metres (DistMetres), key items layer dbg.keyitems (parts, switches, doors, grapple points, P1 part -> target lines, state from link parent +0x228 / uber node), the game's reward bit +0x3ed90 as 'collected' (LabelCollected semantics), DrawDistance + TruMenu.debugview.txt per unit, labels behind walls faded / hidden by D3D9 occlusion queries in the depth pass (Occlusion), co_ / fx_ hidden (HideCo / HideFx), live wishes: uber labels + key items of Lara's room only (RoomOnly, dbg.roomonly; then every _uo_ / _ei_ / _pt_ object of the room, readable name + node 'Kanaltor, verschlossen'), uber labels fade behind walls, readable names (kP5Readable: 'Wandschalter (einmalig)'), grey 'versteckt' for hidden non-collectibles, kChapOrder after Paket R (CP 76 return visit, 160 / 42, going_in / going_out, 7 return rows), arena.load references released at a level change; 6 byte checks) - 0.22.36 (label filter, live 2026-11-12: the name labels dbg.labels / dbg.names ask the 0.21 collected / hidden check LfNotDrawn as the collectibles layer - [Debug] LabelCollected 0 none / 1 grey 'eingesammelt'; Lara's own gear by game data (parent +0x54 = player from BirthObject, weapon-manager slots + gear list) - [Debug] LabelLaraGear 0 none / 1 shown; both live, items dbg.labelcollected / dbg.labelgear, 11 byte checks) - 0.22.35 (level chain, Q113: base-game checkpoints of the Kapitel page in walking order, loop directions + l4_temple side trip as headings) - 0.22.34 (achievements, photo.pose, group M; Q20 / I-2: [Achievements] Enabled=1 (default, read at the start) bends the 16 push immediates of the achievement binder 0x7abb80 (script 66, all bound to the empty 0x796620) to TruMenu's stubs before the generalbank binds them - 'achievement <id> <name> unlocked' once per profile (= the save folder) in TruMenu.log and TruMenu.achievements.txt, names / gamerscore of the Xbox ids f0 1 .. f15 18 (f12 - f15 unsure), repeats counted; ach.list / ach.status, page Figur group Erfolge, big window page Achievements; F2: photo.pose 1..7|next|off = Lara's screen_capture_0n (anim table 1605 - n, section checked, resident) through the game's anim request 0x444ba0 mode 0 (the uber / script play-anim path) - photo mode only; off / photo.off = the slot noted from processor +0x44 again in mode 1; J-5: chapter 1.2 heading before l1_kraken_entrance (title card from intro 696); K follow-up: ai.spawn warns when a resident kind's children are not loaded; 36 byte checks); " "0.22.33 (photo mode, arena.load, glyphs.status, group K; F1 / Q78: photo.on = the game's own FreeCamera (camera manager mode 5 through its switch 0x5edd70(mgr, 5, 0) - CAMERA_SetMode knows only 6 / 11 / 12; its own stick / mouse input and generalbank DTP 16 values) + the world pause bit 0x1000 (the camera update still runs) + the UI byte 0xcdc9a0 (the game's screenshot task hides the HUD the same way); photo.off / leaving by itself on a level change, a new player / unit, main state != 1, a cutscene, the game's pause menu or a camera the game took = mode, Lara's control, pause bit and HUD as before; refused in cutscenes / loading / pause / flight / cine.pause / another camera layer; photo.shot = shot.save clean photo_<n>; Q83: arena.load <kind> requests one of the 26 enemy kinds with the game's object request with reference 0x5c1760 (checks tracker 204 / anim pool 3000 / 3D navgraph / DRMs, at most 2 kinds), ready = object + children at status 2 and anim slots resolved (log line), ai.spawn refuses it before; arena.unload <kind>|all = STREAM_DumpObject 0x5c1790 once for its own requests; arena.enemies lists the states; Q95: glyphs.status = DeviceGlyphs, device now (pad / keyboard / mouse), last switch time, prompt counters; 37 byte checks, no new INI key); " "0.22.32 (arena, group A; Q86: ai.spawn names the LP each spawned enemy got from the game's enemy init (brain+0x2c64; tune health record by the EnemyHP step [[0xc59264]+0x3ef98]), the EnemyHP step and warns while one-hit kill [0xe91ffd] is on - the 2026-11-11 21:02 thrall 'LP 0' was that cheat, its AI ran; no name / an inexact or unloaded name = the list of the loaded AI enemy kinds with the reason; Q100: arena.mode [spot] = player object, doppelganger byte [[0xfadb58]+0x1244] and TruDlc2Player flag, fits / WARNING per spot, logged; arena.go reads the mode first - a main-game spot with the flag set loads with level.load (new game tracker clears it), a DLC 2 spot without it warns - and ends with arena.mode <spot>; Q98: spots 1d l5_valgrind CP 7329, 1e l2_puzzleroom CP 2074, 1f l4_traprooms CP 5722 - the largest open navmesh floors with a resident enemy kind; read only, no new INI key, no hook); " "0.22.31 (level navigation + puzzles, group B; Q105: the 15 unit names in no PC archive (q105_units.tsv: three base units of the level list, six container / costume / cine names, the six known DLC slots) grey and refused by level.load / level.start / unit.go / cp.jump unless a mods\\<unit>.drm exists, one 'units:' log line; page Kapitel base game in play order from the stream portals with chapter headings (callers of generalbank script 72 SetChapterUIData) and the checkpoint intros per unit - right 2x = backup + load, a checkpoint row = cp.jump <unit> <cp> force (new optional third word: cheat.flight 1;player.goto <cp> force); Q106: uber.dump prints every joint-range transition (condition 14 / 15) with the joint's live value (the engine's getter 0x4e1ef0 / 0x4e1ea0), joint.set <intro> <joint> <value>|stop drives a hinge / rail joint with the engine's limit setters 0x4d9fc0 / 0x4d9f50 / 0x4da0c0 + wake 0x4d8fd0 until the uber leaves its node or 6 s (game thread, a cheat), page Kapitel group 'Raetsel in der Naehe' lists the uber objects with their current node and joint targets, 'solve' rows run joint.set; 27 byte checks); " "0.22.30 (log dates, device glyphs, drawn guards; Q107: every TruMenu.log line starts with 'YYYY-MM-DD HH:MM:SS.mmm' and the first line of a process is the session header '=== <date time> TruMenu <version> session start (pid n) ===' (src/asi/TruLog.h, shared with the other plugins); the log page / overlay take a stamp with or without the date and show the time; Q95: [Input] DeviceGlyphs=1 (default 0) - the last used device (pad: a button, a trigger or a stick past its dead zone in the game's poll; keyboard / mouse: a key, a click, the wheel, a mouse move away from the client centre) decides the button prompts of UIText: 23 bytes of 0x5a7c20 at 0x5a7d75 call GlName - pad = the symbol of the first XInput binding (Start / Back U+1810 / U+1811 too), keyboard / mouse = the name of the first other binding, else the game's own name; 12 byte checks, 'glyphs:' log lines; Q103 rest: the quick bar's presses and every widget of the big menu (ImGuiItemFlags_Disabled) act only after 3 drawn frames since the open, else 'quick: buttons 0x.... ignored - not drawn (n frames)' / 'menu: input ignored - not drawn (n frames)'); " "0.22.29 (radial lock, Q103:[Radial] Enabled=0 also closes a ring that is still open (settings.reset) and drops its pending release / open / close requests; a release, confirm, A / click or R3 runs a ring entry only when DrawRadial drew the ring in at least 3 frames since the open, else 'radial: <what> ignored - not drawn (n frames)'; the close line names the drawn frames; no new INI key); " "0.22.28 (test packages, Q90: page Tests group 'Testpakete 11.11. (Q90)' with one closed sub-group per package A, 1 .. 9 of docs\\Testpakete-1111.md - a hint line, jump / load rows of existing items (level.start, level.load, arena.go), the existing switch rows of TruMenu.switches.txt the package toggles (kQbSwitch = the page Fixes row: TruShadowPower ShakeTuTimeStep / [Player] TuTimeStep / DoppelgangerSettings / CameraTuTimeStep, TruQoL [FrameLimit] Enabled / MaxFps, TruRockVein JumpTarget / LedgeProbe, TruMenu [Log] Save), probe rows (save.inv / save.find 5240 / 5695 / save.pending / save.waiting, adren.meter / adren.fill, phys.status, log.script / log.scriptfile) and TO TEST checks (kQbCheck tp<package>.<name>: right ok, left fail, X skip, again = open; added with test.add at the first mark, TruMenu.log 'tests: test.mark <id> <state>'); every row flagged kQfTp (test-package content: a real row of its page or deleted after the tests); no new INI key, no hook); " "0.22.27 (save probe, Q79:save.pending / save.inv / save.waiting / save.find read the save arenas - live [0xc59258] and checkpoint snapshot [0xc5925c], the restore buffer 0xc57258 with the reason a block waits (unit / object / link parent, as 0x555640 / 0x5bb160 / 0x5bb640), the inventory area +0x34c of both game blocks (15 + 8 intro ids, 6 counts), the 64-slot waiting table 0xc592a8, dead bits; read only, 32 byte checks (TruSaveProbe.h); [Log] Save=1 (default 0, live) = two TruMenu.log lines per SAVE_SaveGame / SAVE_RestoreGame through their memcpy calls 0x557127 / 0x5571a3, 5 more byte checks); " "0.22.26 (test arena, Q76:page Tests group 'Arena 1 - Kampf (Q76)' - three flat floors with resident AI enemy kinds, arena.go 1a|1b|1c = one shortcut as cp.jump (backup, unit.go, wait.unit, flight, player.goto <intro> force; 1a l7_helheim03 generator 8785, 1b l7_yggdrasil_hall02 generator 8762, 1c dlc_yggdrasil_hall02 checkpoint 10644), arena.list (one list of arenas / spots: arena 2 Museum later), flight / god mode, the ai.spawn rows, ai.remove spawned (only the instances ai.spawn made, by address + allocation stamp +0x44), fight diagnosis rows; adrenaline meter: adren.meter (CM+0x3c / max [[0xfad764]+0x2d0], CM+0x1fc bits 22 / 27, doppelganger byte [[0xfadb58]+0x1244]; read only), adren.fill (the game's meter-full 0x6e6630, body of the script native 0x777a50; cheat), adren.keep 1|0 (refill once per game frame while below the maximum and bits 22 / 27 clear; not kept); 6 byte checks); " "0.22.25 (settings.reset writes the whole TruMenu.ini: the default text is measured and built in a buffer of its size - 0.10 .. 0.22.24 kept it in a static 16384-byte buffer and wrote only the first 16383 of the 42 KB, a truncated INI; text built before the backup, write and close checked, the answer names bytes and keys; other table texts: TruMenu.log lines up to 2047 characters (was 511, light.cut lines were cut), [Quick] Closed 1023 characters (was 383, too short for every group) and like [Debug] CheckpointHide only whole keys / ids, settings.show ends with the count of the keys it could not hold); " "0.22.24 (fall watch + fall net, Q19 hall02 fall out of the world: TruMenu.log lines at LogLevel 1 for Lara's chart records 742 / 743 / 1068 / 1080 and states 1008 / 1015 with position, a watchdog line every second while in the fall record 1068, safe-ground ring additions, rate-limited; [Rescue] FallNet=1 (default 0, live) puts Lara back on the newest safe-ground sample when she is more than 3 s in 1068 and more than 3000 units below it - player.unstuck's teleport, at most 3 per fall, never in menus / cinematics; 2 byte checks); " "0.22.23 (switches file limit:TruMenu.switches.txt holds up to 512 switch lines (was 160; 24 groups as before), file format unchanged; switch lines past 512 and group lines past 24 are not shown and named in one TruMenu.log line each with the count and the first line number, sw.reload / the bar head say so; the quick bar page Fixes (128 rows) names the rows of an open group it cannot hold instead of cutting them silently - the long menu section Fixes shows every row); " "0.22.22 (teaser timer line, live 2026-11-10: the line follows the bar language [Quick] Language as every overlay; it shows the game clock (the dt the clock got since its (re)start) next to TruMenu's wall clock since that (re)start, and 'Pause-Bit aktiv (halbe Zeit)' / 'Pause bit set (half time)' while the frame time [0xe7f188] is the fixed 0.5 of the pause bit [0xe7f0b4] & 0x10000000 - read only, 4 byte checks); " "0.22.21 (teaser timer: menu.attracttimer 1|0 / [Menu] AttractTimerShow, bar row 'Teaser-Uhr anzeigen' in Spiel-Einstellungen / Hauptmen\303\274 - while in the front end (main state 6 / 10) a line in a screen corner ([Menu] AttractTimerPosition, default tr) shows the AttractTimer clock: elapsed / alarm, or while menu.noattract holds it a shadow count (the dt the game hands the clock update while the clock runs, back to 0 when the game restarts the clock) that flashes 1 s and writes one TruMenu.log line each time it passes the alarm (40 s, then every 40 s with repeat) - the moment the teaser would have started; with menu.noattract off it flashes when the real clock fires; read only through the same update slot 0x84584c, no behaviour change, no new byte checks); " "0.22.20 (main menu attract video off: menu.noattract 1|0 / [Menu] NoAttract, bar row 'Hauptmen\303\274-Video aus' in Spiel-Einstellungen / Hauptmen\303\274 - the clock f11 native 0x795cc0 (called only by the AttractTimer script 60) hands TruMenu the AttractTimer clock, the clock update slot 0x84584c holds its elapsed time at 0 in the front end (main state 6 / 10), so the alarm never fires: no stopTitleMusic, no StopMovie, no teaser; every other clock and the menu background stay the game's; 13 byte checks); " "0.22.19 (pages remembered:the quick bar opens on the page it showed last ([Quick] LastPage, written 1 s after a page change or at the close; a name that is no page any more = page 1, logged) and the big window with the pages that were open ([Menu] OpenPages, written when a page is opened / closed), also after a restart, RememberPage=0 = off; power.infinite 1|0 = TruShadowPower 0.23 [Meter] Infinite written into TruShadowPower.ini (only that line, a missing key added), bar row 'Kraft unendlich' in Rettung / Cheats, greyed with the reason while TruShadowPower.asi 0.23+ is not loaded or its INI is missing); " "0.22.18 (volumes / mouse saved through the game's own write 0x4796b0 (0x478010 only refreshes their mirrors); every bar section a collapsible group, sub-groups, rows indented per level with a guide line, the long menu's groups collapsible; frame stepping: View held = step mode (each RB tap one frame), RB + View held 0.4 s = [Settings] StepRate frames per s; subtitles top / free height and left / right with a margin (origin x of 0x477180 moved per line); voice.lang = speech language only (MultiFS mask 0x472d80 while 0x472be0 is free), voice.full = speech now + registry Language; media list fallback, media.music.inlevels, music volume 0 warning row; goo drip candidate columns (bone 0, old position, physics body); light.demote = a 4th shadow caster takes a free plain place (hooks 0x504e06 / 0x504341); bar settings written back to TruMenu.ini (quick.lang, camera, mute, light switches); defaults: big menu window and ring off, quick bar on, bar language English; TruShadowPower [Meter] Infinite row); " "0.22.17 (subtitle fallback: a cutscene subtitle record without the wanted language id goes to the reader 0x4538d0 with its English entry (id 0) as that id - only while no record of the same stream (cinematic handler, new on a handler change or when the stream time [s+0x384] goes back) carried the wanted id, so the DLC cinematics (ids 0 1 2 3 4 11) get English lines in Russian (9) and the base cutscenes with their own per-language cue times never mix; [Settings] SubtitleFallback=1, 0 = the game's; sub.lang rewrite and TruMenu's parse use the same rule; SbName(9)); " "0.22.16 (bar page Spiel-Einstellungen: the game's own options live - volumes, inversion, vibration, combat mode, mouse through the option setter 0x5d5100 and the settings save 0x478010 2 s after the last change; subtitle look (show, size, bar, bar opacity, colour, height) through the draw parameters of 0x583e20, kept in TruMenu.ini [Settings]; live graphics (fullscreen effects, depth of field, shadows, water, reflections, volumetric, filter, aspect) through ApplySettings 0x522a10 on a copy of the active block, PadHook only; gfx.save; gfx.next = registry values for the next start; D3D-reset settings as greyed rows; sub.lang cycles -1 / 0..4 / 11 (Nederlands) and a rewritten line is found again (U3); bar reorganised - Rettung / Cheats, Figur with the doppelganger switch groups, Gegner (KI), Render, Zeit / Ablauf, Licht (Diagnose) group; 29 byte checks); " "0.22.15 (aim.trace 1|0: the lock-on path per change into TruAim.log - aim input RT action 33 / LT action 35 held (+0x630 / +0x690 bit 2 of the action records; LT = pad code 4, RT = 5), tuning bytes [0xfad764]+0x294 / +0x27c (the LT / RT aim timer values), game gates 0x8ab4e6 / 0xe7f144 / 0xe7f143, weapon slot [[P+0x500]+0x134], aim timers P+0x588 / +0x58c / +0x798 / +0x788, CM+0x1fc bits 9 / 10 / 11 / 18 / 19 / 20 / 21, Lara's chart records, targeter 0 flags / target / candidates per filter group or rejected with distance and camera angle, the nearest enemy and a why code; aim.why info item: the first blocking step for the nearest enemy in plain words; read only, 25 byte checks);" "0.22.14 (sub.lang switches the subtitle lines on screen at once, also in a cutscene held by cine.pause: the call 0x4574ec of the cinematic handler update copies each subtitle record (every language, '<id>\\r<text>\\r...') into TruMenu's ring of the last 2 records before the reader 0x4538d0 runs, the call 0x453a17 notes the lines the reader hands to the box; sub.lang <v> then picks the new language from the stored records as the reader does and rewrites the box lines 0xccdec0 +0 / +0x100 - clock and floats stay, a line of no stored record (Bink movie) stays and is logged); " "0.22.13 (cutscene pad combos: LB + View / RB + View fire on release and only when no third combo button joined while they were held, the photo combo LB + RB + View at once; cine.pause also holds the subtitle line clock [0xccdec0+0x208] - the subtitle draw 0x583e20 counts it down by the scaled frame time 0xe7f188, its disp32 at 0x583f24 points to TruMenu's own value while a cutscene is held; sub.lang calls the game's settings save 0x478010 (the registry write of the shutdown path 0x5df930) so the language survives a restart; ring.bits info item, an enemy panel line and fight.trace columns for the combat reticle request (CM+0x1fc bits 9 / 10 / 11 / 21, HUD group 12 of 0xfae924, style 0xfae8ac, reticle +0x40); fight.trace goo drip columns (sources 10706 / 10707: uber node / time; copies 929 / 942: count, nearest position / dz / iflags / node) and Lara's LP drop per sample; enemy panel 'Kampf-Spur: an (n Zeilen)'); 0.22.12 (fight.trace also writes a Lara-only line (enemy columns -) when Lara's chart record of machine 1 or 2 or her machine-1 state ids change - before only machine 1's record counted; quick bar: bool rows whose value starts with the id (fight.trace, combo.trace) show an / aus again instead of always aus, action rows of value items show the value (sub.lang: subtitle language now)); 0.22.11 (Xbox comparison, PC side: fight.trace 1|0 writes TruFight.log in TruXenia's TSV column layout plus PC columns - enemies within 6000 units on change (LP, stamina, states, requested state, target, distance, attack slot, MeleeAttack record, last hit), Lara LP / chart records / state ids / position, shadow meter, power mode, world / player time scale, the meter's 7 time-scale request slots and the selector's choice, the last time-ramp native call (gamebase 23 / 24 = 0x776030 / 0x776090, pass-through counter, one TruMenu.log line per call), camera object / mode / offset to Lara / FOV; enemy.panel 1|0 = Gegneranzeige at the right edge for the nearest enemy); 0.22.10 (light cut of the set builder 0x504cc0: light.cutlabels shows the sets / cut sets of the last frame and a label at every dropped light, light.cut [frames] [all] writes the sets with the offered list (+ kept, - dropped) to TruMenu.log; light.stablecut / [Light] StableCut orders each object's lights before the cut - sun, shadow map, caster, plain, then address - the per-object alternative to light.stable); 0.22.9 (enemy diagnosis: a third enemy label line with target, attack-slot requests / grants (coordinator 0x67d780, pass-through counter), gate bits, requested state, layer 1, stamina, last hit reaction; ai.why [id] writes the full set to TruMenu.log; combo.trace 1|0 logs Lara's chart record path and the enemy's reaction per hit; sub.lang -1|0..4|7|9..12 sets the subtitle language live through the game's option setter 0x5d5100); 0.22.8 (cutscene pad combos on by default - PausePad 0x0120 View + LB, StepPad 0x0220 View + RB, ShotPad 0x0320 View + LB + RB; pause acts only while a cutscene plays or is held, step only while held; the pause badge shows a second line with the keys / combos as set now); 0.22.7 (cutscene keys: [Cine] PauseKey / StepKey / ShotKey keyboard keys and PausePad / StepPad / ShotPad XInput combos for cine.pause, cine.step 1 and claude.mark - map extra pad buttons (8BitDo R4 / L4) to a combo; all 0 = off by default; help texts within 60 characters again); 0.22.6 (Present re-entry guard against the Steam overlay loop of 2026-11-08: a nested Present / SwapChain Present call draws nothing and goes to d3d9 directly through a hot-patch trampoline behind the overlay's jmp, or returns D3D_OK; one log line; German texts with umlauts - tools/trumenu_umlauts.py wrote 251 words of a fixed list as octal UTF-8 escapes inside the string literals, the INI option table stays ASCII); 0.22.5 (light.stable on by default: [Light] Stable=1 in TruMenu.ini, read at the start, a missing key counts as 1 - better a steady light set than the end-cutscene flicker until the real fix; 0 = the game's own order); 0.22.4 (light.stable now sorts the light pass's own collected list +0x250 / +0x258 by address right after the collection loop - 6 bytes at 0x56d69a -> jmp LsStub, put back when off; the 0.22.3 visible-list sort never changed anything); 0.22.3 (light.stable 1|0: the scene lights (visible-entity list +0x9c entries with +0x1e0 == 10) sorted by address in their own slots before the light pass 0x56d5c0 (call 0x5723cb) - test / fix for the rotating shadow slots of the throne flicker); 0.22.2 (light.frame [n]: the per-frame light lists of the scene - instances scene+0x20 / +0x1020, light bytes when changed, resources scene+0x1024 / +0x11a4 - captured at the frame end call 0x5098ca of the reset 0x504c50 into TruMenu.lightframe.txt, summary per light with BLINK?; for the throne flicker); 0.22.1 (cutscene pause, live wishes of 2026-11-08: the sound is held with the picture - master channel group paused through the game's ChannelGroup_SetPaused 0x7b9490, only by TruMenu and only given back by it, cine.step runs it muted; badge '|| Szene angehalten  <s> s' top centre; cine.mark / cine.pauseat <seconds> hold the next cutscene at a remembered time (armed over loads); cine.pause without an argument only reports); 0.22 (cine.pause / cine.step / cine.status: hold a playing cutscene - the stream walk calls 0x5904e3 / 0x5954f8 of the stream update 0x5901a0 point to a gate that skips the playing cutscene stream ([obj+0x77c] handler, state 4) while the world, particles and lights run on; off by itself at a load; bar page Tests); 0.21.11 (light.list: the scene's PCRenderLights with the shadow gate fields (+0xc5 bit 2, resource +0x1878 / +0x1879, frame flags +0x64 / +0x65, position, NEW since the last list); light.shadow <n> 0|1 = SetCastShadows vf+0x4c on the game thread); 0.21.10 (page Kapitel: group of the unused DLC slots dlc_level3..6_start + dlc_level1_left / _right, grey 'ungenutzt - keine Daten (17p/17s)' with the engine's reaction to a load (Can't open file pc-w\\<unit>.drm: error box, the game exits); level list, command line values, level.load, level.start and the start-up scan mark and refuse dlc_level3..6_start like left / right); 0.21.9 (page Tests: test spots of 17i (cp.jump <unit> <checkpoint> = backup, unit.go, wait.unit, dbg.cpgo; end scene 020_ghoul, floor 25057, ceremony room 030_pod); DLC 1 / DLC 2 units without a .drm in mods grey and refused by level.load; page Kapitel: DLC 1 / DLC 2 units in play order (ring marked Rundweg) with their checkpoints as jump rows (left opens them); goo drip uber label (mode, next drop, hard without exit, goo_off commands); navmesh labels / legend with meaning (bit 26 custom, bit 27 blocked by an obstacle, penalty multipliers, violet = dbg.enemycoll?); TO TEST INI toggles name the switch's when column; F11 shot key in the bar footer / help); 0.21.8 (quick command line: suggestions under the input (the menu bar's list), the menu's on-screen keyboard with Y (one keyboard, target = the line; Start kept from the game while it is open), the picked history line shown before A runs it, kCmdDanger lines (cheats, god mode, level / unit / save loads, save writes, costume resets, sw.set ...) ask for a second A within 3 s; favourites with an argument ([Favorites] Ids \"<id>|<argument>\": Fixes switches, costume rows, chapter units, rows with an argument) and a star on pinned rows; story values story.values (hall02 population / deaths / tutorial / wall, Croft Manor flags; read only); sound group sliders snd.group / snd.vol.* ([SoundGroups], the FMOD channel groups of the eight proposed sliders); ai.kill check 0x6203e9 (TruShadowCombat 0.6.5 owns the call 0x6203e4); SweepAndPrune checks accept the TruRockVein 0.10 limits (3000 / 500)); 0.21.7 (bar footer: Y: - on rows that refuse Y, L3 = command line, a help line for rows that are not self-explanatory (kQbHelp; page Fixes from the hint column DE // EN), pad NOT held warning; TruMenu.switches.txt UTF-8 with umlauts; costume rows the game refuses (0x5c54e0, checked on the game thread) grey and skipped; page Kapitel: the units per chapter / DLC (level.load, DLC 2 note); uber labels dbg.uber / uber.dump (gate / platform node + time left, [Debug] UberRadius 8000); shader labels shader.labels / shader.dump / shader.reload (TruMenu.shaderlabel.txt, file vs live shader libs); navmesh labels nav.labels (layer.graph #area, unit, flag bits, colour legend); SweepAndPrune read-out sap.status / sap.reset (markup collision boxes / pair links / proxies, peaks, [Debug] SapWatch); front-end pad diagnosis lines); 0.21.6 (bar page Kost\303\274me: costume row left / right through the outfit cycle list, switched once the choice stood 0.5 s (X = now), list of all costumes, next costume, choose for the next load + reload; flight key line bottom right while flying ([Cheat] FlightHint); quick command line in the bar (L3, the command bar's path); Render-Details pass / Navmesh rows show an / aus (orange + reason when a Navmesh switch cannot draw)); 0.21.5 (bar page Fixes + menu section Fixes: the plugin INI switches of TruMenu.switches.txt, sw.set / sw.list / sw.reload; the ring is frozen - its ring-only entries are bar rows (new page Render-Details) and the menu section Quick bar pages shows every bar row); 0.21.4 (hall02 counter rescue for saves whose checkpoint 11258 already holds tutorial thralls: fix.hall02 sets dispatcher 11270 population = 0 (tutorial 2) when no tutorial thrall lives; thrall.scriptval shows the thrall-script int +8 (restored 0 / generator-born 2)); 0.21.3 (quick bar: Y pins / unpins the row as a favourite, X runs it (confirmation rows: X twice), X / Y kept from the game while the bar is open; the sound list is as wide as its rows of this frame); 0.21.2 (queued items run in the Present hook while another pad hook sits outside PadHook - an item's pad poll no longer makes TruLink cut the pad chain); 0.21.1 (ai.kill nearest / others / all / <intro> the game's own kill (death state: scripts count it), ai.remove warns about story enemies; sticky.get / sticky.set; room check for player.goto (parked templates, unloaded / far units, force) and pos.go, unit.go (thrall-fight Prepare), label 'geparkt', pot label from the drawn instance; phys.status / phys.dump (physics bodies of the ChunkDoll crash); ai.spawn of the loaded enemy kinds; bar: page 0 Favoriten / Zuletzt, page Tests (Prepare, teleports, TO TEST), collapsible groups ([Quick] Closed), the KI page in three groups; export TruMenuPadBlock; "
+const char *const kVersion = "TruMenu 0.22.53 (sound log trees + kind Waffen + sonar extra loads + markups in the sonar view, owner wishes 2026-11-14 night (docs\\Status-2026-11-14.md W-53 / LT-2310): Spiel-Einstellungen / Ton / Ton-Log in the owner's layout - the settings rows, [+] Filter (Zeigen) (log display only: kind rows snd.logcat, sub-group rows snd.logsub, [Sound] LogHideSubs, 'Filter folgt Stumm' snd.logfollow [Sound] LogFollowMute default 1), the plain heading Schnell-Hoeren, [+] Stumm / Solo (sound only: Alles zurueck, Neuester Ton solo, Hall folgt Stumm, Hall aus, then per kind / sub-group one value row snd.hear normal / stumm / solo = snd.mute / snd.solo cat: / sub:); both trees kind -> named sub-groups of the game's sound groups (38, kW8Sub), nesting levels 2 / 3 (kQfLv2 / kQfLv3); a new kind Waffen (groups 51 / 52 / 58 / 59 / 61 / 62 / 63 - 'Stumm: Lara' no longer mutes the weapons), Lara's voice 68 / 69 and the DLC 2 player groups 77 / 78 are Lara's; a group-14 'world default' sound whose source is Lara or her gear (+0x54 = the player) = Waffen for a wp_* owner or a weapon-only wave of the data (optional TruMenu.weaponwaves.txt from weapon_waves.py - game data, not in the source), else Lara / Ausruestung; the monitor's voices under kind -> sub-group headings, the box lines and history rows name kind / sub-group; [Sonar] LoadNeighbourFloors / LoadAllConnected (default 0, with FullMap): R1 0x6e4e3f call 0x6e2e60 -> S7LoadStub (the game's neighbour rule first, then more units through the game's 0x6e2a60 / 0x6e4e80 inside the load callback, only in mode 1 with the pause byte 6 and no PDA map heap; caps LoadMaxUnits 24 and TriangleCap; released by the game's close 0x6dff20; 17 byte checks, one log line per open); the markup layer projects with the camera matrix 0xe804a0 while the sonar is open, like the trigger layer)" " - 0.22.52 (reverb mark + DSP graph + sonar shader fade + area colours + joint row fix, owner wishes 2026-11-14 late evening:the whole FMOD DSP graph walked (live 22:02: 189 units - one SFX Reverb, two ParamEQ inserts of groups 58 / 59, stream codecs, 162 group heads; static: createDSPByType only 0x586fda / 0x5839f3 (oscillator, played as its own channel) / 0x5876df (group / node effects = ChannelGroup::addDSP inserts behind the mute), DSP::addInput only 0x58223b / 0x584188) - the reverb send is the only path past FMOD's mute; a reverb mark per line in box and monitor (arcs = reverb audible, struck = muted by ReverbFollowsMute / ReverbOff, dot = no send), monitor rows for the graph and every effect, a muted voice's send zeroed at once (W10Sweep, 50 ms) and the voice update rate counted; [Sonar] FadeFar drives the real dimming = the face shader lib 192 of materials 3348 / 3349 (1/d falloff floor c110.x 0.5, fade to black c108.w .. c109.w 200 .. 600 m; 6 byte checks), fog off for every value != 0; [Sonar] TintOthers 2 = a muted colour per area with a legend in the sonar view state; page Kapitel Raetsel: no drive for an open-ended range on a free hinge (motion detector), the range cut to the joint's limits, our lock taken back after a node change) - 0.22.51 (sonar view + base PDA + X default + DLC start from a level + reverb follows mute, owner wishes 2026-11-14 evening: the game's SFX reverb (holder [0xccde98]) gets a send from every pool voice that FMOD's mute never reaches - 'Hall folgt Stumm' [Sound] ReverbFollowsMute = call redirects 0x591591 / 0x5841bf -> W9SendStub (a muted voice sends 0), 'Hall aus' [Sound] ReverbOff = reverb -> master setMix 0 (old level back on off), audible = not paused and (dry > 0 or send > 0 with the reverb out > 0) in box / monitor, a reverb row, 11 more byte checks; 'Sonar: Abblenden Ferne' [Sonar] FadeFar = the sonar view's fog (0 game: near = far = 65536, n m = fog n/2 .. n, -1 aus; call redirects 0x6e4d94 / 0x6e4bf9 -> S5FogStub); 'Bereich anzeigen' = one unit of the sonar's own list drawn (0x6e42ac -> S5UnitStub, no load, no camera move); 'andere Bereiche einfaerben' [Sonar] TintOthers = units but Lara's drawn with an amber draw colour [0xee03bc] for their call; sonar.why + the open line log the view centre / axis and per unit the cut plane of 0x6dfa60 ((v0 - centre) . axis < -4000); 'Shadow-PDA durch Basis-PDA ersetzen' [PDA] ShadowPdaAsBasePda = g_pda script 3347 f1 word 04000001 -> 04000000 (ScriptSection hash map 0x8a6ed0, only the DLC g_pda, only while the PDA is closed); X on a value row = its default, footer 'X: Standard'; Kapitel DLC rows in a level = the pause menu's DLC start (RegisterAcceptChanges case 8 as the title update: f27(unit, rule, 0, 1), f7, f19); command line: level.start suggests every unit, level.load in the main menu suggests level.start; 22 byte checks) - 0.22.50 (sound log readable + FMOD channels + source hooks, chapters from the main menu, owner wishes 2026-11-14: the bottom-right sound box per line with an on / off box from FMOD's own mute bit (ChannelI +0x74 bit 3), the group as text, the source, a loop mark (FMOD mode 0x2 / 0x4), repetitions collapsed (same wave + source = one line xn, newest on top), a 'laeuft gerade' block of the looping channels; filters per kind (Lara, enemies, world, objects, PDA / UI, speech, music), only audible, collapse, max distance ([Sound] Log*, live); quick hearing per kind mute / solo (snd.catmute / snd.catsolo = snd.mute / snd.solo cat:<kind>: whole groups + per channel + the FMOD channels outside the pool), newest sound solo, everything back; two code redirects V1 0x591351 (the wave node's Play call: voice -> emitter of the node) and E1 0x5b99fc (6 bytes after the untouched create call of the anim event, TruTrace keys on it: emitter -> instance), [Sound] SourceHooks; the owner list walk at most once a second and only while shown, W6EmitterOwner gone; the monitor counts every used FMOD channel (SystemI +0x150), shows FMOD's mute / pause, 'Fremdkanal (DSP)' rows and the music slots; ONE 'Ambient aus' (media.muteambient = snd.ambmute: groups 15 .. 24 + the '_amb_' beds, kept) and ONE 'Musik aus'; page Kapitel from the main menu = the game's mission start (level.start, DLC starts as the DLC menu), the DLC start rows refused in a level (level.load keeps Lara's costume), cp.jump from the main menu; 27 byte checks) - 0.22.49 (sonar all floors + map info, adrenaline options, owner wishes 2026-11-14:[Sonar] AllFloors with FullMap = the frame 0x6e4130 also draws the map units of other floors the sonar loaded itself (0x6e429b je -> nop nop; the game's open path loads the floor's units and their direct portal neighbours - no load added), item sonar.allfloors 'Alle verbundenen Bereiche'; info row sonar.unitmap 'Karte dieser Unit' (real N faces / placeholder only / no file, read from the sonar's unit list while it is open) and one log line per sonar open (floor, radius, view distance, every map unit with mask / state / faces); [Sonar] TriangleCap with FullMap (default 300000; the imm32 of 0x6dfa69 = the per-frame budget 93572 - only a counter: the triangles are flushed in batches of 2000 into the device's growing vertex pool); 3 more byte checks (16); adren.keep renamed 'Nach Einsatz auffuellen' (it refills only outside the mode), adren.stayfull 'Adrenalin bleibt voll' = TruShadowCombat [Adrenaline] DrainPercent / DrainModePercent 0 (old values kept in TruMenu.ini, back when off); ModeWithoutTarget / StrikeWithoutButton options (no '(Test)'), AssistPointer 'Zielhilfe Kreis', a DLC 2 note; snd.sonar log line printed the wave list's address as SonarMute) - 0.22.48 (adrenaline at Lara + sonar full map, owner wishes 2026-11-14: page Figur group Adrenalin (Lara) owns adren.meter / adren.fill / adren.keep and the TruShadowCombat [Adrenaline] switches (FillPercent, DrainPercent, DrainModePercent, StrikeWithoutFullMeter, AssistPointer, ModeWithoutTarget, StrikeWithoutButton, Log), page Tests keeps copies; the switches rows ModeWithoutTarget / StrikeWithoutButton live (TruShadowCombat M15ReadSwitches, once a second); teaser display default 12 (small circle + count badge); page Kapitel without '(debug)', the unused slots named readable; Sonar komplett [Sonar] FullMap = every vertex counts as revealed in the draw 0x6e3a00 (0x6e3b25 / 0x6e3b59 / 0x6e3ba2, display only, no save data), HidePlaceholder = call stub at 0x6e3ab0 skips the 100-face / 56-vertex MAP mesh, FloorMarkers = 0x6e40c6, all live, the game's bytes when off, one line when the triangle cap [0xee03ec] is hit; 12 byte checks kSoChecks) - 0.22.47 (sound monitor, owner wishes 2026-11-14: the wave id of a voice from the wave entry +4 (0x591348 - 0.20.1 .. 0.22.46 read every voice as 'Stream') and the emitter through the node's params object +0x74 (0x5906e0); bar group Ton-Monitor (live) and Paket B: every voice playing / paused with name, wave / section, group name, volume, 2D / 3D, distance, state and source (object #intro / UI / music / stream), the last [Sound] HistoryMax starts, the active rules, right = mute w<id> / e<hex>; snd.monitor / snd.history to the log; the bottom-right box as a log ([Sound] OverlayStyle 1: newest on top, colour + ImGui-drawn icon per kind, fading); Sonar-Ton aus [Sound] SonarMute 1 = waves 914 / 915 / 916 of g_pda.drm per channel (2 = the whole group 57 incl. Lara's hints in child group 70), kept in TruMenu.ini; the list / switches also run from the Present hook while the game polls no pad (main menu); 6 byte checks) - 0.22.46 (arena from the main menu,owner live 2026-11-14 12:07 'arena.go 1a refused: level change pending (GameTracker+0xb9 = 1)': in the front end +0xb9 = 1 is a request nobody serves - only main state 1 serves one (0x5e0050 -> 0x5dab40), the next level start clears it (0x5de864), here TruMenu's own level.load of the unit.go step; LevelChangePending ignores it in main state 10, level.load is refused in the front end (main state 6 / 10), arena.go from the main menu starts the unit through the game's mission start (level.start <unit> 0 = uigamedata f22, f27(unit, 0, 0, 1), stdscreenmgr f19 + f7; new game data, fresh player tracker = main-game mode), waits for it, places Lara, cheat.onehitkill 0, arena.mode <spot> with unit + one-hit kill byte; refused outside the main menu itself (front-end state 0xfae8da != 3), during a one-shot movie or a cutscene, without a level; level.start [0|1] = f27's selection argument; 'level up' log line of the shortcut runner; 10 byte checks kFeChecks) - 0.22.45 (W6 sound switches,owner live notes 2026-11-13: snd.mute <target> [1|0] - single waves / SoundPlex sections / emitters per channel through FMOD's own ChannelI::setMute 0x7c92b5 behind the game's handle validate 0x7c7e5a, sound groups and ambience (group 15 + the '_amb_' srmusic beds) through ChannelGroupI::setMute, music tracks by name through the game's srmusic stop; snd.solo, snd.mutes, snd.ambmute, snd.now (voices with emitter + SoundPlex section), music.stop / music.next / music.mute; one 'snd.wave <id> START' log line per start of a watched wave ([Sound] WaveLog / WaveIds 10 / WaveLogMax) with unit, emitter (params - 0x14, vtable 0x851240), SoundPlex section and the object whose sound list [inst+0x248] holds it; 15 byte checks) - 0.22.44 (W2 order, owner live notes 2026-11-13: page Tests by the test guide packages A - F of 14.11. (group tg_1411, sub-groups tg_a .. tg_f with the items each package needs, checks tg<A-F>.<name>), the 11.11. Q90 packages, test spots, light / depth diagnosis and hall02 rows in the closed group Archiv / Alt (nothing deleted); Barrierefreiheit: no leading spaces, Arachnophobie in its own sub-group, the planned rows (no item) in the closed group Geplant; planned rows without the 3-space prefix; an INI without [Menu] Load (written before 0.22.18) reads Enabled the old way = Load, the big window stays off; row DeviceGlyphs on page Spiel-Einstellungen / Steuerung; kQbViewMax 256) - 0.22.43 (W5 markup, owner live notes 2026-11-13:draw.markup puts object markup (box +0xc owner) through the owner's bone matrix like the engine (0x5be360 / 0x49ba20, only with owner +0x2d8) - before every object ledge was drawn around the world origin (the dungeon 'coil' 21:53 = dlc1_uo_pillar_of_doom ledges); boxes the engine's markup query skips (record +0x32, disabled bit 31, owner flags, stream unit +5) are not drawn; label 'type #id' (DE / EN) within 15 m of Lara, nearest 24, one colour per type; dbg.roomonly and the occlusion fading apply to markup too; bar rows Markup / Nur Kanten first in their group; 6 byte checks) - 0.22.42 (W3 debug view, owner live notes 2026-11-13: RoomOnly keeps an object of another unit when its own stream unit +0xe0 is Lara's or it is within [Debug] RoomNear 3000 (dlc_level1_start holds copies of the dlc_caverns bridge objects), each drop / keep logged once; DistMetres default 1; labels within [Debug] OcclNear 600 and Lara's own never fade, test point 1 m above the origin; labels de-cluttered - one label per instance and frame (uber labels join it with their state line), same object x n, LabelStack 3, LabelCellMax 5 per screen cell; [Debug] HideEmptyPots 1 - no labels at plain / empty jars; teaser icon only in the main menu (front-end state 3, no one-shot Bink movie - not in the credits)) - 0.22.41 (Q126c compact attract styles, owner 2026-11-14 after trying 0.22.40: [Menu] AttractIcon 8 .. 16 appended, all without a box - 8 / 9 small circle without / with the red strike, 10 / 11 / 12 small circle + only the counter beside / below / as a badge on its edge, 13 terse 12s . 3, 14 terse 12/40 . x3, 15 / 16 only the counter as a word / with a skip arrow; no time next to a circle; blink at the limit for all; 0 .. 7 unchanged, default 7) - 0.22.40 (Q126b attract display styles, owner 2026-11-13: one cycle switch [Menu] AttractIcon 0 .. 7 (menu.attracticon, bar row Teaser-Anzeige with the style name) instead of AttractIcon 0 / 1 + AttractIconText - 0 off, 1 text only, 2 circle, 3 circle + red strike, 4 text inside the circle, 5 text below, 6 = 4 + strike, 7 the 0.22.39 look (default); a 0.22.39 INI is mapped once (1 + 1 -> 7, 1 + 0 -> 3) and AttractIconText removed; blink at the limit for all) - 0.22.39 (Q126 attract icon,owner idea 2026-11-13: [Menu] AttractIcon default 1 (menu.attracticon): top right in the main menu a circle that fills with the game's AttractTimer clock toward its limit (elapsed +0x10 / alarm +0x14 of the captured clock, NoAttract holding: the shadow count modulo the alarm), a play icon in the middle (crossed out while NoAttract holds), [Menu] AttractIconText seconds + counter skipped / teaser started, 3 orange blinks at each limit; read only through the 0.22.20 update slot, live re-read of both keys) - 0.22.38 (PD, owner decisions 2026-11-13: [Input] DeviceGlyphs default 1 (pad / keyboard prompts by the last used device); the co_ / fx_ filter also takes dlc_ / dlc1_ / dlc2_ in front (dlc_fx_*, dlc1_fx_*; exceptions co_rock*, *_grab_prompt kept); trigger edges with occlusion on are drawn whole and faded instead of cut by the depth test (one occlusion query pair per edge / circle, Occlusion 2 drops hidden edges), [Debug] TriggerNearest (dbg.trignear: only triggers with Lara + the n nearest) and TriggerCornerId (dbg.trigcorner: the intro id at one box corner)) - 0.22.37 (debug view P5, Paket R / Q119:labels as name / symbol / both per layer ([Debug] Style*, dbg.labelstyle; ImGui symbols + legend), room always + readable (kRoomNames, LabelRoom) and metres (DistMetres), key items layer dbg.keyitems (parts, switches, doors, grapple points, P1 part -> target lines, state from link parent +0x228 / uber node), the game's reward bit +0x3ed90 as 'collected' (LabelCollected semantics), DrawDistance + TruMenu.debugview.txt per unit, labels behind walls faded / hidden by D3D9 occlusion queries in the depth pass (Occlusion), co_ / fx_ hidden (HideCo / HideFx), live wishes: uber labels + key items of Lara's room only (RoomOnly, dbg.roomonly; then every _uo_ / _ei_ / _pt_ object of the room, readable name + node 'Kanaltor, verschlossen'), uber labels fade behind walls, readable names (kP5Readable: 'Wandschalter (einmalig)'), grey 'versteckt' for hidden non-collectibles, kChapOrder after Paket R (CP 76 return visit, 160 / 42, going_in / going_out, 7 return rows), arena.load references released at a level change; 6 byte checks) - 0.22.36 (label filter, live 2026-11-12: the name labels dbg.labels / dbg.names ask the 0.21 collected / hidden check LfNotDrawn as the collectibles layer - [Debug] LabelCollected 0 none / 1 grey 'eingesammelt'; Lara's own gear by game data (parent +0x54 = player from BirthObject, weapon-manager slots + gear list) - [Debug] LabelLaraGear 0 none / 1 shown; both live, items dbg.labelcollected / dbg.labelgear, 11 byte checks) - 0.22.35 (level chain, Q113: base-game checkpoints of the Kapitel page in walking order, loop directions + l4_temple side trip as headings) - 0.22.34 (achievements, photo.pose, group M; Q20 / I-2: [Achievements] Enabled=1 (default, read at the start) bends the 16 push immediates of the achievement binder 0x7abb80 (script 66, all bound to the empty 0x796620) to TruMenu's stubs before the generalbank binds them - 'achievement <id> <name> unlocked' once per profile (= the save folder) in TruMenu.log and TruMenu.achievements.txt, names / gamerscore of the Xbox ids f0 1 .. f15 18 (f12 - f15 unsure), repeats counted; ach.list / ach.status, page Figur group Erfolge, big window page Achievements; F2: photo.pose 1..7|next|off = Lara's screen_capture_0n (anim table 1605 - n, section checked, resident) through the game's anim request 0x444ba0 mode 0 (the uber / script play-anim path) - photo mode only; off / photo.off = the slot noted from processor +0x44 again in mode 1; J-5: chapter 1.2 heading before l1_kraken_entrance (title card from intro 696); K follow-up: ai.spawn warns when a resident kind's children are not loaded; 36 byte checks); " "0.22.33 (photo mode, arena.load, glyphs.status, group K; F1 / Q78: photo.on = the game's own FreeCamera (camera manager mode 5 through its switch 0x5edd70(mgr, 5, 0) - CAMERA_SetMode knows only 6 / 11 / 12; its own stick / mouse input and generalbank DTP 16 values) + the world pause bit 0x1000 (the camera update still runs) + the UI byte 0xcdc9a0 (the game's screenshot task hides the HUD the same way); photo.off / leaving by itself on a level change, a new player / unit, main state != 1, a cutscene, the game's pause menu or a camera the game took = mode, Lara's control, pause bit and HUD as before; refused in cutscenes / loading / pause / flight / cine.pause / another camera layer; photo.shot = shot.save clean photo_<n>; Q83: arena.load <kind> requests one of the 26 enemy kinds with the game's object request with reference 0x5c1760 (checks tracker 204 / anim pool 3000 / 3D navgraph / DRMs, at most 2 kinds), ready = object + children at status 2 and anim slots resolved (log line), ai.spawn refuses it before; arena.unload <kind>|all = STREAM_DumpObject 0x5c1790 once for its own requests; arena.enemies lists the states; Q95: glyphs.status = DeviceGlyphs, device now (pad / keyboard / mouse), last switch time, prompt counters; 37 byte checks, no new INI key); " "0.22.32 (arena, group A; Q86: ai.spawn names the LP each spawned enemy got from the game's enemy init (brain+0x2c64; tune health record by the EnemyHP step [[0xc59264]+0x3ef98]), the EnemyHP step and warns while one-hit kill [0xe91ffd] is on - the 2026-11-11 21:02 thrall 'LP 0' was that cheat, its AI ran; no name / an inexact or unloaded name = the list of the loaded AI enemy kinds with the reason; Q100: arena.mode [spot] = player object, doppelganger byte [[0xfadb58]+0x1244] and TruDlc2Player flag, fits / WARNING per spot, logged; arena.go reads the mode first - a main-game spot with the flag set loads with level.load (new game tracker clears it), a DLC 2 spot without it warns - and ends with arena.mode <spot>; Q98: spots 1d l5_valgrind CP 7329, 1e l2_puzzleroom CP 2074, 1f l4_traprooms CP 5722 - the largest open navmesh floors with a resident enemy kind; read only, no new INI key, no hook); " "0.22.31 (level navigation + puzzles, group B; Q105: the 15 unit names in no PC archive (q105_units.tsv: three base units of the level list, six container / costume / cine names, the six known DLC slots) grey and refused by level.load / level.start / unit.go / cp.jump unless a mods\\<unit>.drm exists, one 'units:' log line; page Kapitel base game in play order from the stream portals with chapter headings (callers of generalbank script 72 SetChapterUIData) and the checkpoint intros per unit - right 2x = backup + load, a checkpoint row = cp.jump <unit> <cp> force (new optional third word: cheat.flight 1;player.goto <cp> force); Q106: uber.dump prints every joint-range transition (condition 14 / 15) with the joint's live value (the engine's getter 0x4e1ef0 / 0x4e1ea0), joint.set <intro> <joint> <value>|stop drives a hinge / rail joint with the engine's limit setters 0x4d9fc0 / 0x4d9f50 / 0x4da0c0 + wake 0x4d8fd0 until the uber leaves its node or 6 s (game thread, a cheat), page Kapitel group 'Raetsel in der Naehe' lists the uber objects with their current node and joint targets, 'solve' rows run joint.set; 27 byte checks); " "0.22.30 (log dates, device glyphs, drawn guards; Q107: every TruMenu.log line starts with 'YYYY-MM-DD HH:MM:SS.mmm' and the first line of a process is the session header '=== <date time> TruMenu <version> session start (pid n) ===' (src/asi/TruLog.h, shared with the other plugins); the log page / overlay take a stamp with or without the date and show the time; Q95: [Input] DeviceGlyphs=1 (default 0) - the last used device (pad: a button, a trigger or a stick past its dead zone in the game's poll; keyboard / mouse: a key, a click, the wheel, a mouse move away from the client centre) decides the button prompts of UIText: 23 bytes of 0x5a7c20 at 0x5a7d75 call GlName - pad = the symbol of the first XInput binding (Start / Back U+1810 / U+1811 too), keyboard / mouse = the name of the first other binding, else the game's own name; 12 byte checks, 'glyphs:' log lines; Q103 rest: the quick bar's presses and every widget of the big menu (ImGuiItemFlags_Disabled) act only after 3 drawn frames since the open, else 'quick: buttons 0x.... ignored - not drawn (n frames)' / 'menu: input ignored - not drawn (n frames)'); " "0.22.29 (radial lock, Q103:[Radial] Enabled=0 also closes a ring that is still open (settings.reset) and drops its pending release / open / close requests; a release, confirm, A / click or R3 runs a ring entry only when DrawRadial drew the ring in at least 3 frames since the open, else 'radial: <what> ignored - not drawn (n frames)'; the close line names the drawn frames; no new INI key); " "0.22.28 (test packages, Q90: page Tests group 'Testpakete 11.11. (Q90)' with one closed sub-group per package A, 1 .. 9 of docs\\Testpakete-1111.md - a hint line, jump / load rows of existing items (level.start, level.load, arena.go), the existing switch rows of TruMenu.switches.txt the package toggles (kQbSwitch = the page Fixes row: TruShadowPower ShakeTuTimeStep / [Player] TuTimeStep / DoppelgangerSettings / CameraTuTimeStep, TruQoL [FrameLimit] Enabled / MaxFps, TruRockVein JumpTarget / LedgeProbe, TruMenu [Log] Save), probe rows (save.inv / save.find 5240 / 5695 / save.pending / save.waiting, adren.meter / adren.fill, phys.status, log.script / log.scriptfile) and TO TEST checks (kQbCheck tp<package>.<name>: right ok, left fail, X skip, again = open; added with test.add at the first mark, TruMenu.log 'tests: test.mark <id> <state>'); every row flagged kQfTp (test-package content: a real row of its page or deleted after the tests); no new INI key, no hook); " "0.22.27 (save probe, Q79:save.pending / save.inv / save.waiting / save.find read the save arenas - live [0xc59258] and checkpoint snapshot [0xc5925c], the restore buffer 0xc57258 with the reason a block waits (unit / object / link parent, as 0x555640 / 0x5bb160 / 0x5bb640), the inventory area +0x34c of both game blocks (15 + 8 intro ids, 6 counts), the 64-slot waiting table 0xc592a8, dead bits; read only, 32 byte checks (TruSaveProbe.h); [Log] Save=1 (default 0, live) = two TruMenu.log lines per SAVE_SaveGame / SAVE_RestoreGame through their memcpy calls 0x557127 / 0x5571a3, 5 more byte checks); " "0.22.26 (test arena, Q76:page Tests group 'Arena 1 - Kampf (Q76)' - three flat floors with resident AI enemy kinds, arena.go 1a|1b|1c = one shortcut as cp.jump (backup, unit.go, wait.unit, flight, player.goto <intro> force; 1a l7_helheim03 generator 8785, 1b l7_yggdrasil_hall02 generator 8762, 1c dlc_yggdrasil_hall02 checkpoint 10644), arena.list (one list of arenas / spots: arena 2 Museum later), flight / god mode, the ai.spawn rows, ai.remove spawned (only the instances ai.spawn made, by address + allocation stamp +0x44), fight diagnosis rows; adrenaline meter: adren.meter (CM+0x3c / max [[0xfad764]+0x2d0], CM+0x1fc bits 22 / 27, doppelganger byte [[0xfadb58]+0x1244]; read only), adren.fill (the game's meter-full 0x6e6630, body of the script native 0x777a50; cheat), adren.keep 1|0 (refill once per game frame while below the maximum and bits 22 / 27 clear; not kept); 6 byte checks); " "0.22.25 (settings.reset writes the whole TruMenu.ini: the default text is measured and built in a buffer of its size - 0.10 .. 0.22.24 kept it in a static 16384-byte buffer and wrote only the first 16383 of the 42 KB, a truncated INI; text built before the backup, write and close checked, the answer names bytes and keys; other table texts: TruMenu.log lines up to 2047 characters (was 511, light.cut lines were cut), [Quick] Closed 1023 characters (was 383, too short for every group) and like [Debug] CheckpointHide only whole keys / ids, settings.show ends with the count of the keys it could not hold); " "0.22.24 (fall watch + fall net, Q19 hall02 fall out of the world: TruMenu.log lines at LogLevel 1 for Lara's chart records 742 / 743 / 1068 / 1080 and states 1008 / 1015 with position, a watchdog line every second while in the fall record 1068, safe-ground ring additions, rate-limited; [Rescue] FallNet=1 (default 0, live) puts Lara back on the newest safe-ground sample when she is more than 3 s in 1068 and more than 3000 units below it - player.unstuck's teleport, at most 3 per fall, never in menus / cinematics; 2 byte checks); " "0.22.23 (switches file limit:TruMenu.switches.txt holds up to 512 switch lines (was 160; 24 groups as before), file format unchanged; switch lines past 512 and group lines past 24 are not shown and named in one TruMenu.log line each with the count and the first line number, sw.reload / the bar head say so; the quick bar page Fixes (128 rows) names the rows of an open group it cannot hold instead of cutting them silently - the long menu section Fixes shows every row); " "0.22.22 (teaser timer line, live 2026-11-10: the line follows the bar language [Quick] Language as every overlay; it shows the game clock (the dt the clock got since its (re)start) next to TruMenu's wall clock since that (re)start, and 'Pause-Bit aktiv (halbe Zeit)' / 'Pause bit set (half time)' while the frame time [0xe7f188] is the fixed 0.5 of the pause bit [0xe7f0b4] & 0x10000000 - read only, 4 byte checks); " "0.22.21 (teaser timer: menu.attracttimer 1|0 / [Menu] AttractTimerShow, bar row 'Teaser-Uhr anzeigen' in Spiel-Einstellungen / Hauptmen\303\274 - while in the front end (main state 6 / 10) a line in a screen corner ([Menu] AttractTimerPosition, default tr) shows the AttractTimer clock: elapsed / alarm, or while menu.noattract holds it a shadow count (the dt the game hands the clock update while the clock runs, back to 0 when the game restarts the clock) that flashes 1 s and writes one TruMenu.log line each time it passes the alarm (40 s, then every 40 s with repeat) - the moment the teaser would have started; with menu.noattract off it flashes when the real clock fires; read only through the same update slot 0x84584c, no behaviour change, no new byte checks); " "0.22.20 (main menu attract video off: menu.noattract 1|0 / [Menu] NoAttract, bar row 'Hauptmen\303\274-Video aus' in Spiel-Einstellungen / Hauptmen\303\274 - the clock f11 native 0x795cc0 (called only by the AttractTimer script 60) hands TruMenu the AttractTimer clock, the clock update slot 0x84584c holds its elapsed time at 0 in the front end (main state 6 / 10), so the alarm never fires: no stopTitleMusic, no StopMovie, no teaser; every other clock and the menu background stay the game's; 13 byte checks); " "0.22.19 (pages remembered:the quick bar opens on the page it showed last ([Quick] LastPage, written 1 s after a page change or at the close; a name that is no page any more = page 1, logged) and the big window with the pages that were open ([Menu] OpenPages, written when a page is opened / closed), also after a restart, RememberPage=0 = off; power.infinite 1|0 = TruShadowPower 0.23 [Meter] Infinite written into TruShadowPower.ini (only that line, a missing key added), bar row 'Kraft unendlich' in Rettung / Cheats, greyed with the reason while TruShadowPower.asi 0.23+ is not loaded or its INI is missing); " "0.22.18 (volumes / mouse saved through the game's own write 0x4796b0 (0x478010 only refreshes their mirrors); every bar section a collapsible group, sub-groups, rows indented per level with a guide line, the long menu's groups collapsible; frame stepping: View held = step mode (each RB tap one frame), RB + View held 0.4 s = [Settings] StepRate frames per s; subtitles top / free height and left / right with a margin (origin x of 0x477180 moved per line); voice.lang = speech language only (MultiFS mask 0x472d80 while 0x472be0 is free), voice.full = speech now + registry Language; media list fallback, media.music.inlevels, music volume 0 warning row; goo drip candidate columns (bone 0, old position, physics body); light.demote = a 4th shadow caster takes a free plain place (hooks 0x504e06 / 0x504341); bar settings written back to TruMenu.ini (quick.lang, camera, mute, light switches); defaults: big menu window and ring off, quick bar on, bar language English; TruShadowPower [Meter] Infinite row); " "0.22.17 (subtitle fallback: a cutscene subtitle record without the wanted language id goes to the reader 0x4538d0 with its English entry (id 0) as that id - only while no record of the same stream (cinematic handler, new on a handler change or when the stream time [s+0x384] goes back) carried the wanted id, so the DLC cinematics (ids 0 1 2 3 4 11) get English lines in Russian (9) and the base cutscenes with their own per-language cue times never mix; [Settings] SubtitleFallback=1, 0 = the game's; sub.lang rewrite and TruMenu's parse use the same rule; SbName(9)); " "0.22.16 (bar page Spiel-Einstellungen: the game's own options live - volumes, inversion, vibration, combat mode, mouse through the option setter 0x5d5100 and the settings save 0x478010 2 s after the last change; subtitle look (show, size, bar, bar opacity, colour, height) through the draw parameters of 0x583e20, kept in TruMenu.ini [Settings]; live graphics (fullscreen effects, depth of field, shadows, water, reflections, volumetric, filter, aspect) through ApplySettings 0x522a10 on a copy of the active block, PadHook only; gfx.save; gfx.next = registry values for the next start; D3D-reset settings as greyed rows; sub.lang cycles -1 / 0..4 / 11 (Nederlands) and a rewritten line is found again (U3); bar reorganised - Rettung / Cheats, Figur with the doppelganger switch groups, Gegner (KI), Render, Zeit / Ablauf, Licht (Diagnose) group; 29 byte checks); " "0.22.15 (aim.trace 1|0: the lock-on path per change into TruAim.log - aim input RT action 33 / LT action 35 held (+0x630 / +0x690 bit 2 of the action records; LT = pad code 4, RT = 5), tuning bytes [0xfad764]+0x294 / +0x27c (the LT / RT aim timer values), game gates 0x8ab4e6 / 0xe7f144 / 0xe7f143, weapon slot [[P+0x500]+0x134], aim timers P+0x588 / +0x58c / +0x798 / +0x788, CM+0x1fc bits 9 / 10 / 11 / 18 / 19 / 20 / 21, Lara's chart records, targeter 0 flags / target / candidates per filter group or rejected with distance and camera angle, the nearest enemy and a why code; aim.why info item: the first blocking step for the nearest enemy in plain words; read only, 25 byte checks);" "0.22.14 (sub.lang switches the subtitle lines on screen at once, also in a cutscene held by cine.pause: the call 0x4574ec of the cinematic handler update copies each subtitle record (every language, '<id>\\r<text>\\r...') into TruMenu's ring of the last 2 records before the reader 0x4538d0 runs, the call 0x453a17 notes the lines the reader hands to the box; sub.lang <v> then picks the new language from the stored records as the reader does and rewrites the box lines 0xccdec0 +0 / +0x100 - clock and floats stay, a line of no stored record (Bink movie) stays and is logged); " "0.22.13 (cutscene pad combos: LB + View / RB + View fire on release and only when no third combo button joined while they were held, the photo combo LB + RB + View at once; cine.pause also holds the subtitle line clock [0xccdec0+0x208] - the subtitle draw 0x583e20 counts it down by the scaled frame time 0xe7f188, its disp32 at 0x583f24 points to TruMenu's own value while a cutscene is held; sub.lang calls the game's settings save 0x478010 (the registry write of the shutdown path 0x5df930) so the language survives a restart; ring.bits info item, an enemy panel line and fight.trace columns for the combat reticle request (CM+0x1fc bits 9 / 10 / 11 / 21, HUD group 12 of 0xfae924, style 0xfae8ac, reticle +0x40); fight.trace goo drip columns (sources 10706 / 10707: uber node / time; copies 929 / 942: count, nearest position / dz / iflags / node) and Lara's LP drop per sample; enemy panel 'Kampf-Spur: an (n Zeilen)'); 0.22.12 (fight.trace also writes a Lara-only line (enemy columns -) when Lara's chart record of machine 1 or 2 or her machine-1 state ids change - before only machine 1's record counted; quick bar: bool rows whose value starts with the id (fight.trace, combo.trace) show an / aus again instead of always aus, action rows of value items show the value (sub.lang: subtitle language now)); 0.22.11 (Xbox comparison, PC side: fight.trace 1|0 writes TruFight.log in TruXenia's TSV column layout plus PC columns - enemies within 6000 units on change (LP, stamina, states, requested state, target, distance, attack slot, MeleeAttack record, last hit), Lara LP / chart records / state ids / position, shadow meter, power mode, world / player time scale, the meter's 7 time-scale request slots and the selector's choice, the last time-ramp native call (gamebase 23 / 24 = 0x776030 / 0x776090, pass-through counter, one TruMenu.log line per call), camera object / mode / offset to Lara / FOV; enemy.panel 1|0 = Gegneranzeige at the right edge for the nearest enemy); 0.22.10 (light cut of the set builder 0x504cc0: light.cutlabels shows the sets / cut sets of the last frame and a label at every dropped light, light.cut [frames] [all] writes the sets with the offered list (+ kept, - dropped) to TruMenu.log; light.stablecut / [Light] StableCut orders each object's lights before the cut - sun, shadow map, caster, plain, then address - the per-object alternative to light.stable); 0.22.9 (enemy diagnosis: a third enemy label line with target, attack-slot requests / grants (coordinator 0x67d780, pass-through counter), gate bits, requested state, layer 1, stamina, last hit reaction; ai.why [id] writes the full set to TruMenu.log; combo.trace 1|0 logs Lara's chart record path and the enemy's reaction per hit; sub.lang -1|0..4|7|9..12 sets the subtitle language live through the game's option setter 0x5d5100); 0.22.8 (cutscene pad combos on by default - PausePad 0x0120 View + LB, StepPad 0x0220 View + RB, ShotPad 0x0320 View + LB + RB; pause acts only while a cutscene plays or is held, step only while held; the pause badge shows a second line with the keys / combos as set now); 0.22.7 (cutscene keys: [Cine] PauseKey / StepKey / ShotKey keyboard keys and PausePad / StepPad / ShotPad XInput combos for cine.pause, cine.step 1 and claude.mark - map extra pad buttons (8BitDo R4 / L4) to a combo; all 0 = off by default; help texts within 60 characters again); 0.22.6 (Present re-entry guard against the Steam overlay loop of 2026-11-08: a nested Present / SwapChain Present call draws nothing and goes to d3d9 directly through a hot-patch trampoline behind the overlay's jmp, or returns D3D_OK; one log line; German texts with umlauts - tools/trumenu_umlauts.py wrote 251 words of a fixed list as octal UTF-8 escapes inside the string literals, the INI option table stays ASCII); 0.22.5 (light.stable on by default: [Light] Stable=1 in TruMenu.ini, read at the start, a missing key counts as 1 - better a steady light set than the end-cutscene flicker until the real fix; 0 = the game's own order); 0.22.4 (light.stable now sorts the light pass's own collected list +0x250 / +0x258 by address right after the collection loop - 6 bytes at 0x56d69a -> jmp LsStub, put back when off; the 0.22.3 visible-list sort never changed anything); 0.22.3 (light.stable 1|0: the scene lights (visible-entity list +0x9c entries with +0x1e0 == 10) sorted by address in their own slots before the light pass 0x56d5c0 (call 0x5723cb) - test / fix for the rotating shadow slots of the throne flicker); 0.22.2 (light.frame [n]: the per-frame light lists of the scene - instances scene+0x20 / +0x1020, light bytes when changed, resources scene+0x1024 / +0x11a4 - captured at the frame end call 0x5098ca of the reset 0x504c50 into TruMenu.lightframe.txt, summary per light with BLINK?; for the throne flicker); 0.22.1 (cutscene pause, live wishes of 2026-11-08: the sound is held with the picture - master channel group paused through the game's ChannelGroup_SetPaused 0x7b9490, only by TruMenu and only given back by it, cine.step runs it muted; badge '|| Szene angehalten  <s> s' top centre; cine.mark / cine.pauseat <seconds> hold the next cutscene at a remembered time (armed over loads); cine.pause without an argument only reports); 0.22 (cine.pause / cine.step / cine.status: hold a playing cutscene - the stream walk calls 0x5904e3 / 0x5954f8 of the stream update 0x5901a0 point to a gate that skips the playing cutscene stream ([obj+0x77c] handler, state 4) while the world, particles and lights run on; off by itself at a load; bar page Tests); 0.21.11 (light.list: the scene's PCRenderLights with the shadow gate fields (+0xc5 bit 2, resource +0x1878 / +0x1879, frame flags +0x64 / +0x65, position, NEW since the last list); light.shadow <n> 0|1 = SetCastShadows vf+0x4c on the game thread); 0.21.10 (page Kapitel: group of the unused DLC slots dlc_level3..6_start + dlc_level1_left / _right, grey 'ungenutzt - keine Daten (17p/17s)' with the engine's reaction to a load (Can't open file pc-w\\<unit>.drm: error box, the game exits); level list, command line values, level.load, level.start and the start-up scan mark and refuse dlc_level3..6_start like left / right); 0.21.9 (page Tests: test spots of 17i (cp.jump <unit> <checkpoint> = backup, unit.go, wait.unit, dbg.cpgo; end scene 020_ghoul, floor 25057, ceremony room 030_pod); DLC 1 / DLC 2 units without a .drm in mods grey and refused by level.load; page Kapitel: DLC 1 / DLC 2 units in play order (ring marked Rundweg) with their checkpoints as jump rows (left opens them); goo drip uber label (mode, next drop, hard without exit, goo_off commands); navmesh labels / legend with meaning (bit 26 custom, bit 27 blocked by an obstacle, penalty multipliers, violet = dbg.enemycoll?); TO TEST INI toggles name the switch's when column; F11 shot key in the bar footer / help); 0.21.8 (quick command line: suggestions under the input (the menu bar's list), the menu's on-screen keyboard with Y (one keyboard, target = the line; Start kept from the game while it is open), the picked history line shown before A runs it, kCmdDanger lines (cheats, god mode, level / unit / save loads, save writes, costume resets, sw.set ...) ask for a second A within 3 s; favourites with an argument ([Favorites] Ids \"<id>|<argument>\": Fixes switches, costume rows, chapter units, rows with an argument) and a star on pinned rows; story values story.values (hall02 population / deaths / tutorial / wall, Croft Manor flags; read only); sound group sliders snd.group / snd.vol.* ([SoundGroups], the FMOD channel groups of the eight proposed sliders); ai.kill check 0x6203e9 (TruShadowCombat 0.6.5 owns the call 0x6203e4); SweepAndPrune checks accept the TruRockVein 0.10 limits (3000 / 500)); 0.21.7 (bar footer: Y: - on rows that refuse Y, L3 = command line, a help line for rows that are not self-explanatory (kQbHelp; page Fixes from the hint column DE // EN), pad NOT held warning; TruMenu.switches.txt UTF-8 with umlauts; costume rows the game refuses (0x5c54e0, checked on the game thread) grey and skipped; page Kapitel: the units per chapter / DLC (level.load, DLC 2 note); uber labels dbg.uber / uber.dump (gate / platform node + time left, [Debug] UberRadius 8000); shader labels shader.labels / shader.dump / shader.reload (TruMenu.shaderlabel.txt, file vs live shader libs); navmesh labels nav.labels (layer.graph #area, unit, flag bits, colour legend); SweepAndPrune read-out sap.status / sap.reset (markup collision boxes / pair links / proxies, peaks, [Debug] SapWatch); front-end pad diagnosis lines); 0.21.6 (bar page Kost\303\274me: costume row left / right through the outfit cycle list, switched once the choice stood 0.5 s (X = now), list of all costumes, next costume, choose for the next load + reload; flight key line bottom right while flying ([Cheat] FlightHint); quick command line in the bar (L3, the command bar's path); Render-Details pass / Navmesh rows show an / aus (orange + reason when a Navmesh switch cannot draw)); 0.21.5 (bar page Fixes + menu section Fixes: the plugin INI switches of TruMenu.switches.txt, sw.set / sw.list / sw.reload; the ring is frozen - its ring-only entries are bar rows (new page Render-Details) and the menu section Quick bar pages shows every bar row); 0.21.4 (hall02 counter rescue for saves whose checkpoint 11258 already holds tutorial thralls: fix.hall02 sets dispatcher 11270 population = 0 (tutorial 2) when no tutorial thrall lives; thrall.scriptval shows the thrall-script int +8 (restored 0 / generator-born 2)); 0.21.3 (quick bar: Y pins / unpins the row as a favourite, X runs it (confirmation rows: X twice), X / Y kept from the game while the bar is open; the sound list is as wide as its rows of this frame); 0.21.2 (queued items run in the Present hook while another pad hook sits outside PadHook - an item's pad poll no longer makes TruLink cut the pad chain); 0.21.1 (ai.kill nearest / others / all / <intro> the game's own kill (death state: scripts count it), ai.remove warns about story enemies; sticky.get / sticky.set; room check for player.goto (parked templates, unloaded / far units, force) and pos.go, unit.go (thrall-fight Prepare), label 'geparkt', pot label from the drawn instance; phys.status / phys.dump (physics bodies of the ChunkDoll crash); ai.spawn of the loaded enemy kinds; bar: page 0 Favoriten / Zuletzt, page Tests (Prepare, teleports, TO TEST), collapsible groups ([Quick] Closed), the KI page in three groups; export TruMenuPadBlock; "
                              "0.21 (Arachnophobie: arachno.on / .hide / .picture / .mute - spider model off "
                              "through the InstanceDrawable slot 7 (draw-group mask only during the spider's draw call), "
                              "a wobbling picture at its bones (TruMenu.arachno.png next to tru.exe or a built-in one), "
@@ -866,13 +866,22 @@ const OptDef kOpts[] = {
                                   "(voice -> emitter of\nthe wave node) and 0x5b99fc (emitter -> instance of the anim "
                                   "event); written on the game thread only over\nthe game's bytes, put back at unload; 0 = "
                                   "the owner list only. Read at the start"},
-    {"Sound", "LogLara", "1", "0.22.50 (snd.logcat lara): the sound box shows Lara's body / gear / weapons sounds. Live"},
+    {"Sound", "LogLara", "1", "0.22.50 (snd.logcat lara): the sound box shows Lara's voice / body / gear sounds (0.22.53: "
+                              "the weapons are\ntheir own kind, LogWeapons). Live"},
     {"Sound", "LogEnemies", "1", "0.22.50 (snd.logcat enemies): enemies and creatures. Live"},
     {"Sound", "LogWorld", "1", "0.22.50 (snd.logcat world): world and ambience (groups 14 .. 24 and the effect nodes). Live"},
     {"Sound", "LogObjects", "1", "0.22.50 (snd.logcat objects): objects, mechanisms, traps, debris, explosions. Live"},
     {"Sound", "LogUi", "1", "0.22.50 (snd.logcat ui): HUD, menu, PDA / sonar, binoculars. Live"},
     {"Sound", "LogSpeech", "1", "0.22.50 (snd.logcat speech): speech - Lara's voice and hints, radio, cutscenes. Live"},
     {"Sound", "LogMusic", "1", "0.22.50 (snd.logcat music): music voices and streams. Live"},
+    {"Sound", "LogWeapons", "1", "0.22.53 (snd.logcat weapons): weapons - draw / cock, shots, reload & grenades, brass, "
+                                 "impacts, and Lara's\nweapon sounds without a group (g14). Live"},
+    {"Sound", "LogHideSubs", "", "0.22.53 (snd.logsub <key> 0|1): the sub-groups the sound box hides, a comma list of keys "
+                                 "(lara_voice,\nwp_shot, ...; snd.hear lists them); empty = every sub-group shown. Live"},
+    {"Sound", "LogFollowMute", "1", "0.22.53 (snd.logfollow, 'Filter folgt Stumm'): 1 = what Stumm / Solo silences "
+                                    "(TruMenu's kind / sub-group\nrules, the solo) is not shown in the box either; 0 = muted "
+                                    "sounds stay in the log. Unlike LogOnlyAudible\n(FMOD's state now, whoever muted it, and "
+                                    "silent lines), this follows TruMenu's own switches. Live"},
     {"Sound", "LogOnlyAudible", "0", "0.22.50 (snd.logaudible): 1 = the box hides lines FMOD mutes or pauses (ChannelI "
                                      "+0x74 bit 3 / real +0x68 0x20). Live"},
     {"Sound", "LogCollapse", "1", "0.22.50 (snd.logcollapse): 1 = same wave + same source = one line with xn and the newest "
@@ -900,6 +909,16 @@ const OptDef kOpts[] = {
     {"Sonar", "AllFloors", "0", "0.22.49 (sonar.allfloors): with FullMap=1: 1 = the sonar also draws the map units of "
                                 "other floors it loaded\nitself (the direct neighbours of the floor, 0x6e429b); no extra "
                                 "load, display only; 0 = the game's\nfloor test. Live"},
+    {"Sonar", "LoadNeighbourFloors", "0", "0.22.53 (sonar.loadnb): with FullMap=1: 1 = the sonar loads one step further than "
+                                          "the game - the neighbours\nof every neighbour it loaded on another floor (0 .. 5 "
+                                          "more map units); shown with AllFloors=1. Released at\nthe close like the game's. "
+                                          "Read once a second, acts at the next open"},
+    {"Sonar", "LoadAllConnected", "0", "0.22.53 (sonar.loadall): with FullMap=1: 1 = every portal-connected map unit of the "
+                                       "level (all floors,\nrecursive; up to 22 units / 16 MB, + 0 .. 2 s at the open); wins "
+                                       "over LoadNeighbourFloors. Released at\nthe close. Read once a second, acts at the "
+                                       "next open"},
+    {"Sonar", "LoadMaxUnits", "24", "0.22.53: at most this many extra map units per open (1 .. 64); a load also stops "
+                                    "when the loaded faces\nreach TriangleCap. Read once a second"},
     {"Sonar", "TriangleCap", "300000", "0.22.49: with FullMap=1: the sonar's per-frame triangle budget (0x6dfa69, the game's "
                                        "93572); values up to 93572 = the\ngame's bytes, at most 1000000. A budget only: the "
                                        "triangles go out in batches of 2000 into the render\ndevice's growing vertex pool "
@@ -17072,7 +17091,10 @@ struct SnVoice {
     float dry, send;                         // 0.22.51 W9: dry mix (real +0x2f8 -> +0xec, -1 unknown), the game's reverb send
     bool aud;                                // 0.22.51 W9: audible = not paused and (dry > 0 or (send > 0, reverb out > 0))
     int rev;                                 // 0.22.52 W10: reverb mark kW9RevNone / On / Muted
+    int lsub, lcat;                          // 0.22.53 W11: sub-group / kind of the box and the monitor (W8SubOf)
 };
+int W8SubOf(int group, int cat, int wave, DWORD emitter, bool *final);   // 0.22.53 W11 (section "0.22.50 W8 core")
+int W8SubCat(int sub);
 enum { kSnStPlaying = 0, kSnStVirtual, kSnStPaused, kSnStMuted, kSnStPending, kSnStEnding, kSnStates };
 const char *const kSnStateDe[kSnStates] = {"spielt", "virtuell", "pausiert", "stumm", "startet", "endet"};
 const char *const kSnStateEn[kSnStates] = {"playing", "virtual", "paused", "muted", "starting", "ending"};
@@ -17243,6 +17265,8 @@ int SnBuild(int *audible) {
             if (v.emitter) ReadDword(v.emitter + 0xc, &v.sid);
             v.kind = W7KindOf(v.group, v.cat);
             W7VoiceSource(v.emitter, v.kind, v.wave, de, v.src, sizeof(v.src));
+            v.lsub = W8SubOf(v.group, v.cat, v.wave, v.emitter, nullptr);   // 0.22.53 W11
+            v.lcat = W8SubCat(v.lsub);
             v.ours = W6ChanOurs(v.voice, v.channel);
             v.grpVol = v.group >= 0 && v.group < groups ? g_snGrpVol[v.group] : -1.0f;
             v.chOk = SnFmBool(kFmChIsPlaying, v.channel, &v.playing);
@@ -22053,8 +22077,9 @@ typedef int(__fastcall *W6ChGetMuteFn)(DWORD chan, void *edx, unsigned char *out
 bool g_w6Ok = false;
 char g_w6Why[96] = "not checked";
 enum { kW6Wave = 0, kW6Sound, kW6Emitter, kW6Group, kW6Track, kW6Amb,
-       kW6Cat };                             // 0.22.50: a category of the log box (value = kW8Lara .. kW8Music)
-const char *const kW6KindNames[] = {"wave", "sound", "emitter", "group", "track", "ambience", "category"};
+       kW6Cat,                               // 0.22.50: a category of the log box (value = kW8Lara .. kW8Weapon)
+       kW6Sub };                             // 0.22.53 W11: a sub-group of the log box (value = kW8s*)
+const char *const kW6KindNames[] = {"wave", "sound", "emitter", "group", "track", "ambience", "category", "sub-group"};
 struct W6Rule { int kind; DWORD value; char name[64]; };
 const int kW6RuleMax = 16;
 W6Rule g_w6Rules[kW6RuleMax];
@@ -22084,7 +22109,8 @@ LONG g_w6WaveLines = 0, g_w6WaveStarts = 0;
 DWORD g_w6LastTick = 0;
 volatile LONG g_w6BackPending = 0;           // a track / ambience rule was removed: W6TrackBack on the game thread
 struct W6Voice { DWORD voice, channel, sample, params, emitter, sid; int wave;
-                 int cat; };                 // 0.22.50: kW8Lara .. kW8Music, -1 = not classified (only for category rules)
+                 int cat;                    // 0.22.50: kW8Lara .. kW8Weapon, -1 = not classified (only for category rules)
+                 int sub; };                 // 0.22.53 W11: kW8s*, -1 = not classified
 
 // ======================================================================================================================
 // ---- 0.22.47 sound monitor, sound log overlay, sonar sound switch (owner wishes 2026-11-14: "Ton-Monitor", "Ton-Anzeige
@@ -22344,7 +22370,8 @@ const BYTE kW8E1Game[6] = {0x8b, 0x44, 0x24, 0x18, 0x85, 0xc0};
 BYTE g_w8E1New[6];                           // e8 rel32 90 (built by W8Check)
 bool g_w8E1On = false;
 LONG g_w8Plays = 0, g_w8Emits = 0;           // records made by the stubs (game thread)
-struct W8VoiceRec { DWORD voice, channel, emitter; int cat; };   // cat -2 = not classified yet (W6 category rules)
+struct W8VoiceRec { DWORD voice, channel, emitter; int sub; };   // sub -2 = not classified yet (0.22.53: the sub-group,
+                                                                  // was the kind; kept only once it is final, W8SubOf)
 const int kW8VoiceCap = 2048;                // power of 2 (the pool holds at most 0x200 voices)
 W8VoiceRec g_w8Voice[kW8VoiceCap];
 struct W8EmRec { DWORD emitter, inst, sid, tick; LONG intro; int objectId; };
@@ -22519,34 +22546,162 @@ int W8GroupOfCg(DWORD cg, int groups) {
 }
 // ---- the categories of the log box filters and the quick hearing (proposal by group content, the 80 groups of
 // docs\Befund-Ton-Gruppen-0611.md; the music / speech slider categories win) ----
-enum { kW8Lara = 0, kW8Enemy, kW8World, kW8Object, kW8Ui, kW8Speech, kW8Music, kW8Cats };
-const char *const kW8CatKey[kW8Cats] = {"lara", "enemies", "world", "objects", "ui", "speech", "music"};
-const char *const kW8CatIni[kW8Cats] = {"LogLara", "LogEnemies", "LogWorld", "LogObjects", "LogUi", "LogSpeech", "LogMusic"};
+// 0.22.53 W11 (owner 2026-11-14 23:1x / 23:2x, docs\Status-2026-11-14.md rows W-53 / LT-2310; workspace
+// docs\Befund-TruMenu-02253-1411.md): a new kind "Waffen" (the weapon groups 51 / 52 / 58 / 59 / 61 / 62 / 63 were Lara's
+// - "Stumm: Lara" muted the weapons too), Lara's voice 68 / 69 and the DLC 2 player groups 77 (voice, VO\Lara streams) /
+// 78 (player foley: fst_wetsuit / fst_boot / b_l_brth / hand_stone of doppelganger_casual) are Lara's, and every kind has
+// named sub-groups = sets of the game's sound groups (tree and contents: Befund-Ton-Gruppen-0611.md table 3). The kind of
+// a line follows its sub-group; a sound of group 14 "world default" (no Assign in the data) whose source is Lara or her
+// gear (instance +0x54 = the player, ENGINE "Lara's gear instances") is Lara's: a weapon sound (owner object wp_*, or a
+// wave the data puts only into weapon groups - TruMenu.weaponwaves.txt, work\menu53_1411\weapon_waves.py) = Waffen, else Lara /
+// Ausruestung. Order of the enum = the INI keys (LogWeapons appended); kW8CatOrder = the order of menu / monitor.
+enum { kW8Lara = 0, kW8Enemy, kW8World, kW8Object, kW8Ui, kW8Speech, kW8Music, kW8Weapon, kW8Cats };
+const char *const kW8CatKey[kW8Cats] = {"lara", "enemies", "world", "objects", "ui", "speech", "music", "weapons"};
+const char *const kW8CatIni[kW8Cats] = {"LogLara", "LogEnemies", "LogWorld", "LogObjects", "LogUi", "LogSpeech", "LogMusic",
+                                        "LogWeapons"};
 const char *const kW8CatDe[kW8Cats] = {"Lara", "Gegner", "Welt / Umgebung", "Objekte & Mechanik", "PDA / UI", "Sprache",
-                                       "Musik"};
+                                       "Musik", "Waffen"};
 const char *const kW8CatEn[kW8Cats] = {"Lara", "enemies", "world / ambience", "objects & mechanics", "PDA / UI", "speech",
-                                       "music"};
-const signed char kW8GroupCat[80] = {
-    kW8World, kW8Music, kW8Music, kW8Music, kW8World, kW8World, kW8World, kW8Speech, kW8Speech, kW8Speech,   // 0 .. 9
-    kW8Music, kW8Music, kW8Music, kW8Music, kW8World, kW8World, kW8World, kW8World, kW8World, kW8World,      // 10 .. 19
-    kW8World, kW8World, kW8World, kW8World, kW8World, kW8Speech, kW8World, kW8Enemy, kW8Enemy, kW8Enemy,     // 20 .. 29
-    kW8Enemy, kW8Object, kW8Lara, kW8Lara, kW8Lara, kW8Lara, kW8Lara, kW8Lara, kW8Lara, kW8Lara,             // 30 .. 39
-    kW8Lara, kW8Lara, kW8Lara, kW8Object, kW8Object, kW8Object, kW8Object, kW8Object, kW8Object, kW8Object,  // 40 .. 49
-    kW8Object, kW8Lara, kW8Lara, kW8Ui, kW8Ui, kW8Ui, kW8Ui, kW8Ui, kW8Lara, kW8Lara,                        // 50 .. 59
-    kW8Object, kW8Lara, kW8Lara, kW8Lara, kW8Speech, kW8Enemy, kW8Enemy, kW8Enemy, kW8Speech, kW8Speech,     // 60 .. 69
-    kW8Speech, kW8Speech, kW8Speech, kW8Speech, kW8Speech, kW8Speech, kW8Object, kW8Speech, kW8Lara, kW8Lara};   // 70 ..
-int W8CatOf(int group, int cat) {
-    if (cat == kSnMusic) return kW8Music;
-    if (cat == kSnSpeech) return kW8Speech;
-    return group >= 0 && group < 80 ? kW8GroupCat[group] : kW8World;
+                                       "music", "weapons"};
+const int kW8CatOrder[kW8Cats] = {kW8Lara, kW8Weapon, kW8Enemy, kW8World, kW8Object, kW8Ui, kW8Speech, kW8Music};
+// the sub-groups (0.22.53 W11): key (snd.logsub / snd.hear / [Sound] LogHideSubs), names, the game groups, kind
+enum { kW8sLaraVoice = 0, kW8sLaraBody, kW8sLaraGear, kW8sLaraSpecial, kW8sLaraShadow,
+       kW8sWpDraw, kW8sWpShot, kW8sWpReload, kW8sWpBrass, kW8sWpImpact, kW8sWpLara14,
+       kW8sEnBody, kW8sEnGear, kW8sEnAttack, kW8sEnVoice, kW8sEnKraken,
+       kW8sWoDefault, kW8sWoAmb, kW8sWoAnimals, kW8sWoFire, kW8sWoWind, kW8sWoWater,
+       kW8sObMech, kW8sObDebris, kW8sObBlast, kW8sObTraps, kW8sObVehicle, kW8sObDlc2,
+       kW8sUiHud, kW8sUiBinoc, kW8sUiMenu, kW8sUiPda,
+       kW8sSpCine, kW8sSpHints, kW8sSpRadio, kW8sSpNodes,
+       kW8sMuMusic, kW8sMuStinger, kW8Subs };
+struct W8Sub { const char *key, *de, *en, *groups; int cat; };
+const W8Sub kW8Sub[kW8Subs] = {
+    {"lara_voice", "Stimme", "voice", "g69 (68), DLC 2 g77", kW8Lara},
+    {"lara_body", "K\303\266rper / Foley", "body / foley", "g32-33, g35-42, DLC 2 g78", kW8Lara},
+    {"lara_gear", "Ausr\303\274stung", "gear", "g34, g14 (Lara)", kW8Lara},
+    {"lara_special", "Spezial (Herzschlag, Zeitlupe, Ziel)", "special (heartbeat, slow motion, target)", "g55", kW8Lara},
+    {"lara_shadow", "Schattenkraft / DLC-2-Effekte", "shadow power / DLC 2 FX", "g79", kW8Lara},
+    {"wp_draw", "Ziehen & Spannen", "draw & cock", "g58, g59", kW8Weapon},
+    {"wp_shot", "Sch\303\274sse", "shots", "g62", kW8Weapon},
+    {"wp_reload", "Nachladen & Granaten", "reload & grenades", "g63", kW8Weapon},
+    {"wp_brass", "Patronenh\303\274lsen", "brass", "g61", kW8Weapon},
+    {"wp_impact", "Einschl\303\244ge & Sirren", "impacts & whiz", "g51, g52", kW8Weapon},
+    {"wp_lara14", "Laras Waffe ohne Gruppe", "Lara's weapon without a group", "g14 (Lara, Waffe)", kW8Weapon},
+    {"en_body", "K\303\266rper & Schritte", "body & movement", "g27, g28", kW8Enemy},
+    {"en_gear", "Ausr\303\274stung", "gear", "g29", kW8Enemy},
+    {"en_attack", "Angriffe", "attacks", "g30", kW8Enemy},
+    {"en_voice", "Rufe & Stimmen", "calls & voices", "g65, g66", kW8Enemy},
+    {"en_kraken", "Kraken", "kraken", "g67", kW8Enemy},
+    {"wo_default", "Welt-Standard (ohne Gruppe)", "world default (no group)", "g14, g0 / 4 / 5 / 6 / 26 / 50", kW8World},
+    {"wo_amb", "Umgebung & Loops", "ambience & loops", "g15-19", kW8World},
+    {"wo_animals", "Tiere & V\303\266gel", "animals & birds", "g20", kW8World},
+    {"wo_fire", "Feuer", "fire", "g21", kW8World},
+    {"wo_wind", "Wind & Gewitter", "wind & thunder", "g22", kW8World},
+    {"wo_water", "Wasser & Unterwasser", "water & underwater", "g23, g24", kW8World},
+    {"ob_mech", "Mechanik", "mechanisms", "g43, g45, g47, g48", kW8Object},
+    {"ob_debris", "Tr\303\274mmer", "debris", "g44", kW8Object},
+    {"ob_blast", "Explosionen", "explosions", "g31", kW8Object},
+    {"ob_traps", "Fallen & Klingen", "traps & blades", "g60, g76", kW8Object},
+    {"ob_vehicle", "Fahrzeuge", "vehicles", "g49", kW8Object},
+    {"ob_dlc2", "DLC-2-Objekte", "DLC 2 objects", "g46", kW8Object},
+    {"ui_hud", "HUD", "HUD", "g53", kW8Ui},
+    {"ui_binoc", "Fernglas & Scan", "binoculars & scan", "g54", kW8Ui},
+    {"ui_menu", "Men\303\274", "menu", "g56", kW8Ui},
+    {"ui_pda", "PDA & Sonar", "PDA & sonar", "g57", kW8Ui},
+    {"sp_cine", "Zwischensequenzen", "cutscenes", "g7, g25", kW8Speech},
+    {"sp_hints", "Laras Hinweise", "Lara's hints", "g70, g71", kW8Speech},
+    {"sp_radio", "Funk (Zip)", "radio (Zip)", "g72-75", kW8Speech},
+    {"sp_nodes", "Stimmen-Knoten", "voice nodes", "g8, g9, g64", kW8Speech},
+    {"mu_music", "Musik", "music", "g1-3, g10-12", kW8Music},
+    {"mu_stinger", "Musik-Stinger", "music stingers", "g13", kW8Music},
+};
+static_assert(kW8Subs <= 64, "the sub-group masks are 64 bit");
+// group -> sub-group (Befund-Ton-Gruppen-0611.md table 3; 14 = world default unless the source is Lara, W8SubOf)
+const signed char kW8GroupSub[80] = {
+    kW8sWoDefault, kW8sMuMusic, kW8sMuMusic, kW8sMuMusic, kW8sWoDefault, kW8sWoDefault, kW8sWoDefault, kW8sSpCine,   // 0 ..
+    kW8sSpNodes, kW8sSpNodes, kW8sMuMusic, kW8sMuMusic, kW8sMuMusic, kW8sMuStinger, kW8sWoDefault, kW8sWoAmb,        // 8 ..
+    kW8sWoAmb, kW8sWoAmb, kW8sWoAmb, kW8sWoAmb, kW8sWoAnimals, kW8sWoFire, kW8sWoWind, kW8sWoWater,                  // 16 ..
+    kW8sWoWater, kW8sSpCine, kW8sWoDefault, kW8sEnBody, kW8sEnBody, kW8sEnGear, kW8sEnAttack, kW8sObBlast,          // 24 ..
+    kW8sLaraBody, kW8sLaraBody, kW8sLaraGear, kW8sLaraBody, kW8sLaraBody, kW8sLaraBody, kW8sLaraBody, kW8sLaraBody,  // 32 ..
+    kW8sLaraBody, kW8sLaraBody, kW8sLaraBody, kW8sObMech, kW8sObDebris, kW8sObMech, kW8sObDlc2, kW8sObMech,         // 40 ..
+    kW8sObMech, kW8sObVehicle, kW8sWoDefault, kW8sWpImpact, kW8sWpImpact, kW8sUiHud, kW8sUiBinoc, kW8sLaraSpecial,  // 48 ..
+    kW8sUiMenu, kW8sUiPda, kW8sWpDraw, kW8sWpDraw, kW8sObTraps, kW8sWpBrass, kW8sWpShot, kW8sWpReload,              // 56 ..
+    kW8sSpNodes, kW8sEnVoice, kW8sEnVoice, kW8sEnKraken, kW8sLaraVoice, kW8sLaraVoice, kW8sSpHints, kW8sSpHints,    // 64 ..
+    kW8sSpRadio, kW8sSpRadio, kW8sSpRadio, kW8sSpRadio, kW8sObTraps, kW8sLaraVoice, kW8sLaraBody, kW8sLaraShadow};  // 72 ..
+// the waves the game data assigns ONLY to weapon groups (58 / 59 / 61 / 62 / 63; 174 of 4387 waves with a group):
+// game data, so not in the source - the optional TruMenu.weaponwaves.txt next to tru.exe (wave ids, whitespace / comma
+// separated, '#' comments), made from the own game files by work\menu53_1411\weapon_waves.py (like
+// TruMenu.wavenames.txt). Without the file a group-14 sound of Lara counts as Waffen only with a wp_* owner
+const int kW8WeaponMax = 1024;
+WORD g_w8WeaponWaves[kW8WeaponMax];
+int g_w8WeaponN = -1;                        // -1 = no file
+int W8WaveCmp(const void *a, const void *b) {
+    return static_cast<int>(*static_cast<const WORD *>(a)) - static_cast<int>(*static_cast<const WORD *>(b));
 }
+void W8WeaponWavesLoad(const char *dir) {
+    char path[MAX_PATH];
+    _snprintf_s(path, sizeof(path), _TRUNCATE, "%s\\TruMenu.weaponwaves.txt", dir);
+    FILE *f = nullptr;
+    if (fopen_s(&f, path, "rb") != 0 || !f) return;
+    g_w8WeaponN = 0;
+    char line[512];
+    while (fgets(line, sizeof(line), f)) {
+        char *hash = strchr(line, '#');
+        if (hash) *hash = 0;
+        char *ctx = nullptr;
+        for (char *t = strtok_s(line, "\t ,;\r\n", &ctx); t; t = strtok_s(nullptr, "\t ,;\r\n", &ctx)) {
+            if (!isdigit(static_cast<unsigned char>(t[0]))) continue;
+            const long v = atol(t);
+            if (v >= 0 && v <= 0xffff && g_w8WeaponN < kW8WeaponMax) g_w8WeaponWaves[g_w8WeaponN++] = static_cast<WORD>(v);
+        }
+    }
+    fclose(f);
+    qsort(g_w8WeaponWaves, static_cast<size_t>(g_w8WeaponN), sizeof(WORD), W8WaveCmp);
+}
+bool W8WeaponWave(int wave) {
+    if (wave < 0 || wave > 0xffff || g_w8WeaponN <= 0) return false;
+    const WORD w = static_cast<WORD>(wave);
+    return bsearch(&w, g_w8WeaponWaves, static_cast<size_t>(g_w8WeaponN), sizeof(WORD), W8WaveCmp) != nullptr;
+}
+int W8SubCat(int sub) { return sub >= 0 && sub < kW8Subs ? kW8Sub[sub].cat : kW8World; }
+int W8SubOfGroup(int group, int cat) {       // the group alone (no source): the slider categories win as before
+    if (cat == kSnMusic) return group == 13 ? kW8sMuStinger : kW8sMuMusic;
+    if (cat == kSnSpeech) return kW8sSpCine;
+    return group >= 0 && group < 80 ? kW8GroupSub[group] : kW8sWoDefault;
+}
+int W8CatOf(int group, int cat) { return W8SubCat(W8SubOfGroup(group, cat)); }
 int W8CatFind(const char *key) {
     for (int i = 0; i < kW8Cats; ++i)
         if (key && !_stricmp(key, kW8CatKey[i])) return i;
     return -1;
 }
+int W8SubFind(const char *key) {
+    for (int i = 0; i < kW8Subs; ++i)
+        if (key && !_stricmp(key, kW8Sub[i].key)) return i;
+    return -1;
+}
+// the source part (W8SubOf, below the owner list): 1 = Lara's (the player or an instance whose parent +0x54 is the
+// player), 2 = Lara's weapon (that instance's object is wp_*), 0 = not Lara's, -1 = unknown now
+int W8LaraOwner(DWORD inst, int objectId) {
+    DWORD player = 0, parent = 0;
+    if (!inst || !g_playerOk || !ReadDword(kPlayerPtr, &player) || !player) return -1;
+    if (inst != player && !(ReadDword(inst + 0x54, &parent) && parent == player)) return 0;
+    if (inst == player) return 1;
+    char name[64];
+    if (objectId < 0) {
+        DWORD object = 0, oid = 0;
+        if (ReadDword(inst + 0x10, &object) && object && ReadDword(object + 0x14, &oid)) objectId = static_cast<int>(oid & 0xffff);
+    }
+    return objectId >= 0 && ObjectName(objectId, name, sizeof(name)) && !_strnicmp(name, "wp_", 3) ? 2 : 1;
+}
 // the box filters ([Sound] Log*, live: the items write the INI, W8Tick reads it about once a second)
-volatile LONG g_w8Show[kW8Cats] = {1, 1, 1, 1, 1, 1, 1};
+volatile LONG g_w8Show[kW8Cats] = {1, 1, 1, 1, 1, 1, 1, 1};
+// 0.22.53 W11: the hidden sub-groups ([Sound] LogHideSubs = their keys, live), "Filter folgt Stumm" ([Sound]
+// LogFollowMute, default 1) and what Stumm / Solo silences now (published by W6Tick on the game thread for the render
+// thread: kind / sub-group masks of the mute rules, the solo as kind / value, the other rule kinds as a flag)
+unsigned __int64 g_w8SubHide = 0;            // bit = kW8s* (written under g_snLock or by the INI reader, read by the box)
+volatile LONG g_w8FollowMute = 1;
+struct W8MuteState { unsigned __int64 subMuted; DWORD catMuted; int soloKind; DWORD soloValue; bool soloOn; };
+W8MuteState g_w8Mute = {0, 0, -1, 0, false};   // under g_snLock
 volatile LONG g_w8OnlyAudible = 0, g_w8Collapse = 1, g_w8MaxDist = 0;   // LogMaxDist in metres, 0 = every distance
 bool W8Visible() { return g_snOn || W7SnapWanted(); }   // the box or the monitor rows are drawn
 // the used FMOD channels of the last SnBuild (under g_snLock: SnBuild / W8Extras publish, the bar and the box read)
@@ -22595,10 +22750,12 @@ void W7OwnBuild() {
     });
 }
 LONG g_w7OwnBuilds = 0;                      // 0.22.50: walks over every instance (snd.mutes / W8 status)
+bool g_w8NeedOwners = false;                 // 0.22.53 W11: game thread - a rule / solo of Lara or Waffen is active
 bool W7Owner(DWORD emitter, W7Own *out) {
     if (!emitter) return false;
     const DWORD now = GetTickCount();
-    if ((!g_w7OwnAt || now - g_w7OwnAt > 1000) && W8Visible()) {   // 0.22.50: was every 250 ms, also unseen
+    // 0.22.53 W11: also while a Lara / Waffen rule or solo needs the source of a group-14 voice (g_w8NeedOwners)
+    if ((!g_w7OwnAt || now - g_w7OwnAt > 1000) && (W8Visible() || g_w8NeedOwners)) {   // 0.22.50: was every 250 ms
         W7OwnBuild();
         ++g_w7OwnBuilds;
     }
@@ -22606,6 +22763,26 @@ bool W7Owner(DWORD emitter, W7Own *out) {
     for (int i = 0; i < g_w7OwnN; ++i)
         if (g_w7Own[i].emitter == emitter) { *out = g_w7Own[i]; return true; }
     return false;
+}
+// 0.22.53 W11: the sub-group of a voice - its group (kW8GroupSub), and for group 14 "world default" its source: hook E1
+// (anim event -> instance) first, then the owner list. Lara's (player / gear +0x54) = Waffen when the owner is a wp_*
+// object or the wave is a weapon-only wave of the data, else Lara / Ausruestung. *final = false while the source of a
+// group-14 voice is not known yet (the caller does not keep such an answer)
+int W8SubOf(int group, int cat, int wave, DWORD emitter, bool *final) {
+    if (final) *final = true;
+    const int sub = W8SubOfGroup(group, cat);
+    if (group != 14 || cat == kSnMusic || cat == kSnSpeech) return sub;
+    int own = -1;
+    W8EmRec er;
+    W7Own ow;
+    if (emitter && W8EmitterInst(emitter, &er)) own = W8LaraOwner(er.inst, er.objectId);
+    else if (emitter && W7Owner(emitter, &ow)) own = W8LaraOwner(ow.addr, -1);
+    if (own < 0) {
+        if (final) *final = !emitter;        // no emitter: never anyone's (a stream / an inner node)
+        return sub;
+    }
+    if (own == 0) return sub;
+    return own == 2 || W8WeaponWave(wave) ? kW8sWpLara14 : kW8sLaraGear;
 }
 // 0.22.50: hook E1 first (exact, no walk), then the throttled list walk; "Level / Skript" only when that list is fresh
 void W7VoiceSource(DWORD emitter, int kind, int wave, bool de, char *o, size_t n) {
@@ -22658,6 +22835,7 @@ struct W7Hist {
     float dry, send;                         // 0.22.51 W9: dry mix / the game's reverb send (refreshed while it lives)
     bool aud;                                // 0.22.51 W9: audible incl. the reverb path (W9Audible)
     int rev;                                 // 0.22.52 W10: reverb mark kW9RevNone / On / Muted
+    int sub;                                 // 0.22.53 W11: the sub-group (kW8s*; cat = its kind)
 };
 const int kW7HistCap = 200;
 W7Hist g_w7Hist[kW7HistCap];
@@ -22678,7 +22856,8 @@ int g_w8AggN = 0;
 DWORD g_w8AggRefreshAt = 0;
 // category, FMOD's own state and the distance of a new start (game thread, W7HistAdd)
 void W8HistExtra(const W6Voice &v, int cat, W7Hist &h) {
-    h.cat = W8CatOf(h.group, cat);
+    h.sub = W8SubOf(h.group, cat, v.wave, v.emitter, nullptr);   // 0.22.53 W11: by group, group 14 also by source
+    h.cat = W8SubCat(h.sub);
     DWORD ci = 0, fl = 0, rf = 0, mode = 0;
     h.alive = W8FmOf(v.channel, &ci, &fl, &rf, &mode);
     h.fmMute = h.alive && (fl & 8) != 0;
@@ -22863,6 +23042,7 @@ bool W6Match(const W6Rule &r, const W6Voice &v, DWORD gnode) {
     case kW6Group:
     case kW6Amb: return W6InGroup(v.params, gnode);
     case kW6Cat: return v.cat >= 0 && static_cast<DWORD>(v.cat) == r.value;   // 0.22.50 (W6VoiceTick classifies)
+    case kW6Sub: return v.sub >= 0 && static_cast<DWORD>(v.sub) == r.value;   // 0.22.53 W11
     default: return false;                   // a track has no voice TruMenu can tell apart
     }
 }
@@ -22874,6 +23054,7 @@ void W6RuleText(const W6Rule &r, char *o, size_t n) {
     case kW6Group: Out(o, n, "g%lu", r.value); break;
     case kW6Amb: Out(o, n, "ambience"); break;
     case kW6Cat: Out(o, n, "cat:%s", r.value < static_cast<DWORD>(kW8Cats) ? kW8CatKey[r.value] : "?"); break;   // 0.22.50
+    case kW6Sub: Out(o, n, "sub:%s", r.value < static_cast<DWORD>(kW8Subs) ? kW8Sub[r.value].key : "?"); break;   // 0.22.53
     default: Out(o, n, "%s", r.name); break;
     }
 }
@@ -22954,13 +23135,14 @@ void W6WaveLine(const W6Voice &v) {
 // 0.22.50: the groups a category rule mutes as a whole - the largest sub-trees (parent = entry +0x68, SgParent) whose
 // groups all belong to the category; a group with a child of another category (57 PDA holds 70 Lara's hints, 4 the
 // effects slider holds every effect) is not muted as a group - its own voices are muted per channel (W6VoiceTick)
-int W8CatPureGroups(int cat, int *out, int max) {
+// 0.22.53 W11: the same for a sub-group (sub = true: value = kW8s*); group 14 is never pure (Lara's sounds by source)
+int W8CatPureGroups(int cat, int *out, int max, bool sub = false) {
     const int n = W6GroupCount() < 80 ? W6GroupCount() : 80;
     bool impure[80] = {};
     int parent[80];
     for (int g = 0; g < n; ++g) parent[g] = SgParent(g);
     for (int g = 0; g < n; ++g) {
-        if (kW8GroupCat[g] == cat) continue;
+        if (g != 14 && (sub ? kW8GroupSub[g] == cat : W8SubCat(kW8GroupSub[g]) == cat)) continue;
         impure[g] = true;
         for (int p = parent[g], guard = 0; p >= 0 && p < n && p != g && guard < 16; p = parent[p], ++guard) impure[p] = true;
     }
@@ -22981,6 +23163,8 @@ void W6CgTick() {
         else if (g_w6Rules[i].kind == kW6Amb) want[wn++] = kW6AmbGroup;
         else if (g_w6Rules[i].kind == kW6Cat)    // 0.22.50: the category's whole sub-trees (reach channels outside the pool)
             wn += W8CatPureGroups(static_cast<int>(g_w6Rules[i].value), want + wn, kW6CgMax - wn);
+        else if (g_w6Rules[i].kind == kW6Sub)    // 0.22.53 W11: the sub-group's whole sub-trees
+            wn += W8CatPureGroups(static_cast<int>(g_w6Rules[i].value), want + wn, kW6CgMax - wn, true);
     if (W7SonarMode() == 2 && wn < kW6CgMax) want[wn++] = kW7SonarGroup;   // 0.22.47 fallback: the whole group 57
     for (int k = 0; k < wn; ++k) {
         int r = -1;
@@ -23085,12 +23269,15 @@ void W8ExtraMutes(const DWORD *pool, int poolN, int groups, bool catRule) {
         DWORD cg = 0;
         ReadDword(ci + 0x8c, &cg);
         const int g = W8GroupOfCg(cg, groups);
-        const int cat = g >= 0 && g < 80 ? kW8GroupCat[g] : kW8World;
+        const int sub = g >= 0 && g < 80 ? kW8GroupSub[g] : kW8sWoDefault;   // 0.22.53 W11: no source outside the pool
+        const int cat = W8SubCat(sub);
         bool want = false;
         for (int i = 0; catRule && !want && i < g_w6RuleN; ++i)
-            want = g_w6Rules[i].kind == kW6Cat && g_w6Rules[i].value == static_cast<DWORD>(cat);
+            want = (g_w6Rules[i].kind == kW6Cat && g_w6Rules[i].value == static_cast<DWORD>(cat)) ||
+                   (g_w6Rules[i].kind == kW6Sub && g_w6Rules[i].value == static_cast<DWORD>(sub));
         if (!want && g_w6SoloOn) {
-            bool keep = g_w6Solo.kind == kW6Cat && g_w6Solo.value == static_cast<DWORD>(cat);
+            bool keep = (g_w6Solo.kind == kW6Cat && g_w6Solo.value == static_cast<DWORD>(cat)) ||
+                        (g_w6Solo.kind == kW6Sub && g_w6Solo.value == static_cast<DWORD>(sub));
             for (DWORD c = cg, depth = 0; soloCg && c && depth < 16 && !keep; ++depth) {
                 keep = c == soloCg;
                 DWORD p = 0;
@@ -23127,8 +23314,19 @@ void W6VoiceTick(bool watch) {
     for (int i = 0; i < g_w6ChanN; ++i) g_w6Chan[i].seen = false;
     const bool sonar = W7SonarMode() == 1;   // 0.22.47: "Sonar-Ton aus" = the sonar waves per channel, as a wave rule
     bool catRule = false;                    // 0.22.50: a category rule / solo needs each voice's category
-    for (int i = 0; i < g_w6RuleN; ++i) catRule = catRule || g_w6Rules[i].kind == kW6Cat;
-    const bool catSolo = g_w6SoloOn && g_w6Solo.kind == kW6Cat;
+    bool laraRule = false;                   // 0.22.53 W11: a Lara / Waffen rule needs the source of group-14 voices
+    auto laraSide = [](const W6Rule &r) {
+        return (r.kind == kW6Cat && (r.value == static_cast<DWORD>(kW8Lara) || r.value == static_cast<DWORD>(kW8Weapon) ||
+                                     r.value == static_cast<DWORD>(kW8World))) ||
+               (r.kind == kW6Sub && (r.value == static_cast<DWORD>(kW8sLaraGear) ||
+                                     r.value == static_cast<DWORD>(kW8sWpLara14) || r.value == static_cast<DWORD>(kW8sWoDefault)));
+    };
+    for (int i = 0; i < g_w6RuleN; ++i) {
+        catRule = catRule || g_w6Rules[i].kind == kW6Cat || g_w6Rules[i].kind == kW6Sub;
+        laraRule = laraRule || laraSide(g_w6Rules[i]);
+    }
+    const bool catSolo = g_w6SoloOn && (g_w6Solo.kind == kW6Cat || g_w6Solo.kind == kW6Sub);
+    g_w8NeedOwners = laraRule || (catSolo && laraSide(g_w6Solo));
     const bool perVoice = g_w6SoloOn != 0 || sonar || catRule || [] {
         for (int i = 0; i < g_w6RuleN; ++i)
             if (g_w6Rules[i].kind == kW6Wave || g_w6Rules[i].kind == kW6Sound || g_w6Rules[i].kind == kW6Emitter) return true;
@@ -23153,7 +23351,7 @@ void W6VoiceTick(bool watch) {
         for (int steps = 0; node && node != end && steps < 1024; ++steps) {
             DWORD next = 0;
             W6Voice v = {};
-            v.cat = -1;
+            v.cat = v.sub = -1;
             if (!ReadDword(node + 4, &v.voice) || !ReadDword(node, &next)) break;
             node = next;
             if (!v.voice || !ReadDword(v.voice + 4, &v.channel) || !ReadDword(v.voice + 0x10, &v.sample) ||
@@ -23167,15 +23365,17 @@ void W6VoiceTick(bool watch) {
             if (v.emitter) ReadDword(v.emitter + 0xc, &v.sid);
             if (catRule || catSolo) {        // 0.22.50: the voice's category, kept per voice when the hook record exists
                 W8VoiceRec *rec = W8VoiceRecOf(v.voice, v.channel);
-                if (rec && rec->cat >= 0) {
-                    v.cat = rec->cat;
+                if (rec && rec->sub >= 0) {  // 0.22.53 W11: the sub-group (its kind follows); kept only when final
+                    v.sub = rec->sub;
                 } else {
                     int g = -1, c = kSnOther;
                     DWORD cg = 0;
+                    bool final = true;
                     SnClassify(v.params, tcats, tgroups, &g, &c, &cg);
-                    v.cat = W8CatOf(g, c);
-                    if (rec) rec->cat = v.cat;
+                    v.sub = W8SubOf(g, c, v.wave, v.emitter, &final);
+                    if (rec && final) rec->sub = v.sub;
                 }
+                v.cat = W8SubCat(v.sub);
             }
             if (hist) W7HistVoice(v);         // 0.22.47: a new (voice, sample, channel) = one history entry
             if (watch && v.wave >= 0 && W6Watched(v.wave)) {
@@ -23190,7 +23390,8 @@ void W6VoiceTick(bool watch) {
             bool want = false;
             for (int i = 0; perVoice && !want && i < g_w6RuleN; ++i) {
                 const int k = g_w6Rules[i].kind;
-                if ((k == kW6Wave || k == kW6Sound || k == kW6Emitter || k == kW6Cat) && W6Match(g_w6Rules[i], v, 0))
+                if ((k == kW6Wave || k == kW6Sound || k == kW6Emitter || k == kW6Cat || k == kW6Sub) &&
+                    W6Match(g_w6Rules[i], v, 0))
                     want = true;                 // 0.22.50: kW6Cat per channel too (groups shared with another category)
             }
             if (!want && g_w6SoloOn && !W6Match(g_w6Solo, v, soloNode)) want = true;
@@ -23227,9 +23428,40 @@ void W6VoiceTick(bool watch) {
     g_w6SeenN = seenNew;
     W7HistEnd(hist);
 }
+// 0.22.53 W11: what Stumm / Solo silences, for "Filter folgt Stumm" in the box (render thread reads under g_snLock)
+void W8PublishMute() {
+    W8MuteState m = {0, 0, -1, 0, g_w6SoloOn != 0};
+    for (int i = 0; i < g_w6RuleN; ++i) {
+        const W6Rule &r = g_w6Rules[i];
+        if (r.kind == kW6Cat && r.value < static_cast<DWORD>(kW8Cats)) m.catMuted |= 1u << r.value;
+        if (r.kind == kW6Sub && r.value < static_cast<DWORD>(kW8Subs)) m.subMuted |= 1ull << r.value;
+    }
+    if (g_sndMuteMusic) m.catMuted |= 1u << kW8Music;   // "Musik aus" = Stumm: Musik
+    if (m.soloOn) { m.soloKind = g_w6Solo.kind; m.soloValue = g_w6Solo.value; }
+    EnterCriticalSection(&g_snLock);
+    g_w8Mute = m;
+    LeaveCriticalSection(&g_snLock);
+}
+// true = Stumm / Solo silences a line of this kind / sub-group / wave / section / emitter / group (the solo: every line
+// that does not match it) - the box's "Filter folgt Stumm"
+bool W8MutedByTree(const W8MuteState &m, int cat, int sub, int wave, DWORD sid, DWORD emitter, int group) {
+    if (cat >= 0 && cat < kW8Cats && (m.catMuted & (1u << cat))) return true;
+    if (sub >= 0 && sub < kW8Subs && (m.subMuted & (1ull << sub))) return true;
+    if (!m.soloOn) return false;
+    switch (m.soloKind) {
+    case kW6Cat: return static_cast<DWORD>(cat) != m.soloValue;
+    case kW6Sub: return static_cast<DWORD>(sub) != m.soloValue;
+    case kW6Wave: return wave < 0 || static_cast<DWORD>(wave) != m.soloValue;
+    case kW6Sound: return sid != m.soloValue;
+    case kW6Emitter: return emitter != m.soloValue;
+    case kW6Group: return group != static_cast<int>(m.soloValue);   // display: the group itself (no sub-tree walk)
+    default: return false;
+    }
+}
 // PadHook (SnTick, game thread, every poll): cheap while no rule is set and the wave log is off
 void W6Tick() {
     if (!g_w6Ok) return;
+    W8PublishMute();                         // 0.22.53 W11
     if (InterlockedExchange(&g_w6BackPending, 0)) W6TrackBack();            // a removed track / ambience rule
     const bool watch = g_w6WaveLog && g_w6WaveN > 0;
     if (!watch && !g_w6RuleN && !g_w6SoloOn && !g_w6ChanN && !g_w6CgN && !W7SonarMode() && !W7HistWanted()) return;
@@ -23248,11 +23480,21 @@ bool W6Parse(const char *t, W6Rule *r, char *o, size_t n) {
     if (!_strnicmp(t, "cat:", 4)) {          // 0.22.50: a category of the log box (snd.catmute / snd.catsolo)
         const int c = W8CatFind(t + 4);
         if (c < 0) {
-            Out(o, n, "'%s': cat:<lara|enemies|world|objects|ui|speech|music>", t);
+            Out(o, n, "'%s': cat:<lara|weapons|enemies|world|objects|ui|speech|music>", t);
             return false;
         }
         r->kind = kW6Cat;
         r->value = static_cast<DWORD>(c);
+        return true;
+    }
+    if (!_strnicmp(t, "sub:", 4)) {          // 0.22.53 W11: a sub-group of the log box (snd.hear <sub-group>)
+        const int s = W8SubFind(t + 4);
+        if (s < 0) {
+            Out(o, n, "'%s': sub:<sub-group key> (snd.hear lists them: lara_voice, wp_shot, ...)", t);
+            return false;
+        }
+        r->kind = kW6Sub;
+        r->value = static_cast<DWORD>(s);
         return true;
     }
     const char c = static_cast<char>(tolower(static_cast<unsigned char>(t[0])));
@@ -23702,6 +23944,7 @@ void W7ReadOptions(const char *ini, const char *dir) {
         g_w7SonarN = k;
     }                                        // empty / bad: the default 914 915 916 (logged by W7Check)
     W7NamesLoad(dir);
+    W8WeaponWavesLoad(dir);                  // 0.22.53 W11: the optional TruMenu.weaponwaves.txt (logged by W8Check)
 }
 // load: the byte checks of precheck_02247.txt (after W6Check: the per-channel mute and the emitter test are W6's)
 void W7Check() {
@@ -23781,8 +24024,15 @@ void W8LoopIcon(ImDrawList *dl, ImVec2 p, float s, ImU32 c) {
 }
 W7Hist g_w8DrawAgg[kW8AggCap];               // render thread copies (0.22.50)
 SnVoice g_w8DrawSnap[kSnMax];
-bool W8LineShown(int cat, bool muted, bool paused, float dist) {   // the box filters ([Sound] Log*)
+// the box filters ([Sound] Log*); 0.22.53 W11: + the hidden sub-groups and "Filter folgt Stumm" (tree = Stumm / Solo
+// silences the line - TruMenu's own rules, also for lines that ended; "Nur hoerbare Zeilen" = FMOD's state now, whoever
+// muted / paused it, incl. the game's pause and silent lines)
+W8MuteState g_w8DrawMute;                    // render thread copy (DrawSoundLog)
+unsigned __int64 g_w8DrawHide = 0;
+bool W8LineShown(int cat, int sub, bool muted, bool paused, float dist, bool tree) {
     if (cat >= 0 && cat < kW8Cats && !g_w8Show[cat]) return false;
+    if (sub >= 0 && sub < kW8Subs && (g_w8DrawHide & (1ull << sub))) return false;
+    if (g_w8FollowMute && tree) return false;
     if (g_w8OnlyAudible && (muted || paused)) return false;
     return !(g_w8MaxDist > 0 && dist >= 0.0f && dist > static_cast<float>(g_w8MaxDist));
 }
@@ -23802,6 +24052,8 @@ void DrawSoundLog() {
     memcpy(g_w8DrawSnap, g_snSnap, sizeof(SnVoice) * static_cast<size_t>(snapN));
     fmUsed = g_w8FmUsed;
     fmExtra = g_w8FmExtra;
+    g_w8DrawMute = g_w8Mute;                 // 0.22.53 W11
+    g_w8DrawHide = g_w8SubHide;
     LeaveCriticalSection(&g_snLock);
     if (collapse) {
         for (int i = 1; i < n; ++i) {        // newest start on top (at most 96 lines: insertion sort)
@@ -23839,9 +24091,16 @@ void DrawSoundLog() {
         {                                    // 0.22.50: what the filters hide (one short line, only when any is set)
             size_t used = 0;
             line[0] = 0;
-            for (int c = 0; c < kW8Cats; ++c)
+            for (int k = 0; k < kW8Cats; ++k) {
+                const int c = kW8CatOrder[k];
                 if (!g_w8Show[c]) LabelAdd(line, sizeof(line), &used, "%s%s", used ? ", " : "", de ? kW8CatDe[c] : kW8CatEn[c]);
+            }
+            int subs = 0;                    // 0.22.53 W11: hidden sub-groups (of kinds still shown) as a count
+            for (int s = 0; s < kW8Subs; ++s) subs += (g_w8DrawHide & (1ull << s)) && g_w8Show[kW8Sub[s].cat] ? 1 : 0;
+            if (subs) LabelAdd(line, sizeof(line), &used, "%s%d %s", used ? ", " : "", subs, de ? "Untergruppe(n)" : "sub-group(s)");
             if (used) LabelAdd(line, sizeof(line), &used, de ? " ausgeblendet" : " hidden");
+            if (g_w8FollowMute && (g_w8DrawMute.catMuted || g_w8DrawMute.subMuted || g_w8DrawMute.soloOn))
+                LabelAdd(line, sizeof(line), &used, "%s%s", used ? "; " : "", de ? "Stummes ausgeblendet" : "muted hidden");
             if (g_w8OnlyAudible) LabelAdd(line, sizeof(line), &used, "%s%s", used ? "; " : "", de ? "nur h\303\266rbare" : "audible only");
             if (g_w8MaxDist > 0) LabelAdd(line, sizeof(line), &used, "%s<= %ld m", used ? "; " : "", g_w8MaxDist);
             if (used) ImGui::TextColored(ImVec4(1.0f, 0.85f, 0.45f, 0.85f), "%s: %s", de ? "Filter" : "filter", line);
@@ -23855,8 +24114,9 @@ void DrawSoundLog() {
             for (int i = 0; i < snapN; ++i) {
                 const SnVoice &v = g_w8DrawSnap[i];
                 if (!v.loop || !v.playing || v.ending) continue;
-                if (!W8LineShown(W8CatOf(v.group, v.cat), !v.aud, v.fmPause,   // 0.22.51 W9: audible incl. reverb
-                                 v.dist >= 0.0f ? v.dist / kW7UnitsPerMetre : -1.0f))
+                if (!W8LineShown(v.lcat, v.lsub, !v.aud, v.fmPause,   // 0.22.51 W9: audible incl. reverb
+                                 v.dist >= 0.0f ? v.dist / kW7UnitsPerMetre : -1.0f,
+                                 W8MutedByTree(g_w8DrawMute, v.lcat, v.lsub, v.wave, v.sid, v.emitter, v.group)))
                     continue;
                 int at = -1;
                 for (int k = 0; k < ln && at < 0; ++k) {
@@ -23890,8 +24150,10 @@ void DrawSoundLog() {
                 char dist[24] = "", rev[48] = "";
                 if (v.dist >= 0.0f) Out(dist, sizeof(dist), "  %.0f m", static_cast<double>(v.dist / kW7UnitsPerMetre));
                 W9SendText(v.fmMute, v.send, de, rev, sizeof(rev));
-                Out(line, sizeof(line), "%s%s  <- %s  |  g%d %s%s%s%s", nm, cnt, v.src, v.group, W7GroupName(v.group, de), dist,
-                    v.fmPause ? (de ? "  (pausiert)" : "  (paused)") : "", rev);
+                const int vs = v.lsub >= 0 && v.lsub < kW8Subs ? v.lsub : kW8sWoDefault;   // 0.22.53 W11
+                Out(line, sizeof(line), "%s%s  <- %s  |  %s / %s  g%d %s%s%s%s", nm, cnt, v.src,
+                    de ? kW8CatDe[kW8Sub[vs].cat] : kW8CatEn[kW8Sub[vs].cat], de ? kW8Sub[vs].de : kW8Sub[vs].en, v.group,
+                    W7GroupName(v.group, de), dist, v.fmPause ? (de ? "  (pausiert)" : "  (paused)") : "", rev);
                 ImGui::PushStyleColor(ImGuiCol_Text, !v.aud ? ((c & 0x00ffffff) | 0x99000000) : c);
                 ImGui::TextUnformatted(line);
                 ImGui::PopStyleColor();
@@ -23903,7 +24165,9 @@ void DrawSoundLog() {
             const W7Hist &e = lines[i];
             const float age = static_cast<float>(now - e.tick);
             if (fade > 0.0f && age > fade * 4.0f) break;   // newest first: everything below is older
-            if (!W8LineShown(e.cat, !e.aud, e.fmPause, e.dist)) continue;   // 0.22.50 the box filters (0.22.51: + reverb)
+            if (!W8LineShown(e.cat, e.sub, !e.aud, e.fmPause, e.dist,   // 0.22.50 the box filters (0.22.51: + reverb)
+                             W8MutedByTree(g_w8DrawMute, e.cat, e.sub, e.wave, e.sid, e.emitter, e.group)))
+                continue;
             const float k = fade > 0.0f ? (age < fade ? age / fade : 1.0f) : 0.0f;
             const int alpha = static_cast<int>(255.0f * (1.0f - 0.7f * k));
             const ImU32 c = (kW7KindColour[e.kind] & 0x00ffffff) | (static_cast<ImU32>(alpha) << 24);
@@ -23918,7 +24182,9 @@ void DrawSoundLog() {
             if (e.count > 1) Out(cnt, sizeof(cnt), " \303\227%d", e.count);
             if (e.dist >= 0.0f) Out(dist, sizeof(dist), "  %.0f m", static_cast<double>(e.dist));
             W9SendText(e.fmMute, e.send, de, rev, sizeof(rev));
-            Out(line, sizeof(line), "%s  %s%s  <- %s  |  g%d %s%s%s", e.time, e.name, cnt, e.src, e.group,
+            const int es = e.sub >= 0 && e.sub < kW8Subs ? e.sub : kW8sWoDefault;   // 0.22.53 W11: kind / sub-group
+            Out(line, sizeof(line), "%s  %s%s  <- %s  |  %s / %s  g%d %s%s%s", e.time, e.name, cnt, e.src,
+                de ? kW8CatDe[kW8Sub[es].cat] : kW8CatEn[kW8Sub[es].cat], de ? kW8Sub[es].de : kW8Sub[es].en, e.group,
                 W7GroupName(e.group, de), dist, rev[0] ? rev : e.fmMute ? (de ? "  (stumm)" : "  (muted)") : "");
             ImGui::PushStyleColor(ImGuiCol_Text, c);
             ImGui::TextUnformatted(line);
@@ -24092,14 +24358,46 @@ void W8Check() {
         "0x5b99fc emitter -> instance: written at the first pad poll), LogCollapse %ld, LogOnlyAudible %ld, LogMaxDist %ld, "
         "hidden: %s (live)", g_w8Why, static_cast<int>(sizeof(kW8Checks) / sizeof(kW8Checks[0])), g_w8HooksWanted,
         g_w8Collapse, g_w8OnlyAudible, g_w8MaxDist, used ? hidden : "-");
+    if (g_w8WeaponN >= 0)                    // 0.22.53 W11
+        Log(1, "0.22.53 sound kinds: %d weapon waves from TruMenu.weaponwaves.txt (a group-14 sound of Lara with one of them "
+            "= Waffen)", g_w8WeaponN);
+    else
+        Log(1, "0.22.53 sound kinds: no TruMenu.weaponwaves.txt - a group-14 sound of Lara counts as Waffen only with a "
+            "wp_* owner (work\\menu53_1411\\weapon_waves.py makes the file from the own game data)");
 }
 LONG W8DistClamp(LONG d) { return d < 0 ? 0 : d > 500 ? 500 : d; }
+// 0.22.53 W11: [Sound] LogHideSubs "key,key" -> the mask (unknown keys left out); true = it changed
+bool W8SubHideSet(const char *list) {
+    unsigned __int64 m = 0;
+    char copy[512];
+    strncpy_s(copy, sizeof(copy), list ? list : "", _TRUNCATE);
+    char *context = nullptr;
+    for (char *t = strtok_s(copy, ", ", &context); t; t = strtok_s(nullptr, ", ", &context)) {
+        const int s = W8SubFind(t);
+        if (s >= 0) m |= 1ull << s;
+    }
+    EnterCriticalSection(&g_snLock);
+    const bool changed = m != g_w8SubHide;
+    g_w8SubHide = m;
+    LeaveCriticalSection(&g_snLock);
+    return changed;
+}
+void W8SubHideText(unsigned __int64 m, char *o, size_t n) {
+    size_t used = 0;
+    o[0] = 0;
+    for (int s = 0; s < kW8Subs; ++s)
+        if (m & (1ull << s)) LabelAdd(o, n, &used, "%s%s", used ? "," : "", kW8Sub[s].key);
+}
 void W8ReadOptions(const char *ini) {
     g_w8HooksWanted = OptInt(ini, "Sound", "SourceHooks") != 0 ? 1 : 0;
     for (int c = 0; c < kW8Cats; ++c) InterlockedExchange(&g_w8Show[c], OptInt(ini, "Sound", kW8CatIni[c]) != 0 ? 1 : 0);
     InterlockedExchange(&g_w8OnlyAudible, OptInt(ini, "Sound", "LogOnlyAudible") != 0 ? 1 : 0);
     InterlockedExchange(&g_w8Collapse, OptInt(ini, "Sound", "LogCollapse") != 0 ? 1 : 0);
     InterlockedExchange(&g_w8MaxDist, W8DistClamp(OptInt(ini, "Sound", "LogMaxDist")));
+    InterlockedExchange(&g_w8FollowMute, OptInt(ini, "Sound", "LogFollowMute") != 0 ? 1 : 0);   // 0.22.53 W11
+    char hide[512] = "";
+    GetPrivateProfileStringA("Sound", "LogHideSubs", OptDefault("Sound", "LogHideSubs"), hide, sizeof(hide), ini);
+    W8SubHideSet(hide);
 }
 // the box filters from TruMenu.ini about once a second (the switch rows are "live"; the items write the INI first)
 void W8ReadSwitch() {
@@ -24108,7 +24406,7 @@ void W8ReadSwitch() {
                                                                                   g_iniPath)); };
     bool changed = false;
     const LONG show[kW8Cats] = {key("LogLara"), key("LogEnemies"), key("LogWorld"), key("LogObjects"), key("LogUi"),
-                                key("LogSpeech"), key("LogMusic")};   // the order of kW8CatIni
+                                key("LogSpeech"), key("LogMusic"), key("LogWeapons")};   // the order of kW8CatIni
     for (int c = 0; c < kW8Cats; ++c) {
         const LONG v = show[c] != 0 ? 1 : 0;
         changed = changed || v != g_w8Show[c];
@@ -24119,11 +24417,20 @@ void W8ReadSwitch() {
     InterlockedExchange(&g_w8OnlyAudible, a);
     InterlockedExchange(&g_w8Collapse, k);
     InterlockedExchange(&g_w8MaxDist, d);
+    const LONG fm = key("LogFollowMute") != 0 ? 1 : 0;   // 0.22.53 W11
+    changed = changed || fm != g_w8FollowMute;
+    InterlockedExchange(&g_w8FollowMute, fm);
+    char hide[512] = "", hideNow[512] = "";
+    GetPrivateProfileStringA("Sound", "LogHideSubs", OptDefault("Sound", "LogHideSubs"), hide, sizeof(hide), g_iniPath);
+    changed = W8SubHideSet(hide) || changed;
     static int lines = 0;
-    if (changed && ++lines <= 50)
-        Log(1, "snd.log: [Sound] LogLara %ld LogEnemies %ld LogWorld %ld LogObjects %ld LogUi %ld LogSpeech %ld LogMusic %ld, "
-            "LogOnlyAudible %ld, LogCollapse %ld, LogMaxDist %ld (TruMenu.ini, live)", g_w8Show[0], g_w8Show[1], g_w8Show[2],
-            g_w8Show[3], g_w8Show[4], g_w8Show[5], g_w8Show[6], a, k, d);
+    if (changed && ++lines <= 50) {
+        W8SubHideText(g_w8SubHide, hideNow, sizeof(hideNow));
+        Log(1, "snd.log: [Sound] LogLara %ld LogEnemies %ld LogWorld %ld LogObjects %ld LogUi %ld LogSpeech %ld LogMusic %ld "
+            "LogWeapons %ld, LogOnlyAudible %ld, LogCollapse %ld, LogMaxDist %ld, LogFollowMute %ld, LogHideSubs '%s' "
+            "(TruMenu.ini, live)", g_w8Show[0], g_w8Show[1], g_w8Show[2], g_w8Show[3], g_w8Show[4], g_w8Show[5], g_w8Show[6],
+            g_w8Show[7], a, k, d, fm, hideNow);
+    }
 }
 // SnTick (game thread, every poll): the INI about once a second; the two code redirects V1 / E1 once, at the first poll
 void W8Tick() {
@@ -24225,7 +24532,7 @@ bool W8CatArg(const char *arg, const char *item, bool now, int *cat, bool *on, c
                           : 0;
     *cat = words >= 1 ? W8CatFind(k) : -1;
     if (*cat < 0 || (words == 2 && strcmp(v, "0") && strcmp(v, "1") && _stricmp(v, "on") && _stricmp(v, "off"))) {
-        Out(o, n, "usage: %s <lara|enemies|world|objects|ui|speech|music> [1|0]", item);
+        Out(o, n, "usage: %s <lara|weapons|enemies|world|objects|ui|speech|music> [1|0]", item);
         return false;
     }
     *on = words == 2 ? BoolArg(v, false) : !now;
@@ -24315,6 +24622,142 @@ bool RunW8CatSolo(const char *arg, char *o, size_t n) {
     Out(t, sizeof(t), "cat:%s", kW8CatKey[c]);
     return RunW6Solo(t, o, n);
 }
+// ---- 0.22.53 W11: sub-group filter, "Filter folgt Stumm", snd.hear (Stumm / Solo per kind or sub-group) ----
+// snd.logsub <key> [1|0]: show / hide one sub-group in the box ([Sound] LogHideSubs, live; no value = toggle)
+void ValW8LogSub(char *o, size_t n) {
+    char h[512];
+    W8SubHideText(g_w8SubHide, h, sizeof(h));
+    Out(o, n, "hidden: %s", h[0] ? h : "-");
+}
+bool RunW8LogSub(const char *arg, char *o, size_t n) {
+    char k[32] = "", v[8] = "";
+    const int words = arg ? sscanf_s(arg, "%31s %7s", k, static_cast<unsigned>(sizeof(k)), v, static_cast<unsigned>(sizeof(v)))
+                          : 0;
+    const int s = words >= 1 ? W8SubFind(k) : -1;
+    if (s < 0 || (words == 2 && strcmp(v, "0") && strcmp(v, "1") && _stricmp(v, "on") && _stricmp(v, "off"))) {
+        Out(o, n, "usage: snd.logsub <sub-group key> [1|0] (keys: snd.hear)");
+        return false;
+    }
+    const bool shownNow = !(g_w8SubHide & (1ull << s));
+    const bool on = words == 2 ? BoolArg(v, false) : !shownNow;
+    EnterCriticalSection(&g_snLock);
+    if (on) g_w8SubHide &= ~(1ull << s);
+    else g_w8SubHide |= 1ull << s;
+    const unsigned __int64 m = g_w8SubHide;
+    LeaveCriticalSection(&g_snLock);
+    char list[512];
+    W8SubHideText(m, list, sizeof(list));
+    IniKeep("Sound", "LogHideSubs", list);
+    Log(1, "snd.logsub %s %d (src=%s): the sound box %s this sub-group (%s / %s, %s); [Sound] LogHideSubs=%s written",
+        kW8Sub[s].key, on ? 1 : 0, ShotSource("snd.logsub"), on ? "shows" : "hides", kW8CatEn[kW8Sub[s].cat], kW8Sub[s].en,
+        kW8Sub[s].groups, list);
+    const bool de = g_qbLang == 0;
+    Out(o, n, "%s / %s: %s", de ? kW8CatDe[kW8Sub[s].cat] : kW8CatEn[kW8Sub[s].cat], de ? kW8Sub[s].de : kW8Sub[s].en,
+        on ? (de ? "im Ton-Log" : "in the sound log") : (de ? "ausgeblendet" : "hidden"));
+    return true;
+}
+void ValW8Follow(char *o, size_t n) { Out(o, n, "%ld", g_w8FollowMute); }
+bool RunW8Follow(const char *arg, char *o, size_t n) {
+    const bool on = BoolArg(arg, g_w8FollowMute != 0);
+    InterlockedExchange(&g_w8FollowMute, on ? 1 : 0);
+    IniKeepInt("Sound", "LogFollowMute", on ? 1 : 0);
+    Log(1, "snd.logfollow %d (src=%s): [Sound] LogFollowMute=%d written - what Stumm / Solo silences is %s", on ? 1 : 0,
+        ShotSource("snd.logfollow"), on ? 1 : 0, on ? "hidden in the box too" : "still shown in the box");
+    const bool de = g_qbLang == 0;
+    Out(o, n, "%s", on ? (de ? "Filter folgt Stumm: stumme T\303\266ne verschwinden aus dem Ton-Log"
+                             : "filter follows mute: muted sounds leave the sound log")
+                       : (de ? "Filter folgt Stumm aus: stumme T\303\266ne bleiben im Ton-Log"
+                             : "filter follows mute off: muted sounds stay in the sound log"));
+    return true;
+}
+// snd.hear <kind|sub-group> [normal|stumm|solo]: 0 normal (hoerbar), 1 stumm (snd.mute cat: / sub:), 2 solo (snd.solo);
+// no state = the next one. One solo at a time (a new one replaces it, as snd.solonew); the kind music: stumm = Musik aus
+bool W8HearTarget(const char *key, bool *isSub, int *idx) {
+    *idx = W8CatFind(key);
+    *isSub = false;
+    if (*idx >= 0) return true;
+    *idx = W8SubFind(key);
+    *isSub = true;
+    return *idx >= 0;
+}
+int W8HearNow(bool isSub, int idx) {         // 0 normal, 1 stumm, 2 solo
+    const int kind = isSub ? kW6Sub : kW6Cat;
+    if (g_w6SoloOn && g_w6Solo.kind == kind && g_w6Solo.value == static_cast<DWORD>(idx)) return 2;
+    if (!isSub && idx == kW8Music && g_sndMuteMusic) return 1;
+    W6Rule r = {};
+    r.kind = kind;
+    r.value = static_cast<DWORD>(idx);
+    return W6Find(r) >= 0 ? 1 : 0;
+}
+int W8HearArgNow(const char *arg) {          // the bar's value rows (kQvHear, arg = the key)
+    bool isSub = false;
+    int idx = -1;
+    return arg && W8HearTarget(arg, &isSub, &idx) ? W8HearNow(isSub, idx) : 0;
+}
+const char *const kW8HearWord[3] = {"normal", "stumm", "solo"};
+void W8HearText(const char *arg, bool de, char *o, size_t n) {
+    bool isSub = false;
+    int idx = -1;
+    if (!arg || !W8HearTarget(arg, &isSub, &idx)) { Out(o, n, "?"); return; }
+    const int st = W8HearNow(isSub, idx);
+    const char *const de3[3] = {"h\303\266rbar", "stumm", "solo"}, *const en3[3] = {"audible", "muted", "solo"};
+    if (st == 0 && g_w6SoloOn) Out(o, n, "%s", de ? "still (anderes Solo)" : "silent (other solo)");
+    else if (st == 0 && isSub && W8HearNow(false, kW8Sub[idx].cat) == 1) Out(o, n, "%s", de ? "stumm (ganze Art)" : "muted (kind)");
+    else Out(o, n, "%s", de ? de3[st] : en3[st]);
+}
+bool RunW8Hear(const char *arg, char *o, size_t n) {
+    if (!W8Gate(o, n) || !W6Gate(o, n)) return false;
+    char k[32] = "", v[12] = "";
+    const int words = arg ? sscanf_s(arg, "%31s %11s", k, static_cast<unsigned>(sizeof(k)), v, static_cast<unsigned>(sizeof(v)))
+                          : 0;
+    bool isSub = false;
+    int idx = -1;
+    if (words < 1 || !W8HearTarget(k, &isSub, &idx)) {
+        char keys[900];
+        size_t used = 0;
+        keys[0] = 0;
+        for (int s = 0; s < kW8Subs; ++s) LabelAdd(keys, sizeof(keys), &used, "%s%s", s ? " " : "", kW8Sub[s].key);
+        Out(o, n, "usage: snd.hear <kind (lara weapons enemies world objects ui speech music) | sub-group (%s)> "
+            "[normal|stumm|solo]", keys);
+        return false;
+    }
+    const int now = W8HearNow(isSub, idx);
+    int want = (now + 1) % 3;
+    if (words == 2) {
+        if (!_stricmp(v, "normal") || !_stricmp(v, "hoerbar") || !_stricmp(v, "audible") || !strcmp(v, "0")) want = 0;
+        else if (!_stricmp(v, "stumm") || !_stricmp(v, "mute") || !strcmp(v, "1")) want = 1;
+        else if (!_stricmp(v, "solo") || !strcmp(v, "2")) want = 2;
+        else { Out(o, n, "snd.hear %s: normal | stumm | solo", k); return false; }
+    }
+    const char *key = isSub ? kW8Sub[idx].key : kW8CatKey[idx];
+    char t[48], r[300] = "";
+    Out(t, sizeof(t), "%s:%s", isSub ? "sub" : "cat", key);
+    Log(1, "snd.hear %s %s (src=%s, was %s)", key, kW8HearWord[want], ShotSource("snd.hear"), kW8HearWord[now]);
+    if (want == now) {
+        const bool de = g_qbLang == 0;
+        Out(o, n, "%s: %s", key, de ? "schon so" : "already so");
+        return true;
+    }
+    bool ok = true;
+    if (now == 2) ok = RunW6Solo("off", r, sizeof(r)) && ok;          // leaving solo
+    if (now == 1) {                                                     // leaving stumm
+        char a[64];
+        Out(a, sizeof(a), "%s 0", t);
+        ok = (!isSub && idx == kW8Music ? RunMuteMusic("0", r, sizeof(r)) : RunW6Mute(a, r, sizeof(r))) && ok;
+    }
+    if (want == 1) {
+        char a[64];
+        Out(a, sizeof(a), "%s 1", t);
+        ok = (!isSub && idx == kW8Music ? RunMuteMusic("1", r, sizeof(r)) : RunW6Mute(a, r, sizeof(r))) && ok;
+    } else if (want == 2) {
+        if (g_w6SoloOn) RunW6Solo("off", r, sizeof(r));               // one solo at a time
+        ok = RunW6Solo(t, r, sizeof(r)) && ok;
+    }
+    char state[48];
+    W8HearText(key, g_qbLang == 0, state, sizeof(state));
+    Out(o, n, "%s: %s%s%s", key, state, ok ? "" : " - ", ok ? "" : r);
+    return ok;
+}
 // snd.solonew: solo the wave (else the emitter) of the newest line of the box (collapsed or not: the newest start)
 bool RunW8SoloNew(const char *, char *o, size_t n) {
     if (!W8Gate(o, n) || !W6Gate(o, n)) return false;
@@ -24382,6 +24825,12 @@ void ValW8Hooks(char *o, size_t n) {
 }
 // the bar's bool rows with a category argument (RadialOn): snd.logcat / snd.catmute / snd.catsolo <category>
 bool W8RowOn(const char *id, const char *arg, bool *isBool) {
+    if (!_stricmp(id, "snd.logsub")) {       // 0.22.53 W11
+        const int s = W8SubFind(arg);
+        if (s < 0) return false;
+        *isBool = true;
+        return !(g_w8SubHide & (1ull << s));
+    }
     const int c = W8CatFind(arg);
     if (c < 0) return false;
     if (!_stricmp(id, "snd.logcat")) { *isBool = true; return g_w8Show[c] != 0; }
@@ -25056,6 +25505,23 @@ void SoReadOptions(const char *ini) {
     InterlockedExchange(&g_soCap, c < 0 ? 0 : c > kSoCapMax ? kSoCapMax : c);
 }
 // [Sonar] from TruMenu.ini about once a second (the switches rows are "live"; the items write the INI first)
+// 0.22.53 S7: [Sonar] LoadNeighbourFloors / LoadAllConnected / LoadMaxUnits (live, once a second with the others)
+volatile LONG g_s7Nb = 0, g_s7All = 0, g_s7Max = 24;   // (section "0.22.53 S7" below SoTick)
+void S7ReadSwitch() {
+    const LONG nb = GetPrivateProfileIntA("Sonar", "LoadNeighbourFloors", atoi(OptDefault("Sonar", "LoadNeighbourFloors")),
+                                          g_iniPath) != 0 ? 1 : 0;
+    const LONG all = GetPrivateProfileIntA("Sonar", "LoadAllConnected", atoi(OptDefault("Sonar", "LoadAllConnected")),
+                                           g_iniPath) != 0 ? 1 : 0;
+    LONG mx = static_cast<LONG>(GetPrivateProfileIntA("Sonar", "LoadMaxUnits", atoi(OptDefault("Sonar", "LoadMaxUnits")),
+                                                      g_iniPath));
+    mx = mx < 1 ? 1 : mx > 64 ? 64 : mx;
+    if (g_soRead && (nb != g_s7Nb || all != g_s7All || mx != g_s7Max))
+        Log(1, "sonar: [Sonar] LoadNeighbourFloors %ld -> %ld, LoadAllConnected %ld -> %ld, LoadMaxUnits %ld -> %ld "
+            "(TruMenu.ini, live)", g_s7Nb, nb, g_s7All, all, g_s7Max, mx);
+    InterlockedExchange(&g_s7Nb, nb);
+    InterlockedExchange(&g_s7All, all);
+    InterlockedExchange(&g_s7Max, mx);
+}
 void SoReadSwitch() {
     if (!g_iniPath[0]) return;
     const LONG f = GetPrivateProfileIntA("Sonar", "FullMap", atoi(OptDefault("Sonar", "FullMap")), g_iniPath) != 0 ? 1 : 0;
@@ -25077,6 +25543,7 @@ void SoReadSwitch() {
     InterlockedExchange(&g_soAll, a);
     InterlockedExchange(&g_soCap, c);
     g_soRead = true;
+    S7ReadSwitch();                          // 0.22.53 S7
 }
 // game thread: the sites of one part to ours (on) or the game's (off), all or none; a refused site puts back what this
 // call wrote, then everything of ours goes back and the feature stays off for this run
@@ -25265,6 +25732,7 @@ void SoMapTick(DWORD now) {
         S5LogView("open");                   // 0.22.51 (d): centre, axis, the cut plane per unit (section "0.22.51 S5")
     }
 }
+void S7Tick(DWORD now);                      // 0.22.53 S7 (below): the sonar's extra map loads
 void SoTick() {                              // game thread, every pad poll (cheap: flags, the INI once a second)
     if (!g_soOk) return;
     const DWORD now = GetTickCount();
@@ -25272,7 +25740,182 @@ void SoTick() {                              // game thread, every pad poll (che
     SoApply("run time");
     if (g_soOnC) SoCapTick(now);
     SoMapTick(now);                          // 0.22.49: two reads while the sonar is closed
+    S7Tick(now);                             // 0.22.53 S7
 }
+// ======================================================================================================================
+// ---- 0.22.53 S7: the sonar loads more map units (owner 2026-11-14 22:2x "wirklich alles, was am Level zusammenhaengt",
+// docs\Status-2026-11-14.md W-53; workspace docs\Befund-TruMenu-02253-1411.md section 4; byte list
+// work\menu53_1411\sonar\precheck_sonarload.txt 51 rows, kS7Checks = its rows the code here relies on) ----
+// What the game does (static, listings work\menu53_1411\sonar\dis_*.txt): the open 0x6e53f0 asks 0x6e4e80(anchor,
+// recursive 1, pingable 1, 0); every map file arrives through the loader callback 0x6e4df0 ([0xee03c4] - 1, 0x6df600
+// floor mask, then - only for a recursive unit (+0xb2) - the neighbour rule 0x6e2e60 at 0x6e4e3f); 0x6e2e60 loads the
+// direct portal neighbours (map +8 count, +0xc 32-byte portals, +0 name) of a unit on the floor; mode 1 0x6e48e0 waits
+// until [0xee03c4] = 0 and places everything. The close 0x6e4800 -> 0x6dff20 releases / cancels every unit of the list
+// [0x8aff34] (a growable vector, 0x6e2a60 find-or-append) - also ours. The callback runs inside the loader update
+// 0x5c1da0 on the main thread (pumped also while paused); the game is paused while the PDA is open (pause byte
+// [0xe7f143] = 6, 0x5d4780; the frame 0x5dfc49 skips the world / portals / streaming); the "_map.drm" paths are the
+// sonar's alone (0x85d9e0, one user) and go straight to the loader 0x551470 (no object tracker).
+// Two switches (default off, only with FullMap - extra units are never pinged, so they show only on the full map):
+//   LoadNeighbourFloors = one step further than the game: the neighbours of every neighbour the game loaded on another
+//     floor (they arrive with recursive 0 - no further step); off-floor ones need AllFloors to be drawn
+//   LoadAllConnected = every portal-connected map unit of the level (recursive), wins over the other one
+// Data (s53_counts.py): (1) adds 0 .. 5 units / up to 4.6 MB, (2) up to 22 units / 15.7 MB in all (l2: 350 712 faces
+// > TriangleCap 300 000); open time + 0 .. 1.9 s at the measured 6.5 MiB/s. Caps: [Sonar] LoadMaxUnits (extra units,
+// default 24) and the faces of the loaded list >= TriangleCap; the PDA map heap [0xed00ac] (size unknown) -> no extra
+// load while it exists. One redirect: R1 0x6e4e3f `call 0x6e2e60` -> S7LoadStub (calls the game's rule first, then
+// adds ours with the game's own 0x6e2a60 / 0x6e4e80, only in mode 1 with the pause byte 6); written / taken back only
+// while the sonar is closed (mode 0), only over the game's bytes / our own
+const DWORD kS7R1 = 0x006e4e3f, kS7Rule = 0x006e2e60, kS7Find = 0x006e2a60, kS7Load = 0x006e4e80;
+const DWORD kS7Pending = 0x00ee03c4, kS7MapHeap = 0x00ed00ac, kS7Pause = 0x00e7f143;
+const BYTE kS7R1Game[5] = {0xe8, 0x1c, 0xe0, 0xff, 0xff};
+const DvCheck kS7Checks[] = {
+    {0x006e4df0, "832dc403ee0001 56 8b742410 8b8690000000 89868c000000"},
+    {0x006e4e2e, "8bce e8cba7ffff 80beb200000000 7409 56 e81ce0ffff 83c404 5e c3"},
+    {0x006e2e60, "57 8b7c2408 8b8f8c000000 85c9 7473 a068f2ed00 8487b0000000 7466"},
+    {0x006e2e7c, "56 33f6 66397108 7e5c 0fbfc6 c1e005 03410c 8b08 51 e8cafbffff 8a88b0000000 83c404"},
+    {0x006e2e9f, "84c9 7408 840d68f2ed00 7427 83b88c00000000 751e 80b8b100000000 7515"},
+    {0x006e2ebd, "3b3d54f2ed00 6a00 0f94c2 8bc8 52 6a01 e8ae1f0000 8b8f8c000000 83c601 663b7108 7ca4 5e 5f c3"},
+    {0x006e2a60, "56 33f6 393534ff8a00 57 8b7c240c 7624 a13cff8a00 8b0cb0 83c102 51 57 e88fc11400"},
+    {0x006e4e80, "81ec04020000 a1e8d78b00 33c4 89842400020000 8a84240c020000 56 8bf1 83be8c00000000"},
+    {0x006e4ea5, "8b8c2414020000 8886b4000000 898e94000000 0f85eb000000 8a94240c020000 8896b2000000"},
+    {0x006e4f54, "898688000000 8305c403ee0001 c686b100000001 c686b300000000"},
+    {0x006e4f87, "c7868800000000000000"},
+    {0x006e48e0, "55 8bec 83e4f0 83ec34 53 33db 391dc403ee00 56 57 0f85ef010000 a1d003ee00 c705c803ee0002000000"},
+    {0x006dff20, "53 57 33db 33ff 391d34ff8a00 762a 56 90 a13cff8a00 8b34b8 3bf3 7410 8bce e83dd8ffff 56 e8c76bebff"},
+    {0x006dd780, "53 56 8bf1 8b868c000000 33db 3bc3 57 742d 389eb4000000 7425"},
+    {0x005d47a7, "c60543f1e70006 e83db6feff 83c404 e8f52cfbff 810db4f0e70000000010"},
+    {0x005dfc49, "a043f1e700 3c06 0f841c030000 3c0a 0f8414030000"},
+    {0x006e5657, "8b0dac00ed00 85c9 7452"},
+};
+bool g_s7Ok = false, g_s7On = false;         // checks ok; R1 written now (game thread)
+BYTE g_s7R1New[5];
+// g_s7Nb / g_s7All / g_s7Max = [Sonar] LoadNeighbourFloors / LoadAllConnected / LoadMaxUnits (above SoReadSwitch)
+LONG g_s7Extra = 0, g_s7Capped = 0, g_s7Faults = 0, g_s7Gate = 0, g_s7Opens = 0;   // this open (reset at mode 0)
+DWORD g_s7Start = 0, g_s7Done = 0, g_s7Tried[64];
+int g_s7TriedN = 0;
+char g_s7Names[512] = "", g_s7Last[400] = "no open with extra loads yet";
+bool g_s7Logged = false;
+typedef void(__cdecl *S7RuleFn)(DWORD unit);
+typedef DWORD(__cdecl *S7FindFn)(DWORD name);
+typedef void(__fastcall *S7LoadFn)(DWORD unit, void *edx, DWORD recursive, DWORD pingable, DWORD arg3);   // thiscall, ret 0xc
+LONG S7Scope() { return g_s7All ? 2 : g_s7Nb ? 1 : 0; }
+LONG S7Faces() {                             // faces of every loaded list unit (both meshes, +0x44)
+    DWORD n = 0, arr = 0;
+    LONG f = 0;
+    if (!ReadDword(kSoUnitCount, &n) || !ReadDword(kSoUnits, &arr) || !arr) return 0;
+    for (DWORD i = 0; i < n && i < 512; ++i) {
+        DWORD u = 0, m = 0;
+        if (!ReadDword(arr + i * 4, &u) || !u || !ReadDword(u + 0x8c, &m) || !m) continue;
+        for (DWORD k = 0; k < 2; ++k) {
+            DWORD mesh = 0, c = 0;
+            if (ReadDword(m + k * 4, &mesh) && mesh && ReadDword(mesh + 0x44, &c)) f += static_cast<LONG>(c);
+        }
+    }
+    return f;
+}
+// game thread, inside the load callback 0x6e4df0 (after the game's own rule): the neighbours of u the game did not ask for
+void S7Extend(DWORD u) {
+    DWORD mode = 0, map = 0, portals = 0, heap = 1;
+    BYTE pause = 0, floor = 0, mask = 0;
+    WORD n = 0;
+    const LONG scope = S7Scope();
+    if (!scope || !g_soOnC) return;
+    if (!ReadDword(kSoMode, &mode) || mode != 1) return;   // a floor switch (mode 4) reloads only the game's set
+    if (!ReadByte(kS7Pause, &pause) || pause != 6) { g_s7Gate |= 1; return; }
+    if (!ReadDword(kS7MapHeap, &heap) || heap) { g_s7Gate |= 2; return; }   // PDA map heap: its free space is unknown
+    if (!ReadDword(u + 0x8c, &map) || !map || !ReadByte(kSoFloor, &floor) || !ReadByte(u + 0xb0, &mask)) return;
+    if (scope == 1 && (mask & floor)) return;   // on the floor: the game asked for every neighbour already
+    if (!ReadWord(map + 8, &n) || !ReadDword(map + 0xc, &portals) || !portals) return;
+    if (!g_s7Start) g_s7Start = GetTickCount() | 1;
+    for (WORD i = 0; i < n && i < 64; ++i) {
+        if (g_s7Extra >= g_s7Max) { g_s7Capped |= 1; return; }
+        if (S7Faces() >= g_soCap) { g_s7Capped |= 2; return; }
+        DWORD name = 0, nb = 0, loaded = 1, h = 0;
+        BYTE loading = 1;
+        if (!ReadDword(portals + i * 32u, &name) || !name) continue;
+        __try { nb = reinterpret_cast<S7FindFn>(kS7Find)(name); }
+        __except (EXCEPTION_EXECUTE_HANDLER) { ++g_s7Faults; return; }
+        if (!nb || !ReadDword(nb + 0x8c, &loaded) || loaded || !ReadByte(nb + 0xb1, &loading) || loading) continue;
+        if (ReadDword(nb + 0x88, &h) && h) continue;                         // requested already
+        bool tried = false;                                                  // no file last time: once per open
+        for (int k = 0; k < g_s7TriedN && !tried; ++k) tried = g_s7Tried[k] == nb;
+        if (tried) continue;
+        if (g_s7TriedN < 64) g_s7Tried[g_s7TriedN++] = nb;
+        __try { reinterpret_cast<S7LoadFn>(kS7Load)(nb, nullptr, scope == 2 ? 1 : 0, 0, 0); }   // (1): no further step
+        __except (EXCEPTION_EXECUTE_HANDLER) { ++g_s7Faults; return; }
+        if (ReadDword(nb + 0x88, &h) && h) {                                 // no file: +0x88 stays 0
+            ++g_s7Extra;
+            char nm[40] = "";
+            ReadString(nb + 2, nm, sizeof(nm));
+            size_t used = strlen(g_s7Names);
+            LabelAdd(g_s7Names, sizeof(g_s7Names), &used, "%s%s", used ? " " : "", nm);
+        }
+    }
+}
+void __cdecl S7LoadStub(DWORD u) {           // R1 0x6e4e3f (cdecl like the game's call; the caller pops the argument)
+    __try { reinterpret_cast<S7RuleFn>(kS7Rule)(u); }
+    __except (EXCEPTION_EXECUTE_HANDLER) { ++g_s7Faults; return; }
+    S7Extend(u);
+}
+void S7Check() {
+    DWORD at = 0;
+    g_s7Ok = g_soOk && DvChecks(kS7Checks, sizeof(kS7Checks) / sizeof(kS7Checks[0]), &at);
+    const DWORD rel = reinterpret_cast<DWORD>(&S7LoadStub) - (kS7R1 + 5);
+    g_s7R1New[0] = 0xe8;
+    memcpy(g_s7R1New + 1, &rel, 4);
+    Log(g_s7Ok ? 1 : 0, "0.22.53 sonar load: checks %s (%d rows); [Sonar] LoadNeighbourFloors %ld, LoadAllConnected %ld, "
+        "LoadMaxUnits %ld (with FullMap; R1 0x6e4e3f written while the sonar is closed)",
+        g_s7Ok ? "ok" : !g_soOk ? "need the 0.22.48 sonar checks" : "differ",
+        static_cast<int>(sizeof(kS7Checks) / sizeof(kS7Checks[0])), g_s7Nb, g_s7All, g_s7Max);
+    if (!g_s7Ok && g_soOk) Log(0, "0.22.53 sonar load: code differs at 0x%08lx - no extra loads this run", at);
+}
+// game thread, every pad poll (SoTick): R1 on / off while closed, the counters per open, one log line per open
+void S7Tick(DWORD now) {
+    if (!g_s7Ok) return;
+    DWORD mode = 0;
+    if (!ReadDword(kSoMode, &mode)) return;
+    if (mode == 0) {
+        const bool want = S7Scope() != 0 && g_soOnC;
+        if (want != g_s7On) {
+            const bool ok = want ? SoWrite(kS7R1, kS7R1Game, g_s7R1New, 5) : SoWrite(kS7R1, g_s7R1New, kS7R1Game, 5);
+            if (ok) g_s7On = want;
+            Log(ok ? 1 : 0, "0.22.53 sonar load: R1 0x6e4e3f %s%s", want ? "-> S7LoadStub" : "back to the game's call 0x6e2e60",
+                ok ? "" : " - refused (bytes not as expected, another plugin?)");
+            if (!ok) g_s7Ok = false;
+        }
+        g_s7Extra = g_s7Capped = g_s7Faults = g_s7Gate = 0;
+        g_s7Start = g_s7Done = 0;
+        g_s7TriedN = 0;
+        g_s7Names[0] = 0;
+        g_s7Logged = false;
+        return;
+    }
+    if (!g_s7On || g_s7Logged) return;
+    DWORD pending = 1;
+    ReadDword(kS7Pending, &pending);
+    if (mode < 2 || pending) return;         // mode 1 waits for the loads; mode 2+ = placed
+    g_s7Logged = true;
+    ++g_s7Opens;
+    g_s7Done = now;
+    DWORD count = 0;
+    ReadDword(kSoUnitCount, &count);
+    BYTE floor = 0;
+    ReadByte(kSoFloor, &floor);
+    char anchor[48] = "-";
+    DWORD a = 0;
+    if (ReadDword(kSoAnchor, &a) && a) ReadString(a + 2, anchor, sizeof(anchor));
+    Out(g_s7Last, sizeof(g_s7Last), "open %ld: scope %s, anchor %s floor 0x%02x, list %lu units, extra %ld (%s), capped %s%s, "
+        "faces %ld (cap %ld), loads done %lu ms after the first extra, faults %ld%s", g_s7Opens,
+        S7Scope() == 2 ? "everything connected" : "neighbour floors", anchor, floor, count, g_s7Extra,
+        g_s7Names[0] ? g_s7Names : "-", (g_s7Capped & 1) ? "units " : "", (g_s7Capped & 2) ? "faces" : g_s7Capped ? "" : "no",
+        S7Faces(), g_soCap, g_s7Start ? now - g_s7Start : 0, g_s7Faults,
+        (g_s7Gate & 2) ? "; PDA map heap present - no extra load" : (g_s7Gate & 1) ? "; not paused / not mode 1 - skipped" : "");
+    Log(1, "0.22.53 sonar load %s%s", g_s7Last, g_soOnA || S7Scope() == 2 ? "" : " (other floors drawn only with AllFloors)");
+}
+void S7Shutdown() {                          // unload: R1 back (only over our own bytes)
+    if (g_s7On && SoWrite(kS7R1, g_s7R1New, kS7R1Game, 5)) g_s7On = false;
+}
+// ---- end of 0.22.53 S7 (items below with the other sonar items) ----
 // ---- items ----
 bool SoGate(char *o, size_t n) {
     if (!g_soOk) { Out(o, n, "disabled: pre-check failed (%s)", g_soWhy); return false; }
@@ -25333,6 +25976,45 @@ bool RunSoAll(const char *arg, char *o, size_t n) {
            : (de ? "nur dieses Stockwerk (Spiel)" : "this floor only (the game's)"),
         g_soFull ? "" : (de ? " (wirkt erst mit Sonar komplett)" : " (acts with the full map only)"), on ? 1 : 0);
     return true;
+}
+// 0.22.53 S7: sonar.loadnb / sonar.loadall (the two switches, default off), sonar.loadstate (the last open)
+bool S7Set(const char *key, volatile LONG *flag, const char *item, const char *arg, char *o, size_t n) {
+    if (!SoGate(o, n)) return false;
+    if (!g_s7Ok) { Out(o, n, "refused: the sonar load checks failed (TruMenu.log '0.22.53 sonar load')"); return false; }
+    const bool on = BoolArg(arg, *flag != 0);
+    const LONG was = InterlockedExchange(flag, on ? 1 : 0);
+    IniKeepInt("Sonar", key, on ? 1 : 0);
+    Log(1, "%s %d (src=%s, was %ld): [Sonar] %s=%d written - acts at the next sonar open (R1 written while it is closed)",
+        item, on ? 1 : 0, ShotSource(item), was, key, on ? 1 : 0);
+    return true;
+}
+void ValS7Nb(char *o, size_t n) { Out(o, n, "%ld", g_s7Nb); }
+void ValS7All(char *o, size_t n) { Out(o, n, "%ld", g_s7All); }
+bool RunS7Nb(const char *arg, char *o, size_t n) {
+    if (!S7Set("LoadNeighbourFloors", &g_s7Nb, "sonar.loadnb", arg, o, n)) return false;
+    const bool de = g_qbLang == 0;
+    Out(o, n, "%s%s%s", g_s7Nb ? (de ? "Nachbar-Stockwerke nachladen: an (n\303\244chstes \303\226ffnen)"
+                                     : "load the neighbour floors: on (next open)")
+                               : (de ? "Nachbar-Stockwerke nachladen: aus" : "load the neighbour floors: off"),
+        g_s7Nb && !g_soFull ? (de ? " - wirkt erst mit Sonar komplett" : " - acts with the full map only") : "",
+        g_s7Nb && !g_soAll ? (de ? "; andere Stockwerke zeigt erst 'Alle verbundenen Bereiche'"
+                                 : "; other floors show with 'All connected areas'") : "");
+    return true;
+}
+bool RunS7All(const char *arg, char *o, size_t n) {
+    if (!S7Set("LoadAllConnected", &g_s7All, "sonar.loadall", arg, o, n)) return false;
+    const bool de = g_qbLang == 0;
+    if (g_s7All)
+        Out(o, n, de ? "Alles Verbundene laden: an (n\303\244chstes \303\226ffnen, h\303\266chstens %ld Bereiche)%s"
+                     : "load everything connected: on (next open, at most %ld areas)%s", g_s7Max,
+            !g_soFull ? (de ? " - wirkt erst mit Sonar komplett" : " - acts with the full map only") : "");
+    else Out(o, n, "%s", de ? "Alles Verbundene laden: aus" : "load everything connected: off");
+    return true;
+}
+void ValS7State(char *o, size_t n) {
+    if (!g_s7Ok) { Out(o, n, "off (checks failed or the sonar checks failed)"); return; }
+    Out(o, n, "R1 %s; scope %s, max %ld units; %s", g_s7On ? "on" : "off",
+        S7Scope() == 2 ? "everything connected" : S7Scope() == 1 ? "neighbour floors" : "off", g_s7Max, g_s7Last);
 }
 // the map of the current unit as the sonar read it (kept after the close; the sonar has to be opened once in the unit)
 void ValSoUnitMap(char *o, size_t n) {
@@ -29090,6 +29772,8 @@ bool g_w5MkOk = false;
 const float kW5LabelNear = 4350.0f;          // 15 m (about 290 units per metre, docs\Befund-Markup-Massstab-0611.md)
 const int kW5LabelMax = 24;
 LONG g_w5Object = 0, g_w5Skipped = 0, g_w5Room = 0, g_w5Labels = 0;   // last frame
+LONG g_w5SonarFrames = 0;                    // 0.22.53 W12: frames drawn with the sonar camera (log line)
+bool g_w5SonarWas = false;
 struct W5Type { const char *de, *en; ImU32 colour; };
 const W5Type kW5Types[24] = {
     {"ohne Art", "none", IM_COL32(200, 200, 200, 160)},
@@ -29168,6 +29852,24 @@ void W5DrawMarkup() {
     ImGuiIO &io = ImGui::GetIO();
     View v;
     if (!ReadView(&v, io.DisplaySize.x, io.DisplaySize.y)) return;
+    // 0.22.53 W12 (owner 2026-11-14 22:3x: with the PDA sonar open the triggers follow the sonar camera, the markups stay
+    // a fixed overlay): 0xa038f0 is the gameplay camera's matrix and is not rewritten while the game is paused; the trigger
+    // layer projects with 0xe804a0 (the camera update 0x5f3df0 - the sonar view's camera then). While the sonar is open
+    // (mode [0xee03c8] 1 .. 4) the markup layer takes the same matrix (DvCamRead's way, same focal / centre / scale)
+    DWORD soMode = 0;
+    float sonarM[16];
+    const bool sonar = ReadDword(kSoMode, &soMode) && soMode >= 1 && soMode <= 4 && ReadFloats(kLblMatrix, sonarM, 16) &&
+                       DvFinite(sonarM, 16);
+    if (sonar) {
+        memcpy(v.m, sonarM, sizeof(sonarM));
+        ++g_w5SonarFrames;
+    }
+    if (sonar != g_w5SonarWas) {             // one line per sonar open / close while the markup layer draws
+        g_w5SonarWas = sonar;
+        Log(1, "0.22.53 markup: %s (sonar mode %lu; %ld frames with the sonar camera so far)", sonar
+            ? "the sonar is open - the markup layer projects with the camera matrix 0xe804a0 like the trigger layer"
+            : "the sonar is closed - the markup layer projects with 0xa038f0 again", soMode, g_w5SonarFrames);
+    }
     ImDrawList *dl = ImGui::GetBackgroundDrawList();
     DWORD mgr = 0, box = 0, player = 0;
     if (!ReadDword(kMarkupMgr, &mgr) || !mgr || !ReadDword(mgr + 0x14, &box)) return;
@@ -37879,8 +38581,16 @@ const Item kItems[] = {
     {"snd.sonar57", "bool", "0.22.47: fallback - the whole sound group 57 (PDA; its child group 70 = Lara's hints too) "
                             "muted; [Sound] SonarMute=2, kept", true, ValW7Sonar57, RunW7Sonar57},
     // 0.22.50 W8 sound log readable, FMOD's channels, quick hearing (section "0.22.50 W8")
-    {"snd.logcat", "action", "0.22.50 <lara|enemies|world|objects|ui|speech|music> [1|0]: show / hide that kind in the "
-                             "sound box ([Sound] Log<Kind>, live)", false, ValW8LogCat, RunW8LogCat},
+    {"snd.logcat", "action", "0.22.50 <lara|weapons|enemies|world|objects|ui|speech|music> [1|0]: show / hide that kind in "
+                             "the sound box ([Sound] Log<Kind>, live; 0.22.53: + weapons)", false, ValW8LogCat, RunW8LogCat},
+    // 0.22.53 W11 (section "0.22.53 W11" inside "0.22.50 W8"): sub-groups, filter follows mute, Stumm / Solo per row
+    {"snd.logsub", "action", "0.22.53 <sub-group key> [1|0]: show / hide one sub-group in the sound box ([Sound] "
+                             "LogHideSubs, live; keys: snd.hear)", false, ValW8LogSub, RunW8LogSub},
+    {"snd.logfollow", "bool", "0.22.53: Filter folgt Stumm - what Stumm / Solo silences leaves the sound box too ([Sound] "
+                              "LogFollowMute, live, default 1)", false, ValW8Follow, RunW8Follow},
+    {"snd.hear", "action", "0.22.53 <kind|sub-group> [normal|stumm|solo]: hear a kind / sub-group normally, mute it "
+                           "(snd.mute cat: / sub:) or solo it (snd.solo; one solo at a time); no state = the next one",
+     true, ValW6Mutes, RunW8Hear},
     {"snd.logaudible", "bool", "0.22.50: the sound box shows only lines FMOD does not mute / pause ([Sound] "
                                "LogOnlyAudible, live)", false, ValW8Audible, RunW8Audible},
     {"snd.logcollapse", "bool", "0.22.50: same wave + same source = one line with xn and the newest time, moving to the top "
@@ -37923,6 +38633,14 @@ const Item kItems[] = {
     {"sonar.allfloors", "bool", "0.22.49: with sonar.full - the map units of other floors that the sonar loaded itself "
                                 "are drawn too (0x6e429b, the floor test of the frame 0x6e4130; no extra load); [Sonar] "
                                 "AllFloors, kept, live", true, ValSoAll, RunSoAll},
+    // 0.22.53 S7 (section "0.22.53 S7"): the sonar loads more map units itself
+    {"sonar.loadnb", "bool", "0.22.53: with sonar.full - the sonar loads one step further than the game (the neighbours of "
+                             "its off-floor neighbours); [Sonar] LoadNeighbourFloors, kept, next open", true, ValS7Nb, RunS7Nb},
+    {"sonar.loadall", "bool", "0.22.53: with sonar.full - every portal-connected map unit of the level (recursive, capped "
+                              "by LoadMaxUnits / TriangleCap); [Sonar] LoadAllConnected, kept, next open", true, ValS7All,
+     RunS7All},
+    {"sonar.loadstate", "info", "0.22.53: the sonar's extra loads - R1, scope, the last open (units, cap, time, faults)",
+     false, ValS7State, nullptr},
     {"sonar.unitmap", "info", "0.22.49: the sonar map of the current unit (read while the sonar is open, kept after): "
                               "real (faces) / placeholder only / no file", false, ValSoUnitMap, nullptr},
     // 0.22.51 S5 (section "0.22.51 S5")
@@ -41883,8 +42601,9 @@ enum QbFlag { kQfConfirm = 1, kQfBackup = 2,
               kQfTp = 16,                  // 0.22.28: test-package content (Q90, docs\Testpakete-1111.md) - after the tests
                                            // each such row becomes a real row of its page or is deleted (owner 2026-11-11)
                                            // 0.22.44 (W2): the Q90 packages are archived (group Archiv / Alt)
-              kQfTg = 32 };                // 0.22.44 (W2): content of a test guide package (docs\Testanleitung-1411.md,
+              kQfTg = 32,                  // 0.22.44 (W2): content of a test guide package (docs\Testanleitung-1411.md,
                                            // packages A - F; block "TG 1411" of kQbTests) - rows of existing items only
+              kQfLv2 = 64, kQfLv3 = 128 }; // 0.22.53 W11: a kQbGroup / kQbLabel at nesting level 2 / 3 (the sound log trees)
 enum QbCount { kQcNone = 0, kQcLayer, kQcTriggers, kQcTrgLabels, kQcLaraIn, kQcEncl, kQcLabels, kQcMarkup, kQcFlat, kQcOn,
                kQcCine, kQcAi,            // 0.19 kQcAi: enemies in the ai.dumb scope (last frame)
                kQcPhys };                 // 0.21.1: physics bodies used / capacity
@@ -41901,12 +42620,15 @@ enum QbVal { kQvNone = 0, kQvDepth, kQvAlpha, kQvBright, kQvEncl, kQvSpeed, kQvP
              kQvVoiceLang,                                // 0.22.18 voice.lang
              kQvAtStyle,                                  // 0.22.40 menu.attracticon 0 .. 7 (Q126b); 0.22.41 0 .. 16
              kQvSoFade, kQvSoArea,                        // 0.22.51 sonar.fade (8 steps) / sonar.area (alle + the list)
-             kQvSoTint };                                 // 0.22.52 sonar.tint aus / ein Farbton / je Bereich
+             kQvSoTint,                                   // 0.22.52 sonar.tint aus / ein Farbton / je Bereich
+             kQvHear };                                   // 0.22.53 W11 snd.hear <row arg> normal / stumm / solo
 // colour 0 = the layer's; flags = QbFlag
 struct QbRow { const char *de, *en, *id, *arg; int kind, layer, count, val; ImU32 colour; int flags; };
 // 0.22.18 (owner 2026-11-10, shot pc_leiste_gruppen_164959): the nesting level of a group heading - 0 top, 1 a sub-group
 // (kQfSub); its rows are one level deeper. A closed group hides everything up to the next heading of its level or above.
-int QbGroupLevel(const QbRow &r) { return (r.flags & kQfSub) ? 1 : 0; }
+int QbGroupLevel(const QbRow &r) {           // 0.22.53 W11: levels 2 / 3 (kQfLv2 / kQfLv3)
+    return (r.flags & kQfLv3) ? 3 : (r.flags & kQfLv2) ? 2 : (r.flags & kQfSub) ? 1 : 0;
+}
 enum QbSpecial { kQsNone = 0, kQsLara, kQsCheckpoints, kQsSaves, kQsFav, kQsTests,   // 0.21.1 kQsFav / kQsTests
                  kQsSwitches,              // 0.21.5 page Fixes (TruMenu.switches.txt)
                  kQsCostume,               // 0.21.6 page Kostueme (section "0.21.6 costumes")
@@ -42021,6 +42743,10 @@ const QbRow kQbSettings[] = {
      0},
     // 0.22.50 W8 (section "0.22.50 W8"): the bottom-right box readable - its filters (live, [Sound] Log*) and the quick
     // hearing per kind (snd.catmute / snd.catsolo = snd.mute / snd.solo cat:<kind>), newest sound solo, everything back
+    // 0.22.53 W11 (owner 2026-11-14 23:2x, binding layout, docs\Status-2026-11-14.md W-53): [-] Ton-Log -> the settings
+    // rows -> [+] Filter (Zeigen) (log display only) -> plain heading "Schnell-Hoeren" -> [+] Stumm / Solo (sound only);
+    // both trees kind -> sub-group (kW8CatOrder / kW8Sub, rows from work\menu53_1411\gen_rows.py). Nesting: Ton 0, Ton-Log
+    // 1 (kQfSub), the two trees 2 (kQfLv2), a kind 3 (kQfLv3)
     {"Ton-Log (unten rechts)", "Sound log (bottom right)", "-", "ton_log", kQbGroup, -1, kQcNone, 0, kQbSound, kQfSub},
     {"Ton-Anzeige unten rechts", "Sound box bottom right", "snd.list", "", kQbBool, -1, kQcNone, 0, kQbSound, 0},
     {"Wiederholungen zusammenfassen (\303\227n)", "Collapse repetitions (xn)", "snd.logcollapse", "", kQbBool, -1, kQcNone,
@@ -42028,40 +42754,175 @@ const QbRow kQbSettings[] = {
     {"Nur h\303\266rbare Zeilen", "Audible lines only", "snd.logaudible", "", kQbBool, -1, kQcNone, 0, kQbSound, 0},
     {"H\303\266chstens so weit weg (m)", "At most this far (m)", "sw.set", "TruMenu:Sound:LogMaxDist", kQbSwitch, -1,
      kQcNone, 0, 0, 0},
-    {"Zeigen: Lara", "Show: Lara", "snd.logcat", "lara", kQbBool, -1, kQcNone, 0, kQbSound, 0},
-    {"Zeigen: Gegner", "Show: enemies", "snd.logcat", "enemies", kQbBool, -1, kQcNone, 0, kQbSound, 0},
-    {"Zeigen: Welt / Umgebung", "Show: world / ambience", "snd.logcat", "world", kQbBool, -1, kQcNone, 0, kQbSound, 0},
-    {"Zeigen: Objekte & Mechanik", "Show: objects & mechanics", "snd.logcat", "objects", kQbBool, -1, kQcNone, 0, kQbSound,
-     0},
-    {"Zeigen: PDA / UI", "Show: PDA / UI", "snd.logcat", "ui", kQbBool, -1, kQcNone, 0, kQbSound, 0},
-    {"Zeigen: Sprache", "Show: speech", "snd.logcat", "speech", kQbBool, -1, kQcNone, 0, kQbSound, 0},
-    {"Zeigen: Musik", "Show: music", "snd.logcat", "music", kQbBool, -1, kQcNone, 0, kQbSound, 0},
-    {"Schnell h\303\266ren (rechts = an, links = aus)", "Quick hearing (right = on, left = off)", "-", "", kQbNote, -1,
-     kQcNone, 0, kQbGrey, 0},
-    {"Stumm: Lara", "Mute: Lara", "snd.catmute", "lara", kQbBool, -1, kQcNone, 0, kQbSound, 0},
-    {"Stumm: Gegner", "Mute: enemies", "snd.catmute", "enemies", kQbBool, -1, kQcNone, 0, kQbSound, 0},
-    {"Stumm: Welt / Umgebung", "Mute: world / ambience", "snd.catmute", "world", kQbBool, -1, kQcNone, 0, kQbSound, 0},
-    {"Stumm: Objekte & Mechanik", "Mute: objects & mechanics", "snd.catmute", "objects", kQbBool, -1, kQcNone, 0, kQbSound,
-     0},
-    {"Stumm: PDA / UI", "Mute: PDA / UI", "snd.catmute", "ui", kQbBool, -1, kQcNone, 0, kQbSound, 0},
-    {"Stumm: Sprache", "Mute: speech", "snd.catmute", "speech", kQbBool, -1, kQcNone, 0, kQbSound, 0},
-    {"Stumm: Musik (= Musik aus)", "Mute: music (= Music off)", "snd.catmute", "music", kQbBool, -1, kQcNone, 0, kQbSound,
-     0},
-    {"Solo: Lara", "Solo: Lara", "snd.catsolo", "lara", kQbBool, -1, kQcNone, 0, kQbSound, 0},
-    {"Solo: Gegner", "Solo: enemies", "snd.catsolo", "enemies", kQbBool, -1, kQcNone, 0, kQbSound, 0},
-    {"Solo: Welt / Umgebung", "Solo: world / ambience", "snd.catsolo", "world", kQbBool, -1, kQcNone, 0, kQbSound, 0},
-    {"Solo: Objekte & Mechanik", "Solo: objects & mechanics", "snd.catsolo", "objects", kQbBool, -1, kQcNone, 0, kQbSound,
-     0},
-    {"Solo: PDA / UI", "Solo: PDA / UI", "snd.catsolo", "ui", kQbBool, -1, kQcNone, 0, kQbSound, 0},
-    {"Solo: Sprache", "Solo: speech", "snd.catsolo", "speech", kQbBool, -1, kQcNone, 0, kQbSound, 0},
-    {"Solo: Musik", "Solo: music", "snd.catsolo", "music", kQbBool, -1, kQcNone, 0, kQbSound, 0},
-    {"Neuester Ton solo (oberste Zeile)", "Newest sound solo (top line)", "snd.solonew", "", kQbAction, -1, kQcNone, 0,
-     kQbSound, 0},
-    {"Alles zur\303\274ck (jeder Ton-Schalter)", "Everything back (every sound switch)", "snd.mute", "all 0", kQbAction, -1,
-     kQcNone, 0, kQbGrey, 0},
     {"Alle FMOD-Kan\303\244le ins Log", "Every FMOD channel to the log", "snd.fmod", "", kQbAction, -1, kQcNone, 0, kQbSound,
      0},
     {"Quellen-Hooks: Stand", "Source hooks: state", "snd.hooks", "", kQbInfo, -1, kQcNone, 0, kQbGrey, 0},
+    // ---- Filter (Zeigen): the log display only (a hidden kind stays audible) ----
+    {"Filter (Zeigen)", "Filter (show)", "-", "ton_log_filter", kQbGroup, -1, kQcNone, 0, kQbSound, kQfLv2},
+    {"Filter folgt Stumm", "Filter follows mute", "snd.logfollow", "", kQbBool, -1, kQcNone, 0, kQbSound, 0},
+    {"Lara", "Lara", "-", "tlf_lara", kQbGroup, -1, kQcNone, 0, kQbSound, kQfLv3},
+    {"Lara (ganze Art)", "Lara (whole kind)", "snd.logcat", "lara", kQbBool, -1, kQcNone, 0, kQbSound, 0},
+    {"Stimme (g69, DLC 2 g77)", "voice (g69, DLC 2 g77)",
+     "snd.logsub", "lara_voice", kQbBool, -1, kQcNone, 0, kQbSound, 0},
+    {"K\303\266rper / Foley (g32-42, DLC 2 g78)", "body / foley (g32-42, DLC 2 g78)",
+     "snd.logsub", "lara_body", kQbBool, -1, kQcNone, 0, kQbSound, 0},
+    {"Ausr\303\274stung (g34, g14)", "gear (g34, g14)",
+     "snd.logsub", "lara_gear", kQbBool, -1, kQcNone, 0, kQbSound, 0},
+    {"Spezial (Herzschlag, Zeitlupe, Ziel) (g55)", "special (heartbeat, slow motion, target) (g55)",
+     "snd.logsub", "lara_special", kQbBool, -1, kQcNone, 0, kQbSound, 0},
+    {"Schattenkraft / DLC-2-Effekte (g79)", "shadow power / DLC 2 FX (g79)",
+     "snd.logsub", "lara_shadow", kQbBool, -1, kQcNone, 0, kQbSound, 0},
+    {"Waffen", "Weapons", "-", "tlf_wp", kQbGroup, -1, kQcNone, 0, kQbSound, kQfLv3},
+    {"Waffen (ganze Art)", "Weapons (whole kind)", "snd.logcat", "weapons", kQbBool, -1, kQcNone, 0, kQbSound, 0},
+    {"Ziehen & Spannen (g58, g59)", "draw & cock (g58, g59)",
+     "snd.logsub", "wp_draw", kQbBool, -1, kQcNone, 0, kQbSound, 0},
+    {"Sch\303\274sse (g62)", "shots (g62)", "snd.logsub", "wp_shot", kQbBool, -1, kQcNone, 0, kQbSound, 0},
+    {"Nachladen & Granaten (g63)", "reload & grenades (g63)",
+     "snd.logsub", "wp_reload", kQbBool, -1, kQcNone, 0, kQbSound, 0},
+    {"Patronenh\303\274lsen (g61)", "brass (g61)", "snd.logsub", "wp_brass", kQbBool, -1, kQcNone, 0, kQbSound, 0},
+    {"Einschl\303\244ge & Sirren (g51, g52)", "impacts & whiz (g51, g52)",
+     "snd.logsub", "wp_impact", kQbBool, -1, kQcNone, 0, kQbSound, 0},
+    {"Laras Waffe ohne Gruppe (g14)", "Lara's weapon without a group (g14)",
+     "snd.logsub", "wp_lara14", kQbBool, -1, kQcNone, 0, kQbSound, 0},
+    {"Gegner", "Enemies", "-", "tlf_en", kQbGroup, -1, kQcNone, 0, kQbSound, kQfLv3},
+    {"Gegner (ganze Art)", "Enemies (whole kind)", "snd.logcat", "enemies", kQbBool, -1, kQcNone, 0, kQbSound, 0},
+    {"K\303\266rper & Schritte (g27, g28)", "body & movement (g27, g28)",
+     "snd.logsub", "en_body", kQbBool, -1, kQcNone, 0, kQbSound, 0},
+    {"Ausr\303\274stung (g29)", "gear (g29)", "snd.logsub", "en_gear", kQbBool, -1, kQcNone, 0, kQbSound, 0},
+    {"Angriffe (g30)", "attacks (g30)", "snd.logsub", "en_attack", kQbBool, -1, kQcNone, 0, kQbSound, 0},
+    {"Rufe & Stimmen (g65, g66)", "calls & voices (g65, g66)",
+     "snd.logsub", "en_voice", kQbBool, -1, kQcNone, 0, kQbSound, 0},
+    {"Kraken (g67)", "kraken (g67)", "snd.logsub", "en_kraken", kQbBool, -1, kQcNone, 0, kQbSound, 0},
+    {"Welt / Umgebung", "World / ambience", "-", "tlf_wo", kQbGroup, -1, kQcNone, 0, kQbSound, kQfLv3},
+    {"Welt / Umgebung (ganze Art)", "World / ambience (whole kind)",
+     "snd.logcat", "world", kQbBool, -1, kQcNone, 0, kQbSound, 0},
+    {"Welt-Standard (ohne Gruppe) (g14)", "world default (no group) (g14)",
+     "snd.logsub", "wo_default", kQbBool, -1, kQcNone, 0, kQbSound, 0},
+    {"Umgebung & Loops (g15-19)", "ambience & loops (g15-19)",
+     "snd.logsub", "wo_amb", kQbBool, -1, kQcNone, 0, kQbSound, 0},
+    {"Tiere & V\303\266gel (g20)", "animals & birds (g20)",
+     "snd.logsub", "wo_animals", kQbBool, -1, kQcNone, 0, kQbSound, 0},
+    {"Feuer (g21)", "fire (g21)", "snd.logsub", "wo_fire", kQbBool, -1, kQcNone, 0, kQbSound, 0},
+    {"Wind & Gewitter (g22)", "wind & thunder (g22)", "snd.logsub", "wo_wind", kQbBool, -1, kQcNone, 0, kQbSound, 0},
+    {"Wasser & Unterwasser (g23, g24)", "water & underwater (g23, g24)",
+     "snd.logsub", "wo_water", kQbBool, -1, kQcNone, 0, kQbSound, 0},
+    {"Objekte & Mechanik", "Objects & mechanics", "-", "tlf_ob", kQbGroup, -1, kQcNone, 0, kQbSound, kQfLv3},
+    {"Objekte & Mechanik (ganze Art)", "Objects & mechanics (whole kind)",
+     "snd.logcat", "objects", kQbBool, -1, kQcNone, 0, kQbSound, 0},
+    {"Mechanik (g43, g45)", "mechanisms (g43, g45)", "snd.logsub", "ob_mech", kQbBool, -1, kQcNone, 0, kQbSound, 0},
+    {"Tr\303\274mmer (g44)", "debris (g44)", "snd.logsub", "ob_debris", kQbBool, -1, kQcNone, 0, kQbSound, 0},
+    {"Explosionen (g31)", "explosions (g31)", "snd.logsub", "ob_blast", kQbBool, -1, kQcNone, 0, kQbSound, 0},
+    {"Fallen & Klingen (g60, g76)", "traps & blades (g60, g76)",
+     "snd.logsub", "ob_traps", kQbBool, -1, kQcNone, 0, kQbSound, 0},
+    {"Fahrzeuge (g49)", "vehicles (g49)", "snd.logsub", "ob_vehicle", kQbBool, -1, kQcNone, 0, kQbSound, 0},
+    {"DLC-2-Objekte (g46)", "DLC 2 objects (g46)", "snd.logsub", "ob_dlc2", kQbBool, -1, kQcNone, 0, kQbSound, 0},
+    {"PDA / UI", "PDA / UI", "-", "tlf_ui", kQbGroup, -1, kQcNone, 0, kQbSound, kQfLv3},
+    {"PDA / UI (ganze Art)", "PDA / UI (whole kind)", "snd.logcat", "ui", kQbBool, -1, kQcNone, 0, kQbSound, 0},
+    {"HUD (g53)", "HUD (g53)", "snd.logsub", "ui_hud", kQbBool, -1, kQcNone, 0, kQbSound, 0},
+    {"Fernglas & Scan (g54)", "binoculars & scan (g54)",
+     "snd.logsub", "ui_binoc", kQbBool, -1, kQcNone, 0, kQbSound, 0},
+    {"Men\303\274 (g56)", "menu (g56)", "snd.logsub", "ui_menu", kQbBool, -1, kQcNone, 0, kQbSound, 0},
+    {"PDA & Sonar (g57)", "PDA & sonar (g57)", "snd.logsub", "ui_pda", kQbBool, -1, kQcNone, 0, kQbSound, 0},
+    {"Sprache", "Speech", "-", "tlf_sp", kQbGroup, -1, kQcNone, 0, kQbSound, kQfLv3},
+    {"Sprache (ganze Art)", "Speech (whole kind)", "snd.logcat", "speech", kQbBool, -1, kQcNone, 0, kQbSound, 0},
+    {"Zwischensequenzen (g25)", "cutscenes (g25)", "snd.logsub", "sp_cine", kQbBool, -1, kQcNone, 0, kQbSound, 0},
+    {"Laras Hinweise (g70)", "Lara's hints (g70)", "snd.logsub", "sp_hints", kQbBool, -1, kQcNone, 0, kQbSound, 0},
+    {"Funk (Zip) (g72-75)", "radio (Zip) (g72-75)", "snd.logsub", "sp_radio", kQbBool, -1, kQcNone, 0, kQbSound, 0},
+    {"Stimmen-Knoten (g8, g9, g64)", "voice nodes (g8, g9, g64)",
+     "snd.logsub", "sp_nodes", kQbBool, -1, kQcNone, 0, kQbSound, 0},
+    {"Musik", "Music", "-", "tlf_mu", kQbGroup, -1, kQcNone, 0, kQbSound, kQfLv3},
+    {"Musik (ganze Art)", "Music (whole kind)", "snd.logcat", "music", kQbBool, -1, kQcNone, 0, kQbSound, 0},
+    {"Musik (g1-3, g10-12)", "music (g1-3, g10-12)", "snd.logsub", "mu_music", kQbBool, -1, kQcNone, 0, kQbSound, 0},
+    {"Musik-Stinger (g13)", "music stingers (g13)", "snd.logsub", "mu_stinger", kQbBool, -1, kQcNone, 0, kQbSound, 0},
+    // ---- Schnell-Hoeren (plain heading) and Stumm / Solo: the sound only (a muted kind stays in the log
+    // unless 'Filter folgt Stumm' or a filter hides it) ----
+    {"Schnell-H\303\266ren", "Quick hearing", "-", "", kQbLabel, -1, kQcNone, 0, kQbSound, kQfLv2},
+    {"Stumm / Solo", "Mute / solo", "-", "ton_log_hear", kQbGroup, -1, kQcNone, 0, kQbSound, kQfLv2},
+    {"Alles zur\303\274ck (jeder Ton-Schalter)", "Everything back (every sound switch)",
+     "snd.mute", "all 0", kQbAction, -1, kQcNone, 0, kQbGrey, 0},
+    {"Neuester Ton solo (oberste Zeile)", "Newest sound solo (top line)",
+     "snd.solonew", "", kQbAction, -1, kQcNone, 0, kQbSound, 0},
+    {"Hall folgt Stumm", "Reverb follows mute", "snd.reverbmute", "", kQbBool, -1, kQcNone, 0, kQbSound, 0},
+    {"Hall aus", "Reverb off", "snd.reverboff", "", kQbBool, -1, kQcNone, 0, kQbSound, 0},
+    {"Lara", "Lara", "-", "tls_lara", kQbGroup, -1, kQcNone, 0, kQbSound, kQfLv3},
+    {"Lara (ganze Art)", "Lara (whole kind)", "snd.hear", "lara", kQbValue, -1, kQcNone, kQvHear, kQbSound, 0},
+    {"Stimme (g69, DLC 2 g77)", "voice (g69, DLC 2 g77)",
+     "snd.hear", "lara_voice", kQbValue, -1, kQcNone, kQvHear, kQbSound, 0},
+    {"K\303\266rper / Foley (g32-42, DLC 2 g78)", "body / foley (g32-42, DLC 2 g78)",
+     "snd.hear", "lara_body", kQbValue, -1, kQcNone, kQvHear, kQbSound, 0},
+    {"Ausr\303\274stung (g34, g14)", "gear (g34, g14)",
+     "snd.hear", "lara_gear", kQbValue, -1, kQcNone, kQvHear, kQbSound, 0},
+    {"Spezial (Herzschlag, Zeitlupe, Ziel) (g55)", "special (heartbeat, slow motion, target) (g55)",
+     "snd.hear", "lara_special", kQbValue, -1, kQcNone, kQvHear, kQbSound, 0},
+    {"Schattenkraft / DLC-2-Effekte (g79)", "shadow power / DLC 2 FX (g79)",
+     "snd.hear", "lara_shadow", kQbValue, -1, kQcNone, kQvHear, kQbSound, 0},
+    {"Waffen", "Weapons", "-", "tls_wp", kQbGroup, -1, kQcNone, 0, kQbSound, kQfLv3},
+    {"Waffen (ganze Art)", "Weapons (whole kind)", "snd.hear", "weapons", kQbValue, -1, kQcNone, kQvHear, kQbSound, 0},
+    {"Ziehen & Spannen (g58, g59)", "draw & cock (g58, g59)",
+     "snd.hear", "wp_draw", kQbValue, -1, kQcNone, kQvHear, kQbSound, 0},
+    {"Sch\303\274sse (g62)", "shots (g62)", "snd.hear", "wp_shot", kQbValue, -1, kQcNone, kQvHear, kQbSound, 0},
+    {"Nachladen & Granaten (g63)", "reload & grenades (g63)",
+     "snd.hear", "wp_reload", kQbValue, -1, kQcNone, kQvHear, kQbSound, 0},
+    {"Patronenh\303\274lsen (g61)", "brass (g61)", "snd.hear", "wp_brass", kQbValue, -1, kQcNone, kQvHear, kQbSound, 0},
+    {"Einschl\303\244ge & Sirren (g51, g52)", "impacts & whiz (g51, g52)",
+     "snd.hear", "wp_impact", kQbValue, -1, kQcNone, kQvHear, kQbSound, 0},
+    {"Laras Waffe ohne Gruppe (g14)", "Lara's weapon without a group (g14)",
+     "snd.hear", "wp_lara14", kQbValue, -1, kQcNone, kQvHear, kQbSound, 0},
+    {"Gegner", "Enemies", "-", "tls_en", kQbGroup, -1, kQcNone, 0, kQbSound, kQfLv3},
+    {"Gegner (ganze Art)", "Enemies (whole kind)", "snd.hear", "enemies", kQbValue, -1, kQcNone, kQvHear, kQbSound, 0},
+    {"K\303\266rper & Schritte (g27, g28)", "body & movement (g27, g28)",
+     "snd.hear", "en_body", kQbValue, -1, kQcNone, kQvHear, kQbSound, 0},
+    {"Ausr\303\274stung (g29)", "gear (g29)", "snd.hear", "en_gear", kQbValue, -1, kQcNone, kQvHear, kQbSound, 0},
+    {"Angriffe (g30)", "attacks (g30)", "snd.hear", "en_attack", kQbValue, -1, kQcNone, kQvHear, kQbSound, 0},
+    {"Rufe & Stimmen (g65, g66)", "calls & voices (g65, g66)",
+     "snd.hear", "en_voice", kQbValue, -1, kQcNone, kQvHear, kQbSound, 0},
+    {"Kraken (g67)", "kraken (g67)", "snd.hear", "en_kraken", kQbValue, -1, kQcNone, kQvHear, kQbSound, 0},
+    {"Welt / Umgebung", "World / ambience", "-", "tls_wo", kQbGroup, -1, kQcNone, 0, kQbSound, kQfLv3},
+    {"Welt / Umgebung (ganze Art)", "World / ambience (whole kind)",
+     "snd.hear", "world", kQbValue, -1, kQcNone, kQvHear, kQbSound, 0},
+    {"Welt-Standard (ohne Gruppe) (g14)", "world default (no group) (g14)",
+     "snd.hear", "wo_default", kQbValue, -1, kQcNone, kQvHear, kQbSound, 0},
+    {"Umgebung & Loops (g15-19)", "ambience & loops (g15-19)",
+     "snd.hear", "wo_amb", kQbValue, -1, kQcNone, kQvHear, kQbSound, 0},
+    {"Tiere & V\303\266gel (g20)", "animals & birds (g20)",
+     "snd.hear", "wo_animals", kQbValue, -1, kQcNone, kQvHear, kQbSound, 0},
+    {"Feuer (g21)", "fire (g21)", "snd.hear", "wo_fire", kQbValue, -1, kQcNone, kQvHear, kQbSound, 0},
+    {"Wind & Gewitter (g22)", "wind & thunder (g22)",
+     "snd.hear", "wo_wind", kQbValue, -1, kQcNone, kQvHear, kQbSound, 0},
+    {"Wasser & Unterwasser (g23, g24)", "water & underwater (g23, g24)",
+     "snd.hear", "wo_water", kQbValue, -1, kQcNone, kQvHear, kQbSound, 0},
+    {"Objekte & Mechanik", "Objects & mechanics", "-", "tls_ob", kQbGroup, -1, kQcNone, 0, kQbSound, kQfLv3},
+    {"Objekte & Mechanik (ganze Art)", "Objects & mechanics (whole kind)",
+     "snd.hear", "objects", kQbValue, -1, kQcNone, kQvHear, kQbSound, 0},
+    {"Mechanik (g43, g45)", "mechanisms (g43, g45)",
+     "snd.hear", "ob_mech", kQbValue, -1, kQcNone, kQvHear, kQbSound, 0},
+    {"Tr\303\274mmer (g44)", "debris (g44)", "snd.hear", "ob_debris", kQbValue, -1, kQcNone, kQvHear, kQbSound, 0},
+    {"Explosionen (g31)", "explosions (g31)", "snd.hear", "ob_blast", kQbValue, -1, kQcNone, kQvHear, kQbSound, 0},
+    {"Fallen & Klingen (g60, g76)", "traps & blades (g60, g76)",
+     "snd.hear", "ob_traps", kQbValue, -1, kQcNone, kQvHear, kQbSound, 0},
+    {"Fahrzeuge (g49)", "vehicles (g49)", "snd.hear", "ob_vehicle", kQbValue, -1, kQcNone, kQvHear, kQbSound, 0},
+    {"DLC-2-Objekte (g46)", "DLC 2 objects (g46)", "snd.hear", "ob_dlc2", kQbValue, -1, kQcNone, kQvHear, kQbSound, 0},
+    {"PDA / UI", "PDA / UI", "-", "tls_ui", kQbGroup, -1, kQcNone, 0, kQbSound, kQfLv3},
+    {"PDA / UI (ganze Art)", "PDA / UI (whole kind)", "snd.hear", "ui", kQbValue, -1, kQcNone, kQvHear, kQbSound, 0},
+    {"HUD (g53)", "HUD (g53)", "snd.hear", "ui_hud", kQbValue, -1, kQcNone, kQvHear, kQbSound, 0},
+    {"Fernglas & Scan (g54)", "binoculars & scan (g54)",
+     "snd.hear", "ui_binoc", kQbValue, -1, kQcNone, kQvHear, kQbSound, 0},
+    {"Men\303\274 (g56)", "menu (g56)", "snd.hear", "ui_menu", kQbValue, -1, kQcNone, kQvHear, kQbSound, 0},
+    {"PDA & Sonar (g57)", "PDA & sonar (g57)", "snd.hear", "ui_pda", kQbValue, -1, kQcNone, kQvHear, kQbSound, 0},
+    {"Sprache", "Speech", "-", "tls_sp", kQbGroup, -1, kQcNone, 0, kQbSound, kQfLv3},
+    {"Sprache (ganze Art)", "Speech (whole kind)", "snd.hear", "speech", kQbValue, -1, kQcNone, kQvHear, kQbSound, 0},
+    {"Zwischensequenzen (g25)", "cutscenes (g25)", "snd.hear", "sp_cine", kQbValue, -1, kQcNone, kQvHear, kQbSound, 0},
+    {"Laras Hinweise (g70)", "Lara's hints (g70)", "snd.hear", "sp_hints", kQbValue, -1, kQcNone, kQvHear, kQbSound, 0},
+    {"Funk (Zip) (g72-75)", "radio (Zip) (g72-75)",
+     "snd.hear", "sp_radio", kQbValue, -1, kQcNone, kQvHear, kQbSound, 0},
+    {"Stimmen-Knoten (g8, g9, g64)", "voice nodes (g8, g9, g64)",
+     "snd.hear", "sp_nodes", kQbValue, -1, kQcNone, kQvHear, kQbSound, 0},
+    {"Musik", "Music", "-", "tls_mu", kQbGroup, -1, kQcNone, 0, kQbSound, kQfLv3},
+    {"Musik (ganze Art)", "Music (whole kind)", "snd.hear", "music", kQbValue, -1, kQcNone, kQvHear, kQbSound, 0},
+    {"Musik (g1-3, g10-12)", "music (g1-3, g10-12)",
+     "snd.hear", "mu_music", kQbValue, -1, kQcNone, kQvHear, kQbSound, 0},
+    {"Musik-Stinger (g13)", "music stingers (g13)",
+     "snd.hear", "mu_stinger", kQbValue, -1, kQcNone, kQvHear, kQbSound, 0},
     // 0.22.48 (section "0.22.48 Sonar komplett"): the PDA sonar - the whole map (display only), the MAP placeholder,
     // the floor markers, and a copy of "Sonar-Ton aus" (the same item snd.sonar / [Sound] SonarMute as in Ton-Monitor)
     {"PDA / Sonar", "PDA / sonar", "-", "set_sonar", kQbGroup, -1, kQcNone, 0, kQbBlue, 0},
@@ -42072,6 +42933,12 @@ const QbRow kQbSettings[] = {
      kQbBlue, 0},
     // 0.22.49: the loaded units of the other floors too (no extra load), the map of the current unit (read only)
     {"Alle verbundenen Bereiche", "All connected areas", "sonar.allfloors", "", kQbBool, -1, kQcNone, 0, kQbBlue, 0},
+    // 0.22.53 S7: the sonar loads more map units itself (default off; released at the close)
+    {"Sonar: Nachbar-Stockwerke nachladen", "Sonar: load the neighbour floors", "sonar.loadnb", "", kQbBool, -1, kQcNone, 0,
+     kQbBlue, 0},
+    {"Sonar: alles Verbundene laden", "Sonar: load everything connected", "sonar.loadall", "", kQbBool, -1, kQcNone, 0,
+     kQbBlue, 0},
+    {"Sonar-Laden: Stand", "Sonar loading: state", "sonar.loadstate", "", kQbInfo, -1, kQcNone, 0, kQbGrey, 0},
     {"Karte dieser Unit", "Map of this unit", "sonar.unitmap", "", kQbInfo, -1, kQcNone, 0, kQbGrey, 0},
     {"Sonar komplett: Dreiecks-Grenze", "Full map: triangle cap", "sw.set", "TruMenu:Sonar:TriangleCap", kQbSwitch, -1,
      kQcNone, 0, 0, 0},
@@ -42748,6 +43615,29 @@ const QbRow kQbTests[] = {
      "test.mark", "tgB2.revmark", kQbCheck, -1, kQcNone, 0, kQbWhite, kQfTg},
     {"Monitor: DSP-Graph + je Effekt eine Zeile (B2.11)", "Monitor: DSP graph + one row per effect (B2.11)", "test.mark",
      "tgB2.dspgraph", kQbCheck, -1, kQcNone, 0, kQbWhite, kQfTg},
+    // 0.22.53 W11: copies of rows of the two trees (Spiel-Einstellungen / Ton / Ton-Log) - the same items
+    {"Filter folgt Stumm", "Filter follows mute", "snd.logfollow", "", kQbBool, -1, kQcNone, 0, kQbSound, kQfTg},
+    {"Zeigen: Lara (ganze Art)", "Show: Lara (whole kind)", "snd.logcat", "lara", kQbBool, -1, kQcNone, 0, kQbSound, kQfTg},
+    {"Zeigen: Lara / K\303\266rper / Foley", "Show: Lara / body / foley", "snd.logsub", "lara_body", kQbBool, -1, kQcNone, 0,
+     kQbSound, kQfTg},
+    {"H\303\266ren: Lara (ganze Art)", "Hear: Lara (whole kind)", "snd.hear", "lara", kQbValue, -1, kQcNone, kQvHear,
+     kQbSound, kQfTg},
+    {"H\303\266ren: Waffen (ganze Art)", "Hear: weapons (whole kind)", "snd.hear", "weapons", kQbValue, -1, kQcNone,
+     kQvHear, kQbSound, kQfTg},
+    {"H\303\266ren: Laras Waffe ohne Gruppe (g14)", "Hear: Lara's weapon without a group (g14)", "snd.hear", "wp_lara14",
+     kQbValue, -1, kQcNone, kQvHear, kQbSound, kQfTg},
+    {"Stumm: Lara - Waffen bleiben h\303\266rbar (B2.12)", "Mute: Lara - the weapons stay audible (B2.12)", "test.mark",
+     "tgB2.weapons", kQbCheck, -1, kQcNone, 0, kQbWhite, kQfTg},
+    {"Waffe ziehen: Zeile 'Waffen / ..' (B2.13)", "Draw the weapon: line 'weapons / ..' (B2.13)", "test.mark",
+     "tgB2.draw", kQbCheck, -1, kQcNone, 0, kQbWhite, kQfTg},
+    {"DLC 2: g77 / g78 als 'Lara / ..' (B2.14)", "DLC 2: g77 / g78 as 'Lara / ..' (B2.14)", "test.mark",
+     "tgB2.dlc2player", kQbCheck, -1, kQcNone, 0, kQbWhite, kQfTg},
+    {"Filter folgt Stumm: an = weg, aus = bleibt (B2.15)", "Filter follows mute: on = gone, off = stays (B2.15)",
+     "test.mark", "tgB2.follow", kQbCheck, -1, kQcNone, 0, kQbWhite, kQfTg},
+    {"Ton-Log-Aufbau wie gew\303\274nscht (B2.16)", "Sound log layout as wished (B2.16)", "test.mark", "tgB2.tree",
+     kQbCheck, -1, kQcNone, 0, kQbWhite, kQfTg},
+    {"Monitor: Art -> Untergruppe -> Stimmen (B2.17)", "Monitor: kind -> sub-group -> voices (B2.17)", "test.mark",
+     "tgB2.monitor", kQbCheck, -1, kQcNone, 0, kQbWhite, kQfTg},
     {"Kasten voll = h\303\266rbar, leer = stumm (B2.1)", "Box filled = audible, empty = muted (B2.1)", "test.mark",
      "tgB2.box", kQbCheck, -1, kQcNone, 0, kQbWhite, kQfTg},
     {"Gruppe als Text, Quelle viking_thrall #.. / Lara (B2.2)", "Group as text, source viking_thrall #.. / Lara (B2.2)",
@@ -42886,6 +43776,21 @@ const QbRow kQbTests[] = {
      kQcNone, 0, kQbWhite, kQfTg},
     {"Basis-PDA: ohne DLC-g_pda 'keine DLC-PDA' (G.14)", "Base PDA: without DLC g_pda 'no DLC PDA' (G.14)", "test.mark",
      "tgG.pda", kQbCheck, -1, kQcNone, 0, kQbWhite, kQfTg},
+    // 0.22.53 S7 / W12: copies of the new rows of page Spiel-Einstellungen / PDA / Sonar (the same items)
+    {"Sonar: Nachbar-Stockwerke nachladen", "Sonar: load the neighbour floors", "sonar.loadnb", "", kQbBool, -1, kQcNone, 0,
+     kQbBlue, kQfTg},
+    {"Sonar: alles Verbundene laden", "Sonar: load everything connected", "sonar.loadall", "", kQbBool, -1, kQcNone, 0,
+     kQbBlue, kQfTg},
+    {"Sonar-Laden: Stand", "Sonar loading: state", "sonar.loadstate", "", kQbInfo, -1, kQcNone, 0, kQbGrey, kQfTg},
+    {"Markup-Linien", "Markup lines", "draw.markup", "", kQbBool, -1, kQcMarkup, 0, kQbMarkup, kQfTg},
+    {"Nachbar-Stockwerke: mehr Bereiche, Log 'sonar load' (G.15)", "Neighbour floors: more areas, log 'sonar load' (G.15)",
+     "test.mark", "tgG.loadnb", kQbCheck, -1, kQcNone, 0, kQbWhite, kQfTg},
+    {"Alles Verbundene: ganzer Level, \303\226ffnen ok (G.16)", "Everything connected: whole level, open ok (G.16)",
+     "test.mark", "tgG.loadall", kQbCheck, -1, kQcNone, 0, kQbWhite, kQfTg},
+    {"Sonar zu / Level weiter: kein H\303\244nger (G.17)", "Sonar closed / level goes on: no hang (G.17)", "test.mark",
+     "tgG.loadclose", kQbCheck, -1, kQcNone, 0, kQbWhite, kQfTg},
+    {"Sonar offen: Markups folgen der Sonar-Kamera (G.18)", "Sonar open: markups follow the sonar camera (G.18)",
+     "test.mark", "tgG.markup", kQbCheck, -1, kQcNone, 0, kQbWhite, kQfTg},
     // ---- TG 1411 end
     {"Teleport", "Teleport", "-", "ts_teleport", kQbGroup, -1, kQcNone, 0, kQbPlayer, 0},
     {"Zur letzten Position", "To the last position", "pos.go", "last", kQbAction, -1, kQcNone, 0, kQbPlayer, 0},
@@ -43443,6 +44348,13 @@ const QbHelp kQbHelp[] = {
     {"sonar.view", "", "Bereich / Einf\303\244rben / Abblenden: Stand|Area / tint / fade: state"},
     {"pda.basepda", "", "DLC 2 mit Basis-PDA (nur mit DLC-g_pda)|DLC 2 with the base PDA (DLC g_pda only)"},
     {"pda.state", "", "DLC-PDA geladen? Wort, wartet worauf|DLC PDA loaded? Word, what it waits for"},
+    // 0.22.53 S7 / W11
+    {"sonar.loadnb", "", "Eine Stufe weiter laden (mit Sonar komplett)|Load one step further (with the full map)"},
+    {"sonar.loadall", "", "Ganzen Level laden, beim Schlie\303\237en frei|Load the whole level, freed at the close"},
+    {"sonar.loadstate", "", "Letztes \303\226ffnen: Bereiche, Grenze, Zeit|Last open: areas, cap, time"},
+    {"snd.logfollow", "", "Was Stumm / Solo stummt, fehlt auch im Log|What mute / solo silences leaves the log too"},
+    {"snd.hear", "*", "Links / rechts: h\303\266rbar / stumm / solo|Left / right: audible / muted / solo"},
+    {"snd.logsub", "*", "Nur die Anzeige im Ton-Log (bleibt h\303\266rbar)|The sound log display only (stays audible)"},
     // 0.22.50 W8 Ton-Log (section "0.22.50 W8")
     {"snd.logcat", "*", "Ton-Log: diese Art zeigen / ausblenden|Sound log: show / hide this kind"},
     {"snd.logaudible", "", "Ton-Log: nur h\303\266rbare Zeilen (FMOD nicht stumm)|Sound log: audible lines only (FMOD not muted)"},
@@ -43694,6 +44606,7 @@ int QbValueCount(int val) {
          : val == kQvSubMargin ? 5 : val == kQvVoiceLang ? kVlChoiceN
          : val == kQvAtStyle ? kAtStyleN                                         // 0.22.40 (Q126b)
          : val == kQvSoTint ? 3                                                  // 0.22.52 sonar.tint
+         : val == kQvHear ? 3                                                    // 0.22.53 W11 snd.hear
          : val == kQvSoFade ? kS5FadeStepN : val == kQvSoArea ? S5AreaCount() : 0;   // 0.22.51 S5
 }
 // 0.22.16: sub.lang steps - game language, English, French, German, Italian, Spanish, Dutch (the DLC 2 records' ids)
@@ -43743,8 +44656,15 @@ void QbValueArg(int val, int i, char *o, size_t n) {
     case kQvSoFade: Out(o, n, "%ld", kS5FadeSteps[i]); break;   // 0.22.51 S5
     case kQvSoArea: S5AreaArg(i, o, n); break;
     case kQvSoTint: Out(o, n, "%d", i); break;              // 0.22.52
+    case kQvHear: Out(o, n, "%s", kW8HearWord[i < 0 || i > 2 ? 0 : i]); break;   // 0.22.53 W11 (the row arg in front: QbHearArg)
     default: o[0] = 0;
     }
+}
+// 0.22.53 W11: a kQvHear row runs "snd.hear <row arg> <state>"
+void QbHearArg(const QbRow &r, int i, char *o, size_t n) {
+    char w[16];
+    QbValueArg(kQvHear, i, w, sizeof(w));
+    Out(o, n, "%s %s", r.arg, w);
 }
 int QbValueNow(int val) {
     int v = 0;
@@ -43891,6 +44811,7 @@ bool QbValueDefault(int val, char *o, size_t n) {
     case kQvSoFade: i = kS5FadeStepDefault; break;          // 0.22.51: the game's fog
     case kQvSoArea: i = 0; break;                           // alle
     case kQvSoTint: i = atoi(OptDefault("Sonar", "TintOthers")); break;   // 0.22.52: aus
+    case kQvHear: i = 0; break;                             // 0.22.53 W11: normal (hoerbar)
     default: return false;                                 // kQvVol / kQvMouse / kQvGfx3 / kQvPass / kQvNone
     }
     if (i < 0 || i >= QbValueCount(val)) return false;
@@ -43967,7 +44888,11 @@ const char *const kQbStartClosed[] = {"set_gfxn", "set_gfxdev", "set_tm", "ton_g
                                       // 0.22.44 (W2): the test guide packages, the archive, the planned accessibility rows
                                       "tg_a", "tg_b", "tg_c", "tg_d", "tg_e", "tg_f", "ts_archive", "acc_planned",
                                       "tg_g",    // 0.22.48: Paket G (Sonar komplett)
-                                      "tg_b2", "ton_log"};   // 0.22.50: Paket B2 (Ton-Log), group Ton-Log
+                                      "tg_b2", "ton_log",    // 0.22.50: Paket B2 (Ton-Log), group Ton-Log
+                                      // 0.22.53 W11: the two trees and their kinds start closed ([+], owner's layout)
+                                      "ton_log_filter", "ton_log_hear", "tlf_lara", "tlf_wp", "tlf_en", "tlf_wo", "tlf_ob",
+                                      "tlf_ui", "tlf_sp", "tlf_mu", "tls_lara", "tls_wp", "tls_en", "tls_wo", "tls_ob",
+                                      "tls_ui", "tls_sp", "tls_mu"};
 bool QbStartClosed(const char *key) {
     for (const char *k : kQbStartClosed)
         if (!_stricmp(k, key)) return true;
@@ -44259,16 +45184,20 @@ void QbActRow(int page, const QbRow &r, int dir) {
                                                : "no TruMenu default (a game option) - left / right");
             return;
         }
-        QbValueArg(r.val, r.val == kQvSndGroup ? (SgPctAt(r.id) + 5) / 10 : QbValueNow(r.val), now, sizeof(now));
+        QbValueArg(r.val, r.val == kQvSndGroup ? (SgPctAt(r.id) + 5) / 10 : r.val == kQvHear ? W8HearArgNow(r.arg)
+                   : QbValueNow(r.val), now, sizeof(now));
         if (!strcmp(now, arg)) { QbResult(false, "%s: %s (%s)", name, de ? "schon Standard" : "already the default", arg); return; }
+        if (r.val == kQvHear) QbHearArg(r, 0, arg, sizeof(arg));   // 0.22.53 W11: "<key> normal"
         Log(1, "quick: %s / %s -> X: default %s %s (was %s)", QbPageName(page, true), r.de, r.id, arg, now);
     } else if (r.kind == kQbValue) {
         // 0.21.8: a sound group slider's step comes from its item (one enum for eight rows)
         // 0.22.16: volumes / filter / aspect likewise (GsStep)
         int next = (r.val == kQvSndGroup ? (SgPctAt(r.id) + 5) / 10
-                    : r.val == kQvVol || r.val == kQvGfx3 ? GsStep(r.id) : QbValueNow(r.val)) + dir;
+                    : r.val == kQvVol || r.val == kQvGfx3 ? GsStep(r.id)
+                    : r.val == kQvHear ? W8HearArgNow(r.arg) : QbValueNow(r.val)) + dir;   // 0.22.53 W11: per row
         if (next < 0 || next >= QbValueCount(r.val)) { QbResult(false, "%s: %s", name, de ? "Ende" : "end"); return; }
-        QbValueArg(r.val, next, arg, sizeof(arg));
+        if (r.val == kQvHear) QbHearArg(r, next, arg, sizeof(arg));
+        else QbValueArg(r.val, next, arg, sizeof(arg));
     } else {
         if (dir < 0) { QbResult(false, "%s: %s", name, de ? "rechts = starten" : "right = start"); return; }
         if (r.flags & kQfLine) {             // 0.21.11: the argument is typed in the quick command line (A runs it)
@@ -44540,8 +45469,13 @@ void QbViewOf(int page, const QbRow &r, QbView &v, bool de) {
         if (on && !grey && !_stricmp(r.id, "nav.draw")) note = NavRowNote(r.arg, de);
     } else if (r.kind == kQbValue) {
         char val[40];
-        if (!ItemValueShort(r.id, de, val, sizeof(val))) Out(val, sizeof(val), "?");
+        if (r.val == kQvHear) W8HearText(r.arg, de, val, sizeof(val));   // 0.22.53 W11: the row's own kind / sub-group
+        else if (!ItemValueShort(r.id, de, val, sizeof(val))) Out(val, sizeof(val), "?");
         Out(v.state, sizeof(v.state), "< %s >", val);
+        if (r.val == kQvHear) {              // muted = an outline square, as every bool row (solo / audible = filled)
+            const int st = W8HearArgNow(r.arg);
+            v.square = st == 1 ? 2 : 1;
+        }
     } else if (r.kind == kQbChoice) {
         int count = 0;
         const QbChoice *c = QbChoices(r.val, &count);
@@ -44769,11 +45703,13 @@ void PageAccess() {
             }
         } else if (r.kind == kQbValue) {
             char v[40];
-            if (!ItemValueShort(r.id, true, v, sizeof(v))) Out(v, sizeof(v), "?");
+            if (r.val == kQvHear) W8HearText(r.arg, true, v, sizeof(v));   // 0.22.53 W11
+            else if (!ItemValueShort(r.id, true, v, sizeof(v))) Out(v, sizeof(v), "?");
             ImGui::Text("%s / %s: %s", r.de, r.en, v);
             for (int i = 0; i < QbValueCount(r.val); ++i) {
                 char arg[64];                // 0.22.51: unit names of sonar.area (was 16)
-                QbValueArg(r.val, i, arg, sizeof(arg));
+                if (r.val == kQvHear) QbHearArg(r, i, arg, sizeof(arg));
+                else QbValueArg(r.val, i, arg, sizeof(arg));
                 Out(label, sizeof(label), "%s###acc_%s_%d", arg, r.id, i);
                 ImGui::SameLine();
                 if (TmButton(label)) QueueItem(r.id, arg);
@@ -48438,10 +49374,29 @@ int W7QbRows(QbView *v, int max, const char *what, int depth, bool de) {
             }
         }
         int shown = 0;
-        for (int pass = 0; pass < 2; ++pass)
+        // 0.22.53 W11: the same structure as the sound log trees - a heading per kind (kW8CatOrder), one per sub-group
+        // (kW8Sub) inside it, then its voices (playing first); kinds / sub-groups without a voice are left out
+        for (int ko = 0; ko < kW8Cats && shown < 24; ++ko) {
+          const int kc = kW8CatOrder[ko];
+          int inKind = 0, playKind = 0;
+          for (int i = 0; i < count0; ++i)
+              if (g_w7QbVoices[i].lcat == kc) { ++inKind; playKind += SnState(g_w7QbVoices[i]) == kSnStPlaying ? 1 : 0; }
+          if (!inKind) continue;
+          Out(name, sizeof(name), de ? "-- %s: %d, %d spielen" : "-- %s: %d, %d playing", de ? kW8CatDe[kc] : kW8CatEn[kc],
+              inKind, playKind);
+          view(name, "", "", kQbSound, grey, 0, -1);
+          for (int sg = 0; sg < kW8Subs && shown < 24; ++sg) {
+            if (kW8Sub[sg].cat != kc) continue;
+            int inSub = 0;
+            for (int i = 0; i < count0; ++i) inSub += g_w7QbVoices[i].lsub == sg ? 1 : 0;
+            if (!inSub) continue;
+            Out(name, sizeof(name), "--    %s (%s): %d", de ? kW8Sub[sg].de : kW8Sub[sg].en, kW8Sub[sg].groups, inSub);
+            view(name, "", "", grey, grey, 0, -1);
+            for (int pass = 0; pass < 2; ++pass)
             for (int i = 0; i < count0 && shown < 24; ++i) {
                 const SnVoice &x = g_w7QbVoices[i];
                 const int st = SnState(x);
+                if (x.lsub != sg) continue;
                 if ((pass == 0) != (st == kSnStPlaying)) continue;
                 char nm[48];
                 W7VoiceName(x.wave, x.cat, de, nm, sizeof(nm));
@@ -48472,6 +49427,8 @@ int W7QbRows(QbView *v, int max, const char *what, int depth, bool de) {
                 if (n > at) v[at].rev = 1 + x.rev;   // 0.22.52 W10: the reverb mark in front of the state
                 ++shown;
             }
+          }
+        }
         if (count0 > shown) {
             Out(name, sizeof(name), de ? "-- ... %d weitere (snd.monitor = alle ins Log)" : "-- ... %d more (snd.monitor = all "
                 "to the log)", count0 - shown);
@@ -48524,8 +49481,9 @@ int W7QbRows(QbView *v, int max, const char *what, int depth, bool de) {
             if (e.sid) LabelAdd(ids, sizeof(ids), &used, " s%lu", e.sid);
             Out(name, sizeof(name), "%s %s%s  <- %s", e.time, e.name, ids, e.src);
             const bool muted = e.fmMute || W7Muted(e.wave, e.emitter, e.sid);   // 0.22.50: FMOD's bit at the start too
-            Out(state, sizeof(state), "%s g%d %s", muted ? (de ? "stumm" : "muted") : (de ? kW7KindDe : kW7KindEn)[e.kind],
-                e.group, W7GroupName(e.group, de));
+            const int es = e.sub >= 0 && e.sub < kW8Subs ? e.sub : kW8sWoDefault;   // 0.22.53 W11: kind / sub-group
+            Out(state, sizeof(state), "%s %s / %s g%d", muted ? (de ? "stumm," : "muted,") : "",
+                de ? kW8CatDe[kW8Sub[es].cat] : kW8CatEn[kW8Sub[es].cat], de ? kW8Sub[es].de : kW8Sub[es].en, e.group);
             Out(count, sizeof(count), "%s", e.is3d ? "3D" : "2D");
             view(name, state, count, kW7KindColour[e.kind], muted ? red : grey, muted ? 2 : 1,   // 0.22.50: filled = audible
                  slotOf(0, e.wave, e.group, e.emitter, e.sid, e.name));
@@ -49664,11 +50622,13 @@ void PageQbRow(const QbRow &r, int page, int index) {
         }
     } else if (r.kind == kQbValue) {
         char v[40];
-        if (!ItemValueShort(r.id, true, v, sizeof(v))) Out(v, sizeof(v), "?");
+        if (r.val == kQvHear) W8HearText(r.arg, true, v, sizeof(v));   // 0.22.53 W11
+        else if (!ItemValueShort(r.id, true, v, sizeof(v))) Out(v, sizeof(v), "?");
         ImGui::Text("%s / %s  [%s]: %s", r.de, r.en, r.id, v);
         for (int i = 0; i < QbValueCount(r.val); ++i) {
-            char arg[16];
-            QbValueArg(r.val, i, arg, sizeof(arg));
+            char arg[48];
+            if (r.val == kQvHear) QbHearArg(r, i, arg, sizeof(arg));
+            else QbValueArg(r.val, i, arg, sizeof(arg));
             Out(label, sizeof(label), "%s###%s_%d", arg, key, i);
             ImGui::SameLine();
             if (TmButton(label)) QueueItem(r.id, arg);
@@ -51647,6 +52607,7 @@ void Start(HMODULE self) {
     S5Check();                                // 0.22.51 sonar view / base PDA (precheck_02251.txt, 22 rows)
     W9Check();                                // 0.22.51 the game's reverb send (precheck_02251_reverb.txt, 11 rows)
     S6Check();                                // 0.22.52 the sonar's shader fade (precheck_02252.txt, 6 rows)
+    S7Check();                                // 0.22.53 the sonar's extra loads (precheck_sonarload.txt, 17 of 51 rows)
     M21Check();                               // 0.21 arachnophobia / camera / labels / ai.remove (precheck_021.txt)
     P5Check();                                // 0.22.37 debug view P5 (precheck_02237.txt; after M20Check / M21Check:
                                               // needs the intro data and label checks)
@@ -51758,6 +52719,7 @@ BOOL WINAPI DllMain(HINSTANCE instance, DWORD reason, LPVOID) {
         W8Shutdown();                                 // 0.22.50: the two sound call redirects back (only those still ours)
         S5Shutdown();                                 // 0.22.51: the sonar view redirects and the PDA word back (ours only)
         W9Shutdown();                                 // 0.22.51: the reverb send redirects and the reverb level back
+        S7Shutdown();                                 // 0.22.53: the sonar load redirect R1 back (only ours)
     }
     return TRUE;
 }

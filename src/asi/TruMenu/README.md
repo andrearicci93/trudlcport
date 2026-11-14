@@ -2928,6 +2928,64 @@ Reihenfolge fest (Flacker-Test)".
   combos as set now (e.g. `LB + View = weiter . RB + View = 1 Bild . LB + RB + View = Foto`), built from the INI values,
   so it follows any change.
 
+## 0.22.53 - sound log trees (Filter / Stumm-Solo per kind and sub-group), the kind Waffen, Lara by source, the sonar loads more areas, markups in the sonar view (2026-11-15)
+
+Build `work\asi\menu0276`, not installed. Workspace finding `docs\Befund-TruMenu-02253-1411.md`.
+
+- **Ton-Log layout (the owner's, binding):** Spiel-Einstellungen / Ton / `[-] Ton-Log (unten rechts)` -> the settings rows
+  (Ton-Anzeige, Wiederholungen, Nur hoerbare, Hoechstens so weit, FMOD channels to the log, hooks state) ->
+  `[+] Filter (Zeigen)` (the log display only - a hidden kind stays audible) -> the plain heading **Schnell-Hoeren** ->
+  `[+] Stumm / Solo` (the sound only - a muted kind stays in the log unless filtered): Alles zurueck, Neuester Ton solo,
+  Hall folgt Stumm, Hall aus, then the kinds. Both trees have the same structure: a collapsible kind (Lara, Waffen,
+  Gegner, Welt / Umgebung, Objekte & Mechanik, PDA / UI, Sprache, Musik) -> one row for the whole kind -> one row per
+  sub-group (38 named sets of the game's sound groups, the group numbers in the row name). Filter rows are bool
+  (`snd.logcat <kind>`, `snd.logsub <sub>`), Stumm / Solo rows are value rows `hoerbar / stumm / solo`
+  (`snd.hear <kind|sub> normal|stumm|solo` = `snd.mute` / `snd.solo` `cat:` / `sub:`; one solo at a time). Nesting levels
+  2 / 3 for groups (`kQfLv2` / `kQfLv3`); all new groups start closed.
+- **Kind Waffen:** groups 58 / 59 (draw & cock), 62 (shots), 63 (reload & grenades), 61 (brass), 51 / 52 (impacts &
+  whiz) were Lara's - "Stumm: Lara" muted the weapons too. Lara's voice 68 / 69 and the DLC 2 player groups 77 (voice,
+  `VO\Lara` streams) / 78 (player foley of `doppelganger_casual`) are Lara's now (was speech / "Effekt").
+- **Group 14 by source:** a sound without an Assign plays in group 14 "world default" (e.g. drawing the weapon from
+  Lara's anim event). If its source is Lara or her gear (hook E1 / the owner list; gear = instance +0x54 = the player)
+  it is **Waffen / Laras Waffe ohne Gruppe** when the owner object is `wp_*` or the wave is one the data puts only into
+  weapon groups (174 waves; game data, so not in the source: the optional `TruMenu.weaponwaves.txt` next to tru.exe,
+  made from the own game files by `work\menu53_1411\weapon_waves.py`, log line `0.22.53 sound kinds: n weapon waves`;
+  without it only a `wp_*` owner counts), else **Lara / Ausruestung**. While a Lara / Waffen /
+  Welt rule or solo is on, the owner list is walked about once a second also with the box closed.
+- **Filter folgt Stumm** (`snd.logfollow`, `[Sound] LogFollowMute`, default 1): what Stumm / Solo silences (TruMenu's
+  kind / sub-group rules, "Musik aus", the solo - also of a wave) leaves the box. Off = muted sounds stay visible.
+  "Nur hoerbare Zeilen" stays separate: it follows FMOD's state now (whoever muted / paused it, the game's pause, silent
+  lines), not TruMenu's switches.
+- **Monitor:** "Aktive Stimmen" lists the voices under `-- <kind>: n, m spielen` and `--    <sub-group> (groups): n`;
+  history and box lines name `kind / sub-group`.
+- **Sonar loads more** (with "Sonar komplett", default off): `Sonar: Nachbar-Stockwerke nachladen` (`[Sonar]
+  LoadNeighbourFloors`, one step further than the game: the neighbours of its off-floor neighbours, 0 .. 5 units; shown
+  with "Alle verbundenen Bereiche") and `Sonar: alles Verbundene laden` (`[Sonar] LoadAllConnected`, every
+  portal-connected map unit of the level, up to 22 units / 16 MB / + 0 .. 2 s at the open). One call redirect R1
+  0x6e4e3f (the game's neighbour rule first, then the game's own find / request functions inside the load callback,
+  only while the game is paused in the sonar's load mode and no PDA map heap exists), written only while the sonar is
+  closed; caps `[Sonar] LoadMaxUnits` (24) and TriangleCap; the game's close frees them. 17 byte checks
+  (`0.22.53 sonar load: checks ok (17 rows)`), one log line per open `0.22.53 sonar load open n: ...`; info row
+  "Sonar-Laden: Stand". Level 2 as a whole has 350 712 faces - raise TriangleCap to 400000 there.
+- **Markups in the sonar view:** the markup layer projects with the camera matrix 0xe804a0 while the sonar is open
+  (like the trigger layer; 0xa038f0 stays the paused gameplay camera), log line `0.22.53 markup: the sonar is open ...`.
+
+### TO TEST 0.22.53
+
+| # | Where | Do | Expected |
+|---|---|---|---|
+| 1 | start | read `TruMenu.log` | `0.22.53 sonar load: checks ok (17 rows)` |
+| 2 | Spiel-Einstellungen / Ton / Ton-Log | open the groups | settings, `[+] Filter (Zeigen)`, `-- Schnell-Hoeren`, `[+] Stumm / Solo` (Alles zurueck, Neuester Ton solo, Hall folgt Stumm, Hall aus, kinds); each kind opens to its sub-groups |
+| 3 | a level with a weapon | Stumm / Solo / Lara -> stumm, shoot | shots audible (Waffen), Lara's breath / steps silent |
+| 4 | same | draw the weapon, box on | the line reads `Waffen / Laras Waffe ohne Gruppe g14` (or `Lara / Ausruestung g14` for gear); Waffen -> stumm silences it |
+| 5 | DLC 2 | box on, walk / breathe | g78 / g77 lines read `Lara / Koerper / Foley` / `Lara / Stimme` |
+| 6 | box on, Lara stumm | Filter folgt Stumm on / off | on: Lara lines gone, filter line `Stummes ausgeblendet`; off: they stay (outline box) |
+| 7 | Filter / Gegner / one sub-group off | fight | only that sub-group's lines gone, still audible |
+| 8 | Ton-Monitor / Aktive Stimmen | look | `-- Lara: n, m spielen`, `--    Koerper / Foley (...)`, then the voices |
+| 9 | water wheel or manor, Sonar komplett + Alle verbundenen Bereiche | Nachbar-Stockwerke nachladen on, open the sonar | more areas, log `0.22.53 sonar load open 1: scope neighbour floors ... extra n` |
+| 10 | same | alles Verbundene laden on, open | the whole level, open < 2 s longer; close + walk on: no hang |
+| 11 | debug view + markups | open the sonar, pan | markup lines move with the map like the triggers; log `0.22.53 markup: the sonar is open` |
+
 ## 0.22.52 - reverb mark per line, the whole DSP graph in the monitor, the sonar's real distance dimming, a colour per area, the puzzle row fix (2026-11-14 late)
 
 Build `work\asi\menu0275\TruMenu.asi`. Workspace finding `docs\Befund-TruMenu-02252-1411.md`.

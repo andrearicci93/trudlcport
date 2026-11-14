@@ -1,0 +1,92 @@
+# TruMenu sonar extra loads (design 2026-11-14, NOT built): [Sonar] LoadNeighbourFloors / LoadAllConnected.
+# Run: ../bin/pyt -t 120 tools/pe_bytes_check.py ../data/pc/tru.exe --file work/menu53_1411/sonar/precheck_sonarload.txt
+# Listings (local, not in the repo): work/sonar_1411/dis_units.txt (0x6e2e60, 0x6e4e80, 0x6dd780, 0x6df600),
+# dis_more.txt (0x6e4df0, 0x6e48e0, 0x6e4af0, 0x6e4fe0, 0x6e53f0, 0x6e4800, 0x6dff20, 0x6df130, 0x6e2a60, 0x6e27d0),
+# work/menu53_1411/sonar/dis_*.txt (0x551820, 0x54eb90, 0x5dfbe0, 0x5e0190, 0x5d4700, 0x6a30b0, maptype13).
+#
+# --- R1 (redirect 1): the load callback 0x6e4df0 -> 0x6df600, then 0x6e2e60(unit) only when +0xb2 (recursive) is set;
+#     R1 = the call at 0x6e4e3f (e8 1c e0 ff ff, cdecl push esi / add esp,4) -> SoLoadStub
+006e4df0 832dc403ee0001 56 8b742410 8b8690000000 89868c000000
+006e4e2e 8bce e8cba7ffff 80beb200000000 7409 56 e81ce0ffff 83c404 5e c3
+# --- R2 (redirect 2): 0x6e4e80 for a unit that is already loaded (+0x8c != 0) and recursive -> 0x6e2e60 at 0x6e4fb4
+006e4fa9 80bc240c02000000 7409 56 e8a7deffff 83c404
+# --- the game's rule 0x6e2e60(u) (what SoLoadStub calls first, and replicates for the extra units): return unless
+#     +0x8c and +0xb0 & floor [0xedf268]; per portal (count u16 [map+8], 32 B at [map+0xc], +0 name) 0x6e2a60(name);
+#     skip a neighbour with a known mask off the floor (je 0x6e2ea9), loaded (+0x8c) or loading (+0xb1); else
+#     0x6e4e80(n, recursive 1, pingable = (u == [0xedf254]), 0)
+006e2e60 57 8b7c2408 8b8f8c000000 85c9 7473 a068f2ed00 8487b0000000 7466
+006e2e7c 56 33f6 66397108 7e5c 0fbfc6 c1e005 03410c 8b08 51 e8cafbffff 8a88b0000000 83c404
+006e2e9f 84c9 7408 840d68f2ed00 7427 83b88c00000000 751e 80b8b100000000 7515
+006e2ebd 3b3d54f2ed00 6a00 0f94c2 8bc8 52 6a01 e8ae1f0000 8b8f8c000000 83c601 663b7108 7ca4 5e 5f c3
+# --- 0x6e2a60(name) (cdecl, returns the unit): find by name in [0x8aff3c] (count [0x8aff34]) or new 0xc0 B
+#     (0x574940 -> ctor 0x6dd820) appended; the list grows by doubling (0x55e3c0 on the vector 0x8aff34 = {count,
+#     capacity [0x8aff38], array [0x8aff3c]}) - no fixed capacity
+006e2a60 56 33f6 393534ff8a00 57 8b7c240c 7624 a13cff8a00 8b0cb0 83c102 51 57 e88fc11400
+006e2a94 68c0000000 e8a21ee9ff 83c404 85c0 7418 57 8bc8 e873adffff
+006e2abf a138ff8a00 390534ff8a00 7518 85c0 7604 03c0 eb05 b801000000 50 b934ff8a00 e8dcb8e7ff
+# --- 0x6e4e80 (thiscall ecx = unit, args recursive -> +0xb2, pingable -> +0xb4, arg3 -> +0x94; ret 0xc); not loaded:
+#     builds <name>_map.drm, file test (fs vf+8), request 0x551470(path, 0x6e4df0, 0, unit, &unit+0x90, 0, 1),
+#     handle -> +0x88, [0xee03c4] += 1, +0xb1 = 1, +0xb3 = 0; no file -> +0x88 = 0 and nothing counted
+006e4e80 81ec04020000 a1e8d78b00 33c4 89842400020000 8a84240c020000 56 8bf1 83be8c00000000
+006e4ea5 8b8c2414020000 8886b4000000 898e94000000 0f85eb000000 8a94240c020000 8896b2000000
+006e4ef1 8b0de0d98500 8a15e4d98500
+006e4f2d 84c0 7456 6a01 6a00 8d8690000000 50 56 6a00 8d8c2418010000 68f04d6e00 51 e81fc5e6ff 83c41c
+006e4f54 898688000000 8305c403ee0001 c686b100000001 c686b300000000
+006e4f84 c20c00
+006e4f87 c7868800000000000000
+0085d9e0 5f6d617000
+# --- the open 0x6e53f0: mode 1, floor 0, the unit of [0xe7f148] -> [0xedf254], 0x6e4e80(anchor, 1, 1, 0)
+006e5446 c705c803ee0001000000 e8fbc6edff 83c00c 50 e802d6ffff 83c420 a354f2ed00
+006e546e 53 6a01 6a01 8bc8 e806faffff
+# --- mode 1 0x6e48e0 and mode 4 0x6e4af0 wait until no map load is pending ([0xee03c4] == 0), then place / mode 2
+006e48e0 55 8bec 83e4f0 83ec34 53 33db 391dc403ee00 56 57 0f85ef010000 a1d003ee00 c705c803ee0002000000
+006e49a4 68ff000000 57 e841e5ffff
+006e4af0 833dc403ee0000 7562
+# --- the 50-entry array 0xee02d8 (0xc8 B, memset in the open): only Lara's unit + its own portals (0x6dda70) - not
+#     touched by more loaded units (max 5 portals per map in the data)
+006e5424 68c8000000 53 68d802ee00
+006dda8e a1c802ee00 890c85d802ee00
+# --- floor switch 0x6e4fe0: 0x6de700 unloads every unit off the new floor, then 0x6e4e80(target, 1, 0, 0), mode 4
+006e5018 e8e396ffff 6a00 6a00 6a01 8bce e856feffff
+006de710 a13cff8a00 8b0cb0 8a1568f2ed00 8491b0000000 7505 e855f0ffff
+# --- close 0x6e4800 -> 0x6dff20: every list unit 0x6dd780 + free 0x596b10, count = 0, unit ids [0xee03c0] = 0, every
+#     reveal entry +4 (unit) = 0; then the save of the reveal entries 0x6df130 (fatal box when it returns false)
+006e4816 e805b7ffff
+006dff20 53 57 33db 33ff 391d34ff8a00 762a 56 90 a13cff8a00 8b34b8 3bf3 7410 8bce e83dd8ffff 56 e8c76bebff
+006dff58 33c0 391d10ff8a00 891d34ff8a00 66891dc003ee00
+006e4829 e802a9ffff 84c0 7512 e8690ff6ff 6890d98500 e86f24ebff
+# --- 0x6dd780 (thiscall): multibody remove only when +0xb4 (pingable); still loading -> cancel 0x5505c0 and
+#     [0xee03c4] -= 1, else release 0x54f020
+006dd780 53 56 8bf1 8b868c000000 33db 3bc3 57 742d 389eb4000000 7425
+006dd7c4 3bc3 8dbe88000000 743b 50 e87c18e7ff 83c404 84c0 57 7525 e8df2de7ff 83c404 832dc403ee0001
+006dd801 e81a18e7ff
+# --- the reveal entries go to SaveInfo +0x590, a block of 0x3e800 B (0x6df143); the face draw creates one entry for
+#     every unit it draws (0x6e3a17 call 0x6e27d0)
+006df13d 81c68c050000 6800e80300
+006e3a12 53 895c243c e8b4edffff 83c404
+# --- loader: request 0x551470 dedups by path (0x54eea0; found = refs + 1, no queue, no callback); the request object
+#     (0x70 B, vtable 0x84c654) keeps the callback at +0x60 and calls it from its completion 0x551820 (vf+0xc):
+#     callback(root, [+0x64], [+0x68] = unit, [+4] = handle), cdecl
+00551478 e823daffff 8bf0 83c404 85f6 0f858f000000
+00551a61 385d0c 7535 395d60 7430
+00551a8a 8b551c 8b12 52 ffd0 8b4d60 50 ffd1 83c410
+0084c660 20185500
+# --- the loader is pumped on the main thread once per frame state and once per in-game frame (0x5c1da0 = fs vf+0x18
+#     busy, vf+0x1c update) - also while the game is paused
+005c1da0 56 e8aa0debff 8b10 8bc8 8b4218 ffd0 8bf0 e89a0debff 8b10 8bc8 8b421c ffd0
+005e01b5 e8d6feffff e8e11bfeff
+005e0000 e8dbfbffff 83c404 e8931dfeff
+# --- game pause: the UI stack 0x78ba00 pauses (0x5d4780(1): pause byte [0xe7f143] = 6, sounds paused 0x5874b0,
+#     [0xe7f0b4] |= 0x10000000) when a screen with +0x234 is on the stack (0x5a9b40); the in-game frame 0x5dfbe0 then
+#     jumps over the world update (instances, portals 0x5d2e50, streaming) to 0x5dff72
+0078bb0a e831e0e1ff 84c0 7415 803d43f1e70006 741f 6a01 e85d8ce4ff
+005d47a7 c60543f1e70006 e83db6feff 83c404 e8f52cfbff 810db4f0e70000000010
+005dfc49 a043f1e700 3c06 0f841c030000 3c0a 0f8414030000
+005dfef0 e85b2fffff
+# --- map sections (type 13) are allocated by the resolver 0x8552bc (registered 0x5df469): from the PDA map heap
+#     [0xed00ac] when it exists (log "Allocing %d bytes for PDAMapSection ... free space %d"), else from [0xc56fc4];
+#     [0xed00ac] has no absolute writer except = 0 in the unpause path 0x6a318f
+005df45e c700bc528500 eb02 33c0 50 6a0d e840fdf6ff
+008552c0 50566e00
+006e5657 8b0dac00ed00 85c9 7452
+006a317d 8b0dac00ed00 85c9 7412 8b01 8b10 6a01 ffd2 c705ac00ed0000000000

@@ -1215,6 +1215,27 @@ def insert_slot31(d, r, idx93, f111):
     return size, size + 1, shifted
 
 
+def pc_equal_but_pointers(s, p, skeys, pkeys):
+    """(crash 4, 2026-11-14 23:19, tru.exe +0x1b7476) a converted non-script section that is the PC section except for
+    the TARGET OFFSETS of external relocations: same data bytes, same internal pointers and id references, the same
+    external sources pointing at the same sections (by type:id) - only the destination offsets differ. Returns the
+    list of (src, converted dst, PC dst, target key) that differ, [] when the section equals the PC one, None when it
+    differs in anything else (then it is a real pack change and stays converted).
+    Proof case: DTP 3359 (Xbox 3219, the PDA model-instance template; Xbox base = pack11 up to the dependency index of
+    its one external relocation) +0x68 -> mesh 12:3373: converter +0x8158 (a zero record past the bone-set list),
+    PC +0x8138 (the list {count 1, ptr}); the runtime copy of 3359 is the object the PDA's draw 0x5b7430 reads
+    ([obj+0x68]+4)."""
+    if s.data != p['data']: return None
+    ra, rb = R.parse(s.reloc, 'le'), R.parse(p['reloc'], 'le')
+    if sorted(ra.internal) != sorted(rb.internal) or sorted(ra.idref) != sorted(rb.idref) \
+            or sorted(ra.idref_a) != sorted(rb.idref_a) or sorted(ra.unk3) != sorted(rb.unk3):
+        return None
+    ea = {so: (skeys[si], do) for si, so, do in ra.external}
+    eb = {so: (pkeys[si], do) for si, so, do in rb.external}
+    if set(ea) != set(eb) or any(ea[so][0] != eb[so][0] for so in ea): return None
+    return [(so, ea[so][1], eb[so][1], ea[so][0]) for so in sorted(ea) if ea[so][1] != eb[so][1]]
+
+
 def build(argv):
     only_safe = '--only-safe' in argv; argv = [a for a in argv if a != '--only-safe']
     know = KNOW
@@ -1237,8 +1258,21 @@ def build(argv):
     rec = K['recipes']
     # ---- 1 merge (tools/drm_merge_pc.py rule + recipes)
     from_pc = []
+    dkeys = keys(D.sections)
     for s in D.sections:
         key = k_(s.type, s.id); r = rec.get(key)
+        # crash 4 (2026-11-14 23:19): a 'converted' section that is the PC section up to external target offsets is no
+        # pack change - the converter mis-mapped the pointer target (DTP 3359 -> mesh 3373 +0x8158 instead of +0x8138);
+        # the PC section is the PC's own translation of the same Xbox section -> take it (as keep_pc does for scripts)
+        if r == 'converted' and s.type != 8 and (s.type, s.id) in pc:
+            dp = pc_equal_but_pointers(s, pc[(s.type, s.id)], dkeys, pc_keys)
+            if dp is not None:
+                p = pc[(s.type, s.id)]
+                s.data, s.reloc = p['data'], p['reloc']; from_pc.append((s, 'pc'))
+                st['sections from the PC g_pda (converted = PC up to pointer targets)'] += 1
+                for so, a_, b_, tk in dp:
+                    L('pointer target: %s +0x%x -> %d:%d converted +0x%x, PC +0x%x - PC section taken' % (key, so, tk[0], tk[1], a_, b_))
+                continue
         if key in K['base_same'] or r in ('keep_pc', 'resident') or (only_safe and r == 'port'):
             p = pc[(s.type, s.id)]
             s.data, s.reloc = p['data'], p['reloc']; from_pc.append((s, 'pc')); st['sections from the PC g_pda (%s)' % (r or 'base-same')] += 1
@@ -1604,6 +1638,24 @@ def gate_sections(S, pc, PCS, pk, inv, rec, targets, K=None):
                                         key[0], key[1], n1, co, k, j, an))
     out.append(('ok   ' if not rbad else 'FAIL ') + 'replay of the UI list walks (tru.exe 0x4ca2a0 widget lists, 0x4c9410 uitext groups): %s, bad %d %s' % (
         dict(rst), len(rbad), rbad[:8]))
+    # (10) external pointer targets into PC sections (crash 4, 2026-11-14 23:19, tru.exe +0x1b7476 `mov esi,[eax+20h]`
+    # with eax = [[obj+0x68]+4] = 0: DTP 3359 +0x68 -> mesh 3373 +0x8158 instead of the PC's +0x8138): for every
+    # non-ported section the PC file also has, each external relocation whose target section holds the PC bytes and
+    # which the PC version has at the same source offset into the same section must land on the PC's offset
+    pkeys = keys(PCS); xst = collections.Counter(); xbad = []
+    for s in S:
+        k = (s.type, s.id)
+        if k in tset or k not in pc: continue
+        rb = R.parse(pc[k]['reloc'], 'le'); eb = {so: (pkeys[si], do) for si, so, do in rb.external}
+        for si, so, do in R.parse(s.reloc, 'le').external:
+            tk = Sk[si]
+            if tk not in pc or S[si].data != pc[tk]['data']: xst['into non-PC sections (not compared)'] += 1; continue
+            if so not in eb or eb[so][0] != tk: xst['no PC counterpart (not compared)'] += 1; continue
+            xst['compared'] += 1
+            if eb[so][1] != do:
+                xbad.append('%d:%d +0x%x -> %d:%d +0x%x, PC +0x%x' % (k[0], k[1], so, tk[0], tk[1], do, eb[so][1]))
+    out.append(('ok   ' if not xbad else 'FAIL ') + 'external pointer targets into PC sections = the PC targets: %s, bad %d %s' % (
+        dict(xst), len(xbad), xbad[:8]))
     return out
 
 

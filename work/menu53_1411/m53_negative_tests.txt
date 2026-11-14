@@ -1,0 +1,32 @@
+positive (unchanged sources): 0 problem(s) ok
+case version           : 1 problem(s) ok - TruMenu.cpp: kVersion must start with "TruMenu 0.22.53 (sound log trees ..."
+case no weapons kind   : 1 problem(s) ok - TruMenu.cpp: kW8CatKey must end with weapons
+case g78 not Lara      : 1 problem(s) ok - TruMenu.cpp: kW8GroupSub[78] must be kW8sLaraBody (kW8sWoDefault)
+case g62 not Waffen    : 1 problem(s) ok - TruMenu.cpp: kW8GroupSub[62] must be kW8sWpShot (kW8sLaraBody)
+case waves unsorted    : 1 problem(s) ok - TruMenu.cpp: W8WeaponWavesLoad must read TruMenu.weaponwaves.txt and sort it (bsearch)
+case waves unloaded    : 1 problem(s) ok - TruMenu.cpp: TruMenu.weaponwaves.txt is never loaded
+case sub dropped       : 1 problem(s) ok - TruMenu.cpp: sub-group ob_dlc3 needs a Filter row and a Stumm / Solo row
+case no source         : 1 problem(s) ok - TruMenu.cpp: W8SubOf lacks if (group != 14 || cat == kSnMusic || cat == kSnSpeech) return sub;
+case gear = Lara only  : 1 problem(s) ok - TruMenu.cpp: W8SubOf lacks return own == 2 || W8WeaponWave(wave) ? kW8sWpLara14 : kW8sLaraGear;
+case no +0x54          : 1 problem(s) ok - TruMenu.cpp: W8LaraOwner must test parent +0x54 = player and the wp_ object name
+case no follow         : 1 problem(s) ok - TruMenu.cpp: W8LineShown lacks if (g_w8FollowMute && tree) return false;
+case no sub filter     : 1 problem(s) ok - TruMenu.cpp: W8LineShown lacks (g_w8DrawHide & (1ull << sub))
+case no publish        : 1 problem(s) ok - TruMenu.cpp: W6Tick must publish the mute state
+case cache unfinal     : 1 problem(s) ok - TruMenu.cpp: W6VoiceTick keeps only a final sub-group
+case no sub groups     : 1 problem(s) ok - TruMenu.cpp: W6CgTick must mute the pure sub-trees of a sub-group rule
+case no heading        : 1 problem(s) ok - TruMenu.cpp: Ton-Log must be settings -> Filter (Zeigen) -> Schnell-Hoeren -> Stumm / Solo ([58, 59, 60, 61, 62, 65, 66, -1, 122])
+case hear first rows   : 1 problem(s) ok - TruMenu.cpp: Stumm / Solo must start with Alles zurueck, Neuester Ton solo, Hall folgt Stumm, Hall aus
+case kind open         : 1 problem(s) ok - TruMenu.cpp: kind group tls_mu must start closed
+case level 3 lost      : 1 problem(s) ok - TruMenu.cpp: QbGroupLevel must know the levels 2 / 3
+case S7 row changed    : 1 problem(s) ok - TruMenu.cpp: kS7Checks must be the 17 rows of precheck_02253.txt
+case S7 check order    : 1 problem(s) ok - TruMenu.cpp: the load must call S7Check right after S6Check
+case S7 no shutdown    : 1 problem(s) ok - TruMenu.cpp: DllMain must call S7Shutdown
+case S7 open write     : 1 problem(s) ok - TruMenu.cpp: S7Tick may write R1 only while the sonar is closed (mode 0), through SoWrite
+case S7 no pause gate  : 1 problem(s) ok - TruMenu.cpp: S7Extend lacks pause != 6
+case S7 no heap gate   : 1 problem(s) ok - TruMenu.cpp: S7Extend lacks ReadDword(kS7MapHeap, &heap) || heap
+case S7 no unit cap    : 1 problem(s) ok - TruMenu.cpp: S7Extend lacks if (g_s7Extra >= g_s7Max)
+case S7 rule skipped   : 1 problem(s) ok - TruMenu.cpp: S7LoadStub must call the game rule 0x6e2e60 first
+case markup fixed      : 1 problem(s) ok - TruMenu.cpp: W5DrawMarkup must take the 0xe804a0 matrix while the sonar is open
+case loadall restart   : 1 problem(s) ok - switches: row TruMenu | Sonar | LoadAllConnected | ... | live | 0 | ... | TruMenu 0.22.53 missing
+case follow default    : 1 problem(s) ok - switches: row TruMenu | Sound | LogFollowMute | ... | live | 1 | ... | TruMenu 0.22.53 missing
+30 cases + 1 positive, 0 failed

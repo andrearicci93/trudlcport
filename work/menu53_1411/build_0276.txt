@@ -1,0 +1,18 @@
+Built work\asi\menu0276\TruMenu.asi (2345472 bytes, x86 DLL, sha256 a8829f0d65b72af4af686716c384a1d80e337b55ea9f81ff39f01e7df3162fef) - TruMenu 0.22.53
+  Build-TruAsi.ps1 -Name TruMenu -OutDir work/asi/menu0276 from Git Bash (raw outputs in _archiv\, not in the repo - they
+  hold local paths). Earlier builds of the same day are overwritten: c4cf8249... (before the help / Paket B2 row fixes;
+  the very first one stopped at C2026 - the first literal chunk of kVersion was over 16380 characters, split with " "),
+  1357b277... (commit 7e351f7, still with the weapon wave id table in the source - the upload scan flagged it as game
+  data; the ids now come from the optional TruMenu.weaponwaves.txt)
+  warnings: 2 (both imgui_demo.cpp), 0 in TruMenu.cpp; imports / exports = 0.22.52 (tools/pe_import_export_diff.py: 151
+  functions, same 6 exports, no new DLL - imports_exports_0275_0276.txt)
+Byte checks: tools/pe_bytes_check.py --file work/menu53_1411/precheck_02253.txt -> 17 checks (= kS7Checks), 0 mismatches
+  on data\pc\tru.exe (sha256 6905b046...); the design list work/menu53_1411/sonar/precheck_sonarload.txt: 51 checks, 0
+  mismatches (precheck_sonarload_result.txt)
+trumenu_ini_check: exit 1 - 61 ok lines; the only problems are 5 lines of TruTrace 0.3.3 (commit 496aad4, another agent):
+  4 x "TruMenu.switches.txt: TruTrace.ini [Trace] ModelInst / ModelInstMaxPerSecond / NullModelGuard / SkipNullModelDraw
+  has no row" and "Q02237 TruTrace: 0.3.2 with the ProgressFilter default ... wanted" (ini_check_final.txt); new
+  check_02253 ok
+negative cases m53_negative_tests.py: 30 cases + 1 positive, 0 failed (m53_negative_tests.txt)
+trumenu_quick_check: exit 1 - only the old "menupages: 28 page keys" FAIL (as 0.22.45 .. 0.22.52)
+trumenu_readability_check: exit 0

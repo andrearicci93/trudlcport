@@ -1,0 +1,8 @@
+g_pda port: PDA model pointer taken from the PC section (DLC 1 start crashes tru+0x1b7476)
+
+DTP 3359 (the PDA's model-instance template) kept a converter pointer 0x20 too far into the PDA mesh 3373 (+0x8158,
+a zero record, instead of the PC's bone-set list at +0x8138); the PDA is drawn where Lara wears it on her belt (DLC 1).
+A converted non-script section equal to the PC one up to external target offsets now takes the PC section; new gate
+(10) compares every external pointer target into PC sections with the PC's.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>

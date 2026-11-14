@@ -53,10 +53,12 @@ $earlierBuilds = @{
     'TruTrace.asi' = @('41104b543c26932a4c593b596af8aa3b4e74bb26b31687860aff0b9061e7227b',    # 0.1 (work\asi\trace01)
                        '6f9bc97bcf55b85af75ec3d56d5972c7033b587a95c29ee34a82c834974b9fed',    # 0.3 (work\asi\trace03, installed 2026-11-05; its export still said 0.2)
                        '8456a9895fa9eac3e9a68aea7f9809b6e2c798952eaa62f902136c86fb58c86a',    # 0.3.1 dated log lines (work\asi\i_1211\TruTrace)
-                       '60ecf445a5bb30abed853ab34fa504b41bbd642ed5da157656305c51a328b634')    # 0.3.2 ProgressFilter, stale machines, ground (work\asi\trace032, current)
+                       '60ecf445a5bb30abed853ab34fa504b41bbd642ed5da157656305c51a328b634',    # 0.3.2 ProgressFilter, stale machines, ground (work\asi\trace032)
+                       'eb3a3b4433683ffa9f825dd0534752b832d76d2377e3e7d61ec6dc5a254ee123')    # 0.3.3 ModelInst, NullModel guard (work\asi\trutrace033, current)
     'TruTrace.ini' = @('c30ca6d7674de028a2673812c0ea2963276b8e08a3d11aa4d4680b50e55c8e0a',    # 0.1 sample .ini
                        '2c45862aefef18be0418c6dc3f993287a47c0a0f6cc216e44e0dd44ba13bd661',    # sample .ini of 0.3 / 0.3.1
-                       '1c815eef07a4dee4d9b25c42417cf2a3357e5afdea6b121e6123fed08d4921a3')    # sample .ini of 0.3.2
+                       '1c815eef07a4dee4d9b25c42417cf2a3357e5afdea6b121e6123fed08d4921a3',    # sample .ini of 0.3.2
+                       '832dcef1377b425e0a33dff8bae76b25443864bfa4f491af95cd9b7b60074fe0')    # sample .ini of 0.3.3
 }
 $logDir  = $paths.Logs
 New-Item -ItemType Directory -Force -Path $logDir | Out-Null

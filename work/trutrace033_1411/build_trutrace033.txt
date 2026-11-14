@@ -1,0 +1,8 @@
+Built work\asi\trutrace033\TruTrace.asi (199680 bytes, x86 DLL, sha256 eb3a3b4433683ffa9f825dd0534752b832d76d2377e3e7d61ec6dc5a254ee123) - TruTrace 0.3.3
+  scripts\windows\Build-TruAsi.ps1 -Name TruTrace -OutDir work\asi\trutrace033; warnings: 0
+  sample .ini sha256 832dcef1377b425e0a33dff8bae76b25443864bfa4f491af95cd9b7b60074fe0
+Self test: SelfTest.exe (src\asi\TruTrace\SelfTest.cpp) -> 20 PASS, 0 failed (0.3.3: + prologue as tru+0x1b7430, skip through a plain ret with the hook's eax, 500 skipped + 500 normal calls)
+Byte checks: tools/pe_bytes_check.py <Steam tru.exe, md5 5560abac...> --file work/trutrace033_1411/precheck_trutrace033.txt -> 34 checks, 0 mismatches
+             work/trutrace033_1411/dump_bytes_check.py (code bytes in tru.exe.60720.dmp / tru.exe.9480.dmp, db list m.cdb) -> 32 sites, 0 mismatches each
+Offline replay: work/trutrace033_1411/guard_replay.py on both dumps -> guard condition TRUE (exit 0) in both; drawn instance = object 48 g_pda, model 0 of 1, bone table {0, NULL}
+Not installed, no game started. Install: scripts\windows\Set-TruTrace.ps1 -Install -SourceDir work\asi\trutrace033

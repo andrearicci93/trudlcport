@@ -65,6 +65,25 @@
 //   dispatcher's caller; emitters started there carry "fixed slot N of <instance>" in their START / LONG / END lines,
 //   so "sound 20212" (the section id of the doppelganger's slot nodes) is tied to a slot.
 //
+// 0.3.3 (14.11., recurring crash tru+0x1b7476 in 0x5b7430: [[model DTP+0x68]+4] = 0, render path 0x5bbd06):
+//   [ModelInst] every InstanceDrawable built by its ctor tru+0x1b93e0 (thiscall, this = the drawable, arg = the game
+//     instance, ret 4; vtable 0x853abc; +4 instance, +0x10 one PCRenderModelInstance per model, +0x14 PCMatrixState):
+//     instance, object id / name, intro id, position, unit, the object's model list (object +0x3a s16 count, +0x40
+//     model DTP pointers), per model the DTP (word0, +4 segment count, +0x68 the mesh bone table {count, segments},
+//     +0xc own segments), its PCRenderModel (DTP +0x64; +8 = the render resource SERIAL [0xa14148]++ of 0x502600 - not
+//     a section id) and render model instance; who built it: the instance init 0x5ba810 (return 0x5ba9e6; its own
+//     caller = intro 0x5bcc30 / birth 0x5bd0f0 / child birth 0x5bd270 / clone 0x4d0e50 / 0x5bb160 / 0x5bb84d), the
+//     init 0x5d07e0 (return 0x5d0946) or the derived drawable ctor 0x6d0c20; plus the intro / birth hook running on
+//     this thread (its caller, intro id, parent). A model whose bone table pointer is set but its segments are 0 (or
+//     with no +0x68 and +0xc 0) is flagged at level 0. One line per object and unit at level 1, the rest at level 2,
+//     and a summary 3 s after the last drawable of a burst.
+//   [NullModel] entry hook of 0x5b7430 (cdecl, 5 args: model DTP, world matrix, 0, flag, PCMatrixState; callers
+//     0x5bbd06 with ebx = the drawable and 0x5b80af with esi = the drawable): when the DTP is 0, or +0x68 != 0 and
+//     [+0x68]+4 == 0, or +0x68 == 0 and +0xc == 0 (the path 0x5b7467..0x5b7476 reads [0+0x20]), one line with the
+//     drawable, instance, object, model index, bone table words, position and the birth record of [ModelInst] -
+//     written to the file at once (the game crashes on the next instruction). SkipNullModelDraw=1 returns from
+//     0x5b7430 without running it (diagnostic aid, not a fix: the matrix state then keeps old data).
+//
 // Every hook site and every fact the decoding relies on is byte-checked first; a mismatch switches that category off
 // and is logged. Lines are buffered and written by the poll thread (every 100 ms) - no file access in the game's hooks.
 // Rate limit per category: MaxLinesPerSecond, MaxLinesPerCategory. Options: TruTrace.ini [Trace], log TruTrace.log.
@@ -81,8 +100,8 @@
 
 namespace {
 
-const char kVersion[] = "TruTrace 0.3.2";            // 0.3.1: dated log lines (Q107); 0.3.2: ProgressFilter default,
-                                                      // stale player machines cleared (P5)
+const char kVersion[] = "TruTrace 0.3.3";            // 0.3.1: dated log lines (Q107); 0.3.2: ProgressFilter default,
+                                                      // stale player machines cleared (P5); 0.3.3: ModelInst, NullModel
 const DWORD kImageBase = 0x00400000;
 
 // ---- game data (read only) ----
@@ -127,6 +146,23 @@ const DWORD kRetPlaceRestore = 0x005de6fa;    // player placement from 0x5de480 
 // ---- 0.3: object sound-slot play tru+0x193d50 (read only) ----
 const DWORD kRetSlotPlay = 0x005b6a35;        // tru+0x193d50 from the anim event dispatcher tru+0x1b69c0 (type 0x60)
 const DWORD kRetSlotStart = 0x00593dec;       // play 0x593c90 called from tru+0x193d50 (mode 1)
+
+// ---- 0.3.3: drawables / model instances, the null-model draw 0x5b7430 (read only) ----
+const DWORD kVtDrawable = 0x00853abc;         // cdc::InstanceDrawable (ctor 0x5b93e0, dtor 0x5b76b0)
+const DWORD kVtDrawableDerived = 0x0085d468;  // drawable class of the ctor 0x6d0c20 (base ctor 0x5b93e0 first)
+const DWORD kRetDrawInit = 0x005ba9e6;        // ctor from the instance init 0x5ba810 (frame 0x18: its return at E[8])
+const DWORD kRetDrawInit2 = 0x005d0946;       // ctor from the init 0x5d07e0 (ebp frame: its return at [ebp+4])
+const DWORD kRetDrawDerived = 0x006d0c30;     // ctor from the derived ctor 0x6d0c20 (4 pushes: its return at E[6])
+const DWORD kRetDerivedCtor = 0x006d1b20;     // 0x6d0c20 from 0x6d1b1b
+const DWORD kRetModelDrawA = 0x005bbd0b;      // 0x5b7430 from 0x5bbd06 (ebx = the drawable)
+const DWORD kRetModelDrawB = 0x005b80b4;      // 0x5b7430 from 0x5b80af in 0x5b7fe0 (esi = the drawable)
+struct RetName { DWORD ret; const char *name; };
+// callers of the instance init 0x5ba810 (return addresses) and of the init 0x5d07e0
+const RetName kInitCallers[] = {{0x005bcd04, "intro 0x5bcc30"}, {0x005bd180, "birth 0x5bd0f0"},
+                                {0x005bd2da, "child birth 0x5bd270"}, {0x004d0eb3, "instance clone 0x4d0e50"},
+                                {0x005bb300, "0x5bb160 (called from 0x55568a)"}, {0x005bb84d, "init site 0x5bb848"}};
+const RetName kInit2Callers[] = {{0x0053802a, "0x538025"}, {0x0053f2fb, "0x53f2f6"}, {0x006c6ea4, "0x6c6e9f"},
+                                 {0x006d40cb, "0x6d40c6"}};
 // facts of the slot hook only (a mismatch switches SoundSlots off, not the whole sound category)
 const char *const kSlotFacts[][2] = {
     {"005b69c0", "8b44240c 0fbf08"},                                         // payload = dispatcher arg 3, type word
@@ -141,10 +177,11 @@ const char *const kSlotFacts[][2] = {
 
 // ---- facts (read-only byte checks; same strings as work\asi\trace01\precheck_trace01.txt) ----
 enum Cat { kCatTrace, kCatSound, kCatTele, kCatChart, kCatPower, kCatSpawn, kCatObj, kCatTime, kCatLevel, kCatPortal,
-            kCatStream, kCatSave, kCatProg, kCatMsg, kCatData, kCatGround, kCatCount };   // 0.3.2: + ground
+            kCatStream, kCatSave, kCatProg, kCatMsg, kCatData, kCatGround, kCatModel, kCatNull,
+            kCatCount };   // 0.3.2: + ground; 0.3.3: + modelinst, nullmodel
 const char *const kCatName[kCatCount] = {"trace", "sound", "teleport", "chart", "power", "spawn", "obj", "timevec",
                                          "level", "portal", "stream", "save", "progress", "message", "gamedata",
-                                         "ground"};
+                                         "ground", "modelinst", "nullmodel"};
 struct Fact { int cat; DWORD at; const char *hex; };
 const Fact kFacts[] = {
     {kCatSound, 0x005b99d7, "0fbe06 85c0 0f8559010000 d9ee 8b4604 51 d91c24 50 8d4c2420 51 8b0d00818a00 e8d49bfdff"},
@@ -265,11 +302,54 @@ const Fact kFacts[] = {
     {kCatGround, 0x005dd8c5, "68ca010000 56 e8805efdff"},
     {kCatGround, 0x005dd4f4, "0fbf930e100000"},
     {kCatGround, 0x005b3969, "8b0d608fd900 0fbfc0 69c0f0020000"},
+    // 0.3.3 [ModelInst]: the InstanceDrawable ctor 0x5b93e0 (vtable, +4 instance, object +0x3a s16 model count, +0x40
+    // model DTP list, DTP +0x64 PCRenderModel -> device vf+0xb0 -> render model instance into [+0x10][i], +0x14 matrix
+    // state, returns this, ret 4); its three call sites and the frames used to find their callers (0x5ba810: sub 8 +
+    // 4 pushes, alloc thiscall; 0x5d07e0: ebp frame; 0x6d0c20: 4 pushes + arg); the callers of 0x5ba810 / 0x5d07e0 /
+    // 0x6d0c20; the render resource serial at PCRenderModel +8 (base ctor 0x502600 at +4: [+4] = [0xa14148]++)
+    {kCatModel, 0x005b93ea, "c706bc3a8500 896e04 8b4d10 0fbf513a"},
+    {kCatModel, 0x005b9430, "8b4040 8b0c98 8b4164"},
+    {kCatModel, 0x005b9444, "8b7e10 8b0d7c40a100 03fa 8b11 50 8b82b0000000 ffd0 8907"},
+    {kCatModel, 0x005b947c, "894614"},
+    {kCatModel, 0x005b94c7, "5f 8bc6 5e 5d 5b c20400"},
+    {kCatModel, 0x005ba810, "83ec08 53 55 56 8b742418 8b5e44 57"},
+    {kCatModel, 0x005ba9c6, "8b0dac9ccd00 8b4948 8b11 8b4234 6a00 6a24 ffd0 85c0 7416 56 8bc8 e8fae9ffff"},
+    {kCatModel, 0x005d07e0, "55 8bec 83e4f0"},
+    {kCatModel, 0x005d093e, "56 8bc8 e89a8afeff"},
+    {kCatModel, 0x006d0c20, "8b442404 53 55 56 57 50 8bf1 e8b087eeff 8d4e24 c70668d48500"},
+    {kCatModel, 0x006d1b1b, "e800f1ffff"},
+    {kCatModel, 0x004d0eae, "e85d990e00"},
+    {kCatModel, 0x005bb2fb, "e810f5ffff"},
+    {kCatModel, 0x005bb848, "e8c3efffff"},
+    {kCatModel, 0x005bccff, "e80cdbffff"},
+    {kCatModel, 0x005bd17b, "e890d6ffff"},
+    {kCatModel, 0x005bd2d5, "e836d5ffff"},
+    {kCatModel, 0x00538025, "e8b6870900"},
+    {kCatModel, 0x0053f2f6, "e8e5140900"},
+    {kCatModel, 0x006c6e9f, "e83c99f0ff"},
+    {kCatModel, 0x006d40c6, "e815c7efff"},
+    {kCatModel, 0x00502600, "8bc1 c700c48e8400 8b0d4841a100 894804 83054841a10001"},
+    {kCatModel, 0x0050ea89, "8d7e04 53 8bcf c706bc968400 e8663bffff"},
+    {kCatModel, 0x0050eaa8, "c70604978400"},
+    // 0.3.3 [NullModel]: the null path of 0x5b7430 (eax = [dtp+0x68] ? [[dtp+0x68]+4] : [dtp+0xc]; mov esi,[eax+0x20]),
+    // its plain `ret` (cdecl: a skip returns with ret), both call sites with the drawable register and the caller's
+    // add esp, 0x14 (eax unused after the call), 0x5b7fe0 = drawable method (this = esi, called with ecx = ebx), the
+    // drawable +4 instance and the object's model list
+    {kCatNull, 0x005b7467, "8b4168 85c0 7405 8b4004 eb03 8b410c 8b7020"},
+    {kCatNull, 0x005b76a1, "5f 5e 5b 8be5 5d c3"},
+    {kCatNull, 0x005bbcf5, "8b4314 8b4c2420 8b54241c 50 57 6a00 51 52 e825b7ffff 8b4b14 8b01 8b531c 8b400c 83c414"},
+    {kCatNull, 0x005b809f, "8b4e14 8b7c241c 8b542418 51 57 53 55 52 e87cf3ffff 8b4e14 8b01 8b561c 8b400c 83c414"},
+    {kCatNull, 0x005bbc71, "8bcb e868c3ffff"},
+    {kCatNull, 0x005b7fe0, "56 8bf1 8b4e14"},
+    {kCatNull, 0x005b93ea, "c706bc3a8500 896e04 8b4d10 0fbf513a"},
+    {kCatNull, 0x005b9430, "8b4040 8b0c98 8b4164"},
 };
 
 // ---- options (TruTrace.ini, section [Trace]) ----
 int g_enabled = 1, g_logLevel = 1, g_maxPerSec = 40, g_maxPerCat = 50000, g_pollMs = 5;
-int g_catOn[kCatCount] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
+int g_catOn[kCatCount] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
+int g_modelMaxPerSec = 200;                   // 0.3.3: [Trace] ModelInstMaxPerSecond (a level load builds hundreds)
+int g_skipNullDraw = 0;                       // 0.3.3: [Trace] SkipNullModelDraw (diagnostic aid, not a fix)
 int g_gameDataMs = 250;
 // 0.3.2 (P5, docs Befund-P1-Mittelmeer-Objekte-1311.md): + _rw_ (rewards: appear / collected), weightbreak (jars:
 // hit 0x2b / damage 0x11c, removal), ping_map (sonar pings destroyed on solve), grapple (grapple walls) - 13 of 16 tokens
@@ -339,14 +419,15 @@ void Log(int cat, int level, const char *fmt, ...) {
             _snprintf_s(note, sizeof(note), _TRUNCATE, "%04d-%02d-%02d %02d:%02d:%02d.%03d [%s] %s: (%ld lines suppressed "
                         "by the rate limit, MaxLinesPerSecond %d)", t.wYear, t.wMonth, t.wDay, t.wHour, t.wMinute,
                         t.wSecond, t.wMilliseconds, g_unit,
-                        kCatName[cat], r.dropped, g_maxPerSec);
+                        kCatName[cat], r.dropped, cat == kCatModel ? g_modelMaxPerSec : g_maxPerSec);
             Append(note);
         }
         r.second = sec;
         r.inSecond = 0;
         r.dropped = 0;
     }
-    bool drop = level > 0 && (r.inSecond >= g_maxPerSec || r.total >= g_maxPerCat);
+    const int perSec = cat == kCatModel ? g_modelMaxPerSec : g_maxPerSec;   // 0.3.3: own budget for level loads
+    bool drop = level > 0 && (r.inSecond >= perSec || r.total >= g_maxPerCat);
     if (drop) {
         ++r.dropped;
         ++r.droppedTotal;
@@ -547,14 +628,19 @@ void RestoreLeave(Regs *r, const DWORD *ctx);
 bool PostEnter(Regs *r, DWORD *ctx);
 bool SlotPlayEnter(Regs *r, DWORD *ctx);
 void SlotPlayLeave(Regs *r, const DWORD *ctx);
+bool DrawCtorEnter(Regs *r, DWORD *ctx);       // 0.3.3
+void DrawCtorLeave(Regs *r, const DWORD *ctx);
+bool ModelDrawEnter(Regs *r, DWORD *ctx);
 
 // offline self test (TruTraceSelfTest): hooks on the plugin's own test functions, same framework
 bool TestEnter(Regs *r, DWORD *ctx);
 void TestLeave(Regs *r, const DWORD *ctx);
+bool TestSkipEnter(Regs *r, DWORD *ctx);
 
 enum { kHSound, kHDtor, kHListRelease, kHSlotStop, kHWake, kHChartMove, kHChartReset, kHChartStart, kHIntro, kHBirth,
-       kHBirth2, kHRequest, kHStreamLoad, kHPlace, kHMoveUnit, kHPortal, kHSave, kHRestore, kHPost, kHSlotPlay, kRealHooks,
-       kHT1 = kRealHooks, kHT2, kHT3, kHT4, kHT5, kHT6, kHT7, kHT8, kHT9, kHT10, kHookCount };
+       kHBirth2, kHRequest, kHStreamLoad, kHPlace, kHMoveUnit, kHPortal, kHSave, kHRestore, kHPost, kHSlotPlay,
+       kHDrawCtor, kHModelDraw, kRealHooks,
+       kHT1 = kRealHooks, kHT2, kHT3, kHT4, kHT5, kHT6, kHT7, kHT8, kHT9, kHT10, kHT11, kHookCount };
 Hook g_hooks[kHookCount] = {
     {"emitter create tru+0x1935d0", kCatSound, 0x005935d0, "53 57 8b7c2410 85ff 8bd9 750f 8b44240c", 6, 0xc, false,
      SoundCreateEnter, SoundCreateLeave, 0, 0, false, 0},
@@ -599,6 +685,12 @@ Hook g_hooks[kHookCount] = {
     // 0.3: object sound-slot play (copy 6 = push ebp / mov ebp, esp / and esp, -16, as tru+0x1bcc30)
     {"sound slot play tru+0x193d50", kCatSound, 0x00593d50, "55 8bec 83e4f0 83ec14 53 56 57 8bf9 8b4f0c 85c9 751d", 6, 0x10,
      false, SlotPlayEnter, SlotPlayLeave, 0, 0, false, 0},
+    // 0.3.3: InstanceDrawable ctor (copy 6 = push ebx / push ebp / mov ebp,[esp+0xc]; thiscall ret 4, returns this) and
+    // the model draw 0x5b7430 (copy 6 = push ebp / mov ebp, esp / and esp, -16; cdecl, no leave hook - hot path)
+    {"InstanceDrawable ctor tru+0x1b93e0", kCatModel, 0x005b93e0, "53 55 8b6c240c 56 8bf1 57 c706bc3a8500", 6, 4, false,
+     DrawCtorEnter, DrawCtorLeave, 0, 0, false, 0},
+    {"model draw tru+0x1b7430", kCatNull, 0x005b7430, "55 8bec 83e4f0 81ec44010000 f605b061da0001 8b4d08", 6, 0, false,
+     ModelDrawEnter, nullptr, 0, 0, false, 0},
     // self test only (at / vtOrig filled in by TruTraceSelfTest; never placed in the game)
     {"test cdecl", kCatTrace, 0, "55 8bec 83e4f0", 6, 0, false, TestEnter, TestLeave, 0, 0, false, 0},
     {"test thiscall ret 0xc", kCatTrace, 0, "53 57 8b7c2410", 6, 0xc, false, TestEnter, TestLeave, 0, 0, false, 0},
@@ -613,6 +705,8 @@ Hook g_hooks[kHookCount] = {
     {"test tail-jump caller", kCatTrace, 0, "83ec10 53 55", 5, 0, false, TestEnter, TestLeave, 0, 0, false, 0},
     {"test tail-jump target", kCatTrace, 0, "807c240400", 5, 0, false, TestEnter, TestLeave, 0, 0, false, 0},
     {"test push esi prologue", kCatTrace, 0, "56 8b742408", 5, 0, false, TestEnter, TestLeave, 0, 0, false, 0},
+    // 0.3.3: an entry hook that skips the function (SkipNullModelDraw): r->slot = a plain ret, eax set by the hook
+    {"test skip (plain ret)", kCatTrace, 0, "55 8bec 83e4f0", 6, 0, false, TestSkipEnter, nullptr, 0, 0, false, 0},
 };
 
 Shadow *GetShadow() {
@@ -1403,13 +1497,60 @@ const char *CallerName(DWORD ret) {
     }
 }
 
+// 0.3.3 [ModelInst]: the intro / birth running on the game thread, pushed at its entry and popped at its leave; the
+// drawable ctor inside it reads the innermost frame. A frame remembers the stack address of its entry: frames at or
+// below a new entry / a leave are stale (a missed leave) and dropped. kind 1 intro 0x5bcc30, 2 birth 0x5bd0f0, 3
+// child birth 0x5bd270
+bool LooksInstance(DWORD v);
+struct BirthFrame { int kind, obj; DWORD caller, uid, parent, esp, tick; };
+struct BirthStack { DWORD tid; int depth; BirthFrame e[8]; };
+BirthStack g_birthStack = {};
+const char *const kBirthKind[] = {"-", "intro 0x5bcc30", "birth 0x5bd0f0", "child birth 0x5bd270"};
+
+bool BirthPush(int kind, int obj, DWORD caller, DWORD uid, DWORD parent, DWORD esp) {
+    if (!g_catOn[kCatModel]) return false;
+    const DWORD tid = GetCurrentThreadId();
+    BirthStack &s = g_birthStack;
+    if (s.depth && s.tid != tid) return false;                  // births run on the game thread only
+    while (s.depth && s.e[s.depth - 1].esp <= esp) --s.depth;   // stale frames (their leave was missed)
+    if (s.depth >= 8) return false;
+    s.tid = tid;
+    BirthFrame &f = s.e[s.depth++];
+    f.kind = kind;
+    f.obj = obj;
+    f.caller = caller;
+    f.uid = uid;
+    f.parent = parent;
+    f.esp = esp;
+    f.tick = GetTickCount();
+    return true;
+}
+void BirthPop(DWORD esp) {                                      // esp = the entry stack address of the leaving call
+    BirthStack &s = g_birthStack;
+    if (s.tid != GetCurrentThreadId()) return;
+    while (s.depth && s.e[s.depth - 1].esp <= esp) --s.depth;
+}
+// the innermost live frame above the stack address `esp` (0 = none)
+const BirthFrame *BirthTop(DWORD esp) {
+    BirthStack &s = g_birthStack;
+    if (!s.depth || s.tid != GetCurrentThreadId()) return nullptr;
+    return s.e[s.depth - 1].esp > esp ? &s.e[s.depth - 1] : nullptr;
+}
+
 bool IntroEnter(Regs *r, DWORD *ctx) {
     const DWORD *E = &r->ret;
     DWORD intro = E[1];
     int id = static_cast<int>(W(intro + 0x50));
     char name[96];
     if (!ObjectName(id, name, sizeof(name))) strcpy_s(name, sizeof(name), "?");
-    if (!NameMatches(name, g_spawnFilter)) return false;
+    // 0.3.3: the hook also runs for [ModelInst] (Spawn=0 or another object): spawn lines only for SpawnFilter
+    const bool spawnLog = g_catOn[kCatSpawn] && NameMatches(name, g_spawnFilter);
+    const bool pushed = BirthPush(1, id, E[0], D(intro + 0x58), 0, reinterpret_cast<DWORD>(E));
+    if (!spawnLog && !pushed) return false;
+    if (!spawnLog) {                          // only the birth frame: skip the instance list walk of the spawn line
+        ctx[7] = 0x200;
+        return true;
+    }
     ctx[0] = intro;
     ctx[1] = static_cast<DWORD>(id);
     ctx[2] = D(intro + 0x58);
@@ -1417,11 +1558,13 @@ bool IntroEnter(Regs *r, DWORD *ctx) {
     ctx[4] = B(intro + 0x72);
     ctx[5] = InstanceWithIntro(ctx[2]);
     ctx[6] = D(kInstanceFree);
-    ctx[7] = E[4] & 0xff;
+    ctx[7] = (E[4] & 0xff) | (spawnLog ? 0x100 : 0) | (pushed ? 0x200 : 0);   // arg 4, spawn line, birth frame
     return true;
 }
 
 void IntroLeave(Regs *r, const DWORD *ctx) {
+    if (ctx[7] & 0x200) BirthPop(reinterpret_cast<DWORD>(&r->slot));   // cdecl: &slot = the entry's &ret
+    if (!(ctx[7] & 0x100)) return;
     DWORD inst = r->eax, intro = ctx[0], uid = ctx[2];
     int id = static_cast<int>(ctx[1]);
     char name[96];
@@ -1441,7 +1584,8 @@ void IntroLeave(Regs *r, const DWORD *ctx) {
     bool newMark = !(ctx[4] & 0x80) && (B(intro + 0x72) & 0x80);
     bool flag10 = found && state == 2 && object && (B(D(object) + 8) & 0x10);
     char why[220];
-    if (ctx[5] && !ctx[7]) _snprintf_s(why, sizeof(why), _TRUNCATE, "an instance with this intro id exists (0x%08lx)", ctx[5]);
+    if (ctx[5] && !(ctx[7] & 0xff)) _snprintf_s(why, sizeof(why), _TRUNCATE, "an instance with this intro id exists (0x%08lx)",
+                                             ctx[5]);
     else if (newMark && flag10) _snprintf_s(why, sizeof(why), _TRUNCATE, "object flag ([obj]+8 & 0x10)");
     else if (newMark) _snprintf_s(why, sizeof(why), _TRUNCATE, "save state check 0x555730 / 0x555a10 (marked +0x72 0x80, "
                                   "no live instance, arg 4 = 0)");
@@ -1450,7 +1594,7 @@ void IntroLeave(Regs *r, const DWORD *ctx) {
                                      index, state);
     else if (!ctx[6]) _snprintf_s(why, sizeof(why), _TRUNCATE, "instance pool full (free list [0xd98d5c] empty)");
     else _snprintf_s(why, sizeof(why), _TRUNCATE, "other (+0x72 was 0x%02lx before, 0x%02x now; arg 4 = %lu)", ctx[4],
-                     B(intro + 0x72), ctx[7]);
+                     B(intro + 0x72), ctx[7] & 0xff);
     Log(kCatSpawn, 1, "intro %ld obj %d %s REFUSED: %s (intro record 0x%08lx, caller 0x%08lx %s)", static_cast<LONG>(uid), id,
         name, why, intro, ctx[3], CallerName(ctx[3]));
 }
@@ -1459,19 +1603,27 @@ bool BirthCommon(Regs *r, DWORD *ctx, DWORD object, int which) {
     int id = object ? static_cast<int>(D(object + 0x14) & 0xffff) : 0;
     char name[96];
     if (!ObjectName(id, name, sizeof(name))) strcpy_s(name, sizeof(name), "?");
-    if (!NameMatches(name, g_spawnFilter)) return false;
+    const bool spawnLog = g_catOn[kCatSpawn] && NameMatches(name, g_spawnFilter);   // 0.3.3: see IntroEnter
+    const DWORD a1 = (&r->ret)[1];
+    const bool pushed = BirthPush(which ? 3 : 2, id, r->ret, 0, which && LooksInstance(a1) ? a1 : 0,
+                                  reinterpret_cast<DWORD>(&r->ret));
+    if (!spawnLog && !pushed) return false;
     ctx[0] = object;
     ctx[1] = static_cast<DWORD>(id);
     ctx[2] = r->ret;
     ctx[3] = static_cast<DWORD>(which);
     ctx[4] = D(kInstanceFree);
-    ctx[5] = (&r->ret)[1];
+    ctx[5] = a1;
+    ctx[6] = spawnLog ? 1 : 0;
+    ctx[7] = pushed ? 1 : 0;
     return true;
 }
 bool BirthEnter(Regs *r, DWORD *ctx) { return BirthCommon(r, ctx, (&r->ret)[5], 0); }
 bool Birth2Enter(Regs *r, DWORD *ctx) { return BirthCommon(r, ctx, (&r->ret)[2], 1); }
 
 void BirthLeave(Regs *r, const DWORD *ctx) {
+    if (ctx[7]) BirthPop(reinterpret_cast<DWORD>(&r->slot));    // 0.3.3
+    if (!ctx[6]) return;
     DWORD inst = r->eax, object = ctx[0];
     int id = static_cast<int>(ctx[1]);
     char name[96];
@@ -1882,6 +2034,288 @@ void GroundNote(DWORD player, DWORD msg, DWORD rec) {
 }
 
 // ---------------------------------------------------------------------------------------------------------------
+// [ModelInst] / [NullModel] 0.3.3 (crash tru+0x1b7476, 14.11.: model DTP +0x68 -> bone table {0, NULL})
+struct ModelRec {                    // one built drawable (ring; the null-model guard looks its drawable up here)
+    DWORD drawable, inst, ctorRet, outer, outer2, birthCaller, birthParent, tick, nullMask;
+    int obj, birthKind, birthObj, models;
+};
+const int kModelRecs = 1024;
+ModelRec g_modelRec[kModelRecs];
+int g_modelRecPos = 0;
+struct ModelSeen { DWORD unit; int obj; };   // (unit, object) pairs already logged at level 1
+const int kModelSeen = 1024;
+ModelSeen g_modelSeen[kModelSeen];
+int g_modelSeenN = 0;
+struct ModelBurst { int obj, count, nulls, models; };   // the drawables of the current burst, per object
+const int kModelBurst = 256;
+ModelBurst g_modelBurst[kModelBurst];
+int g_modelBurstN = 0;
+LONG g_modelBurstTotal = 0, g_modelBurstOther = 0;
+DWORD g_modelLastTick = 0;
+CRITICAL_SECTION g_modelLock;
+volatile LONG g_drawables = 0, g_drawNullBuilt = 0, g_nullDraws = 0, g_nullSkipped = 0;
+
+const char *RetLookup(const RetName *t, size_t n, DWORD ret) {
+    for (size_t i = 0; i < n; ++i)
+        if (t[i].ret == ret) return t[i].name;
+    return nullptr;
+}
+
+// the model path of 0x5b7430 (0x5b7467): segments = [dtp+0x68] ? [[dtp+0x68]+4] : [dtp+0xc]; 0 = the null read
+bool ModelNull(DWORD md, DWORD *bt, DWORD *seg) {
+    *bt = md ? D(md + 0x68) : 0;
+    *seg = *bt ? D(*bt + 4) : (md ? D(md + 0xc) : 0);
+    return !md || !*seg;
+}
+
+void ModelText(Str *o, int i, DWORD md, DWORD rmi) {
+    DWORD bt = 0, seg = 0;
+    const bool nul = ModelNull(md, &bt, &seg);
+    const DWORD rm = md ? D(md + 0x64) : 0;
+    o->Add("%s[%d] DTP 0x%08lx (word0 0x%08lx, %ld segments, +0xc 0x%08lx, bone table +0x68 0x%08lx", i ? "; " : "", i, md,
+           md ? D(md) : 0, md ? static_cast<LONG>(D(md + 4)) : 0, md ? D(md + 0xc) : 0, bt);
+    if (bt) o->Add(" {count %ld, segments 0x%08lx}", static_cast<LONG>(D(bt)), D(bt + 4));
+    o->Add(") PCRenderModel 0x%08lx (render serial %lu, not an id) instance 0x%08lx%s", rm, rm ? D(rm + 8) : 0, rmi,
+           nul ? " - NULL SEGMENTS: a draw (0x5b7430) reads [0+0x20]" : "");
+}
+
+// "instance init 0x5ba810 from birth 0x5bd0f0; inside birth 0x5bd0f0 called from 0x780ac0 (...)"
+void BuiltText(const ModelRec &m, char *o, size_t n) {
+    char a[160], b[220], mod[96];
+    const char *nm = nullptr;
+    if (m.ctorRet == kRetDrawInit) {
+        nm = RetLookup(kInitCallers, sizeof(kInitCallers) / sizeof(kInitCallers[0]), m.outer);
+        if (m.outer2) _snprintf_s(a, sizeof(a), _TRUNCATE, "instance init 0x5ba810 from %s (return 0x%08lx; the clone's "
+                                  "caller 0x%08lx)", nm ? nm : "?", m.outer, m.outer2);
+        else _snprintf_s(a, sizeof(a), _TRUNCATE, "instance init 0x5ba810 from %s (return 0x%08lx)", nm ? nm : "?", m.outer);
+    } else if (m.ctorRet == kRetDrawInit2) {
+        nm = RetLookup(kInit2Callers, sizeof(kInit2Callers) / sizeof(kInit2Callers[0]), m.outer);
+        _snprintf_s(a, sizeof(a), _TRUNCATE, "init 0x5d07e0 from %s (return 0x%08lx)", nm ? nm : "?", m.outer);
+    } else if (m.ctorRet == kRetDrawDerived) {
+        _snprintf_s(a, sizeof(a), _TRUNCATE, "derived drawable ctor 0x6d0c20 (vtable 0x85d468) from 0x%08lx%s", m.outer,
+                    m.outer == kRetDerivedCtor ? " (0x6d1b1b)" : "");
+    } else {
+        ModuleText(m.ctorRet, mod, sizeof(mod));
+        _snprintf_s(a, sizeof(a), _TRUNCATE, "an unknown caller (return 0x%08lx %s)", m.ctorRet, mod);
+    }
+    if (m.birthKind > 0 && m.birthKind <= 3) {
+        char par[160] = "";
+        if (m.birthParent) {
+            char d[140];
+            DescInst(m.birthParent, d, sizeof(d));
+            _snprintf_s(par, sizeof(par), _TRUNCATE, ", parent %s", d);
+        }
+        ModuleText(m.birthCaller, mod, sizeof(mod));
+        _snprintf_s(b, sizeof(b), _TRUNCATE, "inside %s of obj %d called from 0x%08lx %s %s%s",
+                    kBirthKind[m.birthKind], m.birthObj, m.birthCaller, mod, CallerName(m.birthCaller), par);
+    } else {
+        strcpy_s(b, sizeof(b), "no intro / birth hook frame on this thread");
+    }
+    _snprintf_s(o, n, _TRUNCATE, "%s; %s", a, b);
+}
+
+bool DrawCtorEnter(Regs *r, DWORD *ctx) {
+    const DWORD *E = &r->ret;
+    ctx[0] = r->ecx;                          // the drawable (this)
+    ctx[1] = E[1];                            // the game instance
+    ctx[2] = E[0];                            // who builds it
+    DWORD outer = 0, outer2 = 0;
+    if (E[0] == kRetDrawInit && E[9] == E[1]) {          // 0x5ba810(inst, ...): sub 8 + 4 pushes -> its return at E[8]
+        outer = E[8];
+        if (outer == 0x004d0eb3) outer2 = D(E[4] + 4);   // the clone 0x4d0e50 has an ebp frame (its ebp saved at E[4])
+    } else if (E[0] == kRetDrawInit2) {
+        outer = D(r->ebp + 4);                           // 0x5d07e0: push ebp / mov ebp, esp
+    } else if (E[0] == kRetDrawDerived) {
+        outer = E[6];                                    // 0x6d0c20: 4 pushes + the argument
+    }
+    ctx[3] = outer;
+    ctx[4] = outer2;
+    const BirthFrame *f = BirthTop(reinterpret_cast<DWORD>(E));
+    ctx[5] = f ? static_cast<DWORD>(f->kind) | (static_cast<DWORD>(f->obj & 0xffff) << 8) : 0;
+    ctx[6] = f ? f->caller : 0;
+    ctx[7] = f ? f->parent : 0;
+    return true;
+}
+
+void DrawCtorLeave(Regs *r, const DWORD *ctx) {
+    const DWORD drawable = r->eax ? r->eax : ctx[0];
+    DWORD inst = D(drawable + 4);
+    if (!inst) inst = ctx[1];
+    InterlockedIncrement(&g_drawables);
+    const DWORD obj = D(inst + 0x10), list = D(obj + 0x40), rmis = D(drawable + 0x10);
+    const int id = InstObjectId(inst);
+    int n = static_cast<SHORT>(W(obj + 0x3a));
+    if (n < 0) n = 0;
+    char models[1200];
+    Str o = {models, sizeof(models), 0};
+    models[0] = 0;
+    DWORD nullMask = 0;
+    for (int i = 0; i < n && i < 16; ++i) {
+        const DWORD md = D(list + 4 * static_cast<DWORD>(i));
+        DWORD bt = 0, seg = 0;
+        if (ModelNull(md, &bt, &seg)) nullMask |= 1u << i;
+        ModelText(&o, i, md, D(rmis + 4 * static_cast<DWORD>(i)));
+    }
+    if (n > 16) o.Add("; ... %d more", n - 16);
+    ModelRec m = {};
+    m.drawable = drawable;
+    m.inst = inst;
+    m.ctorRet = ctx[2];
+    m.outer = ctx[3];
+    m.outer2 = ctx[4];
+    m.birthKind = static_cast<int>(ctx[5] & 0xff);
+    m.birthObj = static_cast<int>(ctx[5] >> 8);
+    m.birthCaller = ctx[6];
+    m.birthParent = ctx[7];
+    m.tick = GetTickCount();
+    m.nullMask = nullMask;
+    m.obj = id;
+    m.models = n;
+    const DWORD unit = D(kUnitId);
+    bool first = true;
+    EnterCriticalSection(&g_modelLock);
+    g_modelRec[g_modelRecPos] = m;
+    g_modelRecPos = (g_modelRecPos + 1) % kModelRecs;
+    for (int i = 0; i < g_modelSeenN && first; ++i)
+        if (g_modelSeen[i].unit == unit && g_modelSeen[i].obj == id) first = false;
+    if (first) {
+        if (g_modelSeenN >= kModelSeen) g_modelSeenN = 0;           // full: start over (lines at level 1 again)
+        g_modelSeen[g_modelSeenN].unit = unit;
+        g_modelSeen[g_modelSeenN].obj = id;
+        ++g_modelSeenN;
+    }
+    ModelBurst *b = nullptr;
+    for (int i = 0; i < g_modelBurstN && !b; ++i)
+        if (g_modelBurst[i].obj == id) b = &g_modelBurst[i];
+    if (!b && g_modelBurstN < kModelBurst) {
+        b = &g_modelBurst[g_modelBurstN++];
+        b->obj = id;
+        b->count = b->nulls = 0;
+        b->models = n;
+    }
+    if (b) {
+        ++b->count;
+        if (nullMask) ++b->nulls;
+    } else {
+        ++g_modelBurstOther;
+    }
+    ++g_modelBurstTotal;
+    g_modelLastTick = m.tick;
+    LeaveCriticalSection(&g_modelLock);
+    if (nullMask) InterlockedIncrement(&g_drawNullBuilt);
+    char d[160], who[420];
+    DescInst(inst, d, sizeof(d));
+    BuiltText(m, who, sizeof(who));
+    Log(kCatModel, nullMask ? 0 : first ? 1 : 2, "drawable 0x%08lx (vtable 0x%08lx) for %s at %.0f %.0f %.0f (+0x54 0x%08lx); "
+        "built by %s; %d model(s): %s", drawable, D(drawable), d, F(inst + 0x20), F(inst + 0x24), F(inst + 0x28),
+        D(inst + 0x54), who, n, n ? models : "none");
+}
+
+// poll thread: one summary 3 s after the last drawable of a burst (a level load, a spawn wave)
+void ModelTick() {
+    if (!g_modelBurstTotal || GetTickCount() - g_modelLastTick < 3000) return;
+    static ModelBurst copy[kModelBurst];
+    EnterCriticalSection(&g_modelLock);
+    const int n = g_modelBurstN;
+    memcpy(copy, g_modelBurst, sizeof(ModelBurst) * static_cast<size_t>(n));
+    const LONG total = g_modelBurstTotal, other = g_modelBurstOther;
+    g_modelBurstN = 0;
+    g_modelBurstTotal = g_modelBurstOther = 0;
+    LeaveCriticalSection(&g_modelLock);
+    int nulls = 0;
+    for (int i = 0; i < n; ++i) nulls += copy[i].nulls ? 1 : 0;
+    Log(kCatModel, 1, "summary: %ld drawables of %d objects in the last burst (%ld of further objects not listed), %d "
+        "object(s) with NULL SEGMENTS (a draw would crash at tru+0x1b7476)", total, n, other, nulls);
+    char text[1600];
+    Str o = {text, sizeof(text), 0};
+    text[0] = 0;
+    int part = 0;
+    for (int i = 0; i < n; ++i) {
+        char name[96];
+        if (!ObjectName(copy[i].obj, name, sizeof(name))) strcpy_s(name, sizeof(name), "?");
+        o.Add("%s%d %s x%d (%d models)%s", o.used ? "; " : "", copy[i].obj, name, copy[i].count, copy[i].models,
+              copy[i].nulls ? " NULL SEGMENTS" : "");
+        if (o.used > 1400 || i + 1 == n) {
+            Log(kCatModel, 1, "summary part %d: %s", ++part, text);
+            o.used = 0;
+            text[0] = 0;
+        }
+    }
+}
+
+// [NullModel]: entry of 0x5b7430 - one line before the game dereferences [0+0x20]
+__declspec(naked) void RetStub() {           // SkipNullModelDraw: CommonEnter's ret lands here, this ret returns
+    __asm { ret }                             // to the caller of 0x5b7430 (cdecl: the caller removes the arguments)
+}
+struct NullSeen { DWORD md, drawable; LONG count; };
+NullSeen g_nullSeen[16];
+int g_nullSeenN = 0;
+
+void NullModelNote(Regs *r, DWORD md, DWORD bt) {
+    const DWORD *E = &r->ret;
+    const DWORD ret = E[0];
+    const DWORD drawable = ret == kRetModelDrawA ? r->ebx : ret == kRetModelDrawB ? r->esi : 0;
+    for (int i = 0; i < g_nullSeenN; ++i) {                 // the same model / drawable again (SkipNullModelDraw=1)
+        NullSeen &s = g_nullSeen[i];
+        if (s.md != md || s.drawable != drawable) continue;
+        if (++s.count % 1000 == 0)
+            Log(kCatNull, 1, "null model draw again: DTP 0x%08lx drawable 0x%08lx, %ld times (%s)", md, drawable, s.count,
+                g_skipNullDraw ? "skipped" : "not skipped");
+        return;
+    }
+    NullSeen &s = g_nullSeen[g_nullSeenN < 16 ? g_nullSeenN++ : 15];
+    s.md = md;
+    s.drawable = drawable;
+    s.count = 1;
+    const DWORD inst = drawable ? D(drawable + 4) : 0;
+    char d[160];
+    if (inst && LooksInstance(inst)) DescInst(inst, d, sizeof(d));
+    else _snprintf_s(d, sizeof(d), _TRUNCATE, "instance ? (drawable +4 0x%08lx, caller 0x%08lx)", inst, ret);
+    const DWORD obj = LooksInstance(inst) ? D(inst + 0x10) : 0, list = obj ? D(obj + 0x40) : 0;
+    int n = obj ? static_cast<SHORT>(W(obj + 0x3a)) : 0, index = -1;
+    for (int i = 0; i < n && i < 64 && index < 0; ++i)
+        if (D(list + 4 * static_cast<DWORD>(i)) == md) index = i;
+    char model[600];
+    Str o = {model, sizeof(model), 0};
+    model[0] = 0;
+    ModelText(&o, index < 0 ? 0 : index, md, index < 0 ? 0 : D(D(drawable + 0x10) + 4 * static_cast<DWORD>(index)));
+    char built[460] = "drawable not seen built by TruTrace (built before the plugin, or another path)";
+    EnterCriticalSection(&g_modelLock);
+    for (int i = 0; i < kModelRecs; ++i) {
+        const ModelRec &m = g_modelRec[(g_modelRecPos + kModelRecs - 1 - i) % kModelRecs];   // newest first
+        if (!m.drawable || m.drawable != drawable) continue;
+        char who[420];
+        BuiltText(m, who, sizeof(who));
+        _snprintf_s(built, sizeof(built), _TRUNCATE, "drawable built %.1f s ago by %s",
+                    static_cast<double>(GetTickCount() - m.tick) / 1000.0, who);
+        break;
+    }
+    LeaveCriticalSection(&g_modelLock);
+    const DWORD wm = E[2];
+    Log(kCatNull, 0, "NULL MODEL DRAW ahead: 0x5b7430 called from 0x%08lx for %s, model %d of %d: %s; bone table words "
+        "%08lx %08lx %08lx %08lx %08lx %08lx %08lx %08lx; drawable 0x%08lx (vtable 0x%08lx), world matrix 0x%08lx (pos "
+        "%.0f %.0f %.0f), arg 3 0x%08lx, arg 4 0x%08lx, arg 5 0x%08lx; %s; %s", ret, d, index, n, model, D(bt), D(bt + 4),
+        D(bt + 8), D(bt + 0xc), D(bt + 0x10), D(bt + 0x14), D(bt + 0x18), D(bt + 0x1c), drawable, D(drawable), wm,
+        F(wm + 0x30), F(wm + 0x34), F(wm + 0x38), E[3], E[4], E[5], built,
+        g_skipNullDraw ? "SKIPPED (SkipNullModelDraw=1, diagnostic: the matrix state keeps old data)"
+                       : "the game reads [0+0x20] next - crash expected (SkipNullModelDraw=0)");
+    Flush();                                  // on the game thread, once per model: the process may end right after
+}
+
+bool ModelDrawEnter(Regs *r, DWORD *) {
+    const DWORD md = (&r->ret)[1];
+    DWORD bt = 0, seg = 0;
+    if (!ModelNull(md, &bt, &seg)) return false;
+    InterlockedIncrement(&g_nullDraws);
+    NullModelNote(r, md, bt);
+    if (g_skipNullDraw) {
+        r->slot = reinterpret_cast<DWORD>(&RetStub);   // CommonEnter returns into RetStub instead of the trampoline
+        InterlockedIncrement(&g_nullSkipped);
+    }
+    return false;
+}
+
+// ---------------------------------------------------------------------------------------------------------------
 // [Messages]
 bool PostEnter(Regs *r, DWORD *) {
     const DWORD *E = &r->ret;
@@ -2225,13 +2659,16 @@ void Status() {
         "%ld; enter faults %ld, leave faults %ld, shadow full %ld, unmatched leaves %ld, lines lost (buffer full) %ld", text,
         g_soundCreates, g_soundEnds, g_soundUntrackedEnds, g_dataMuted, g_enterFaults, g_leaveFaults, g_shadowFull,
         g_shadowMiss, g_bufDropped);
+    if (g_catOn[kCatModel] || g_catOn[kCatNull])      // 0.3.3
+        Log(kCatTrace, 1, "status 0.3.3: drawables built %ld (%ld with a NULL-segments model); null model draws %ld, "
+            "skipped %ld (SkipNullModelDraw %d)", g_drawables, g_drawNullBuilt, g_nullDraws, g_nullSkipped, g_skipNullDraw);
 }
 
 volatile LONG g_stop = 0;                   // set at process detach (the thread is not waited for)
 
 DWORD WINAPI Worker(LPVOID) {
     DWORD lastFlush = 0, lastUnit = 0, lastObj = 0, lastSec = 0, lastTime = 0, lastStatus = GetTickCount();
-    DWORD lastStream = 0, lastSave = 0, lastProg = 0, lastData = 0;
+    DWORD lastStream = 0, lastSave = 0, lastProg = 0, lastData = 0, lastModel = 0;
     while (!g_stop) {
         Sleep(static_cast<DWORD>(g_pollMs));
         DWORD now = GetTickCount();
@@ -2248,6 +2685,7 @@ DWORD WINAPI Worker(LPVOID) {
                 lastSec = now;
                 if (g_catOn[kCatSound]) SoundTick();
             }
+            if (g_catOn[kCatModel] && now - lastModel >= 500) { lastModel = now; ModelTick(); }   // 0.3.3
             if (g_catOn[kCatPower]) PowerTick();
             if (g_catOn[kCatTime] && now - lastTime >= static_cast<DWORD>(g_timeMs)) { lastTime = now; TimeTick(); }
             if (now - lastStatus >= 60000) { lastStatus = now; Status(); }
@@ -2295,6 +2733,11 @@ void ReadOptions(const char *dir) {
     g_catOn[kCatGround] = GetPrivateProfileIntA("Trace", "Ground", 1, ini);   // 0.3.2
     g_gameDataMs = GetPrivateProfileIntA("Trace", "GameDataMs", 250, ini);
     if (g_gameDataMs < 50) g_gameDataMs = 50;
+    g_catOn[kCatModel] = GetPrivateProfileIntA("Trace", "ModelInst", 1, ini);              // 0.3.3
+    g_modelMaxPerSec = GetPrivateProfileIntA("Trace", "ModelInstMaxPerSecond", 200, ini);
+    if (g_modelMaxPerSec < 1) g_modelMaxPerSec = 1;
+    g_catOn[kCatNull] = GetPrivateProfileIntA("Trace", "NullModelGuard", 1, ini);
+    g_skipNullDraw = GetPrivateProfileIntA("Trace", "SkipNullModelDraw", 0, ini) != 0 ? 1 : 0;
     GetPrivateProfileStringA("Trace", "ProgressFilter", kProgFilterDefault, g_progFilterText, sizeof(g_progFilterText), ini);
     g_progFilterN = 0;
     for (const char *p = g_progFilterText; *p && g_progFilterN < 16;) {
@@ -2334,6 +2777,10 @@ void StartInner(HMODULE self) {
     Log(kCatTrace, 0, "0.3: sound slots %d (object sound-slot play tru+0x193d50, needs sound)", g_soundSlots);
     Log(kCatTrace, 0, "0.3.2: ground %d (the player's contact messages 0x1c7 / 0x1c9 / 0x1ca of 0x5dce20, on change)",
         g_catOn[kCatGround]);
+    Log(kCatTrace, 0, "0.3.3: model inst %d (InstanceDrawable ctor tru+0x1b93e0, max %d lines/s), null model guard %d "
+        "(entry of 0x5b7430), SkipNullModelDraw %d%s", g_catOn[kCatModel], g_modelMaxPerSec, g_catOn[kCatNull],
+        g_skipNullDraw, g_skipNullDraw && g_catOn[kCatNull] ? " - DIAGNOSTIC: null model draws are skipped, not a fix" : "");
+    if (g_skipNullDraw && !g_catOn[kCatNull]) Log(kCatTrace, 0, "SkipNullModelDraw needs NullModelGuard=1 - nothing skipped");
     if (!g_enabled) { Log(kCatTrace, 0, "disabled by TruTrace.ini - nothing hooked, no poll thread"); return; }
     DWORD base = static_cast<DWORD>(reinterpret_cast<DWORD_PTR>(GetModuleHandleA(nullptr)));
     if (base != kImageBase) { Log(kCatTrace, 0, "image base 0x%08lx, expected 0x%08lx - nothing hooked", base, kImageBase); return; }
@@ -2389,7 +2836,8 @@ void StartInner(HMODULE self) {
         }
     bool want[kRealHooks], ok[kRealHooks];
     for (int i = 0; i < kRealHooks; ++i) {
-        want[i] = (g_catOn[g_hooks[i].cat] != 0 || (i == kHPost && g_catOn[kCatGround])) &&   // 0.3.2: Post for [Ground]
+        want[i] = (g_catOn[g_hooks[i].cat] != 0 || (i == kHPost && g_catOn[kCatGround]) ||    // 0.3.2: Post for [Ground]
+                   ((i == kHIntro || i == kHBirth || i == kHBirth2) && g_catOn[kCatModel])) &&  // 0.3.3: birth frames
                   (i != kHSlotPlay || (g_soundSlots && g_slotFactsOk));
         ok[i] = want[i] && Install(i);            // stub + trampoline at idx * 48 (Patch finds it there)
     }
@@ -2543,6 +2991,20 @@ __declspec(naked) int __cdecl T10(int) {              // 5a, prologue as tru+0x1
         ret
     }
 }
+volatile LONG g_t11Ran = 0;
+__declspec(naked) int __cdecl T11(int) {              // 3a, prologue as tru+0x1b7430; g_t11Ran = 1 when the body runs
+    __asm {
+        push ebp
+        mov ebp, esp
+        and esp, 0xfffffff0
+        mov dword ptr g_t11Ran, 1
+        mov eax, [ebp + 8]
+        lea eax, [eax + eax * 2]
+        mov esp, ebp
+        pop ebp
+        ret
+    }
+}
 DWORD g_testVt[1];
 volatile LONG g_testEnters = 0, g_testLeaves = 0;
 DWORD g_testLeaveOrder[4];
@@ -2565,6 +3027,14 @@ void TestLeave(Regs *r, const DWORD *ctx) {
     double x = static_cast<double>(ctx[0]) * 1.25 + sqrt(2.0);   // x87 / SSE use inside the hook
     _snprintf_s(g_testFloatText, sizeof(g_testFloatText), _TRUNCATE, "%.4f", x);
     SetLastError(0x8888);
+}
+bool TestSkipEnter(Regs *r, DWORD *) {       // 0.3.3: skip T11(4) as SkipNullModelDraw skips 0x5b7430
+    InterlockedIncrement(&g_testEnters);
+    if ((&r->ret)[1] == 4) {
+        r->slot = reinterpret_cast<DWORD>(&RetStub);
+        r->eax = 0x5151;
+    }
+    return false;
 }
 
 int CallT2(DWORD self, int a, int b, int c, DWORD *saved) {   // also checks ebx / esi / edi across the call
@@ -2649,8 +3119,12 @@ int RunSelfTest(char *report, int size) {
     g_hooks[kHT8].at = reinterpret_cast<DWORD>(&T8);
     g_hooks[kHT9].at = reinterpret_cast<DWORD>(&T9);
     g_hooks[kHT10].at = reinterpret_cast<DWORD>(&T10);
+    g_t11Ran = 0;
+    int r11 = T11(5);
+    check(r11 == 15 && g_t11Ran == 1, "0.3.3 reference result unhooked (prologue as tru+0x1b7430)");
+    g_hooks[kHT11].at = reinterpret_cast<DWORD>(&T11);
     bool inst = true;
-    for (int i = kHT1; i <= kHT10; ++i) {
+    for (int i = kHT1; i <= kHT11; ++i) {
         bool one = Install(i);
         if (!one) {
             BYTE *p = reinterpret_cast<BYTE *>(g_hooks[i].at);
@@ -2660,8 +3134,8 @@ int RunSelfTest(char *report, int size) {
         inst = one && inst;
     }
     VirtualProtect(g_code, 4096, PAGE_EXECUTE_READ, &old);
-    for (int i = kHT1; i <= kHT10 && inst; ++i) inst = Patch(i) && inst;
-    check(inst, "install + patch of the 10 test hooks (byte checks of the test prologues)");
+    for (int i = kHT1; i <= kHT11 && inst; ++i) inst = Patch(i) && inst;
+    check(inst, "install + patch of the 11 test hooks (byte checks of the test prologues)");
     if (!inst) return failed;
 
     LONG e0 = g_testEnters, l0 = g_testLeaves;
@@ -2716,6 +3190,20 @@ int RunSelfTest(char *report, int size) {
     for (int i = 0; i < 200 && tailAll; ++i) tailAll = T8(i) == 107;
     check(tailAll && g_testLeaves == l0 + 400, "200 tail-jump pairs");
 
+    // 0.3.3: the skip of SkipNullModelDraw (entry hook sets r->slot = a plain ret and eax; cdecl caller cleans up)
+    e0 = g_testEnters;
+    g_t11Ran = 0;
+    SetLastError(0x4321);
+    int h11 = T11(4);
+    err = GetLastError();
+    check(h11 == 0x5151 && g_t11Ran == 0 && g_testEnters == e0 + 1 && err == 0x4321, "skip: T11(4) returns through the "
+          "plain ret with the hook's eax, body not run, GetLastError kept");
+    g_t11Ran = 0;
+    int h11b = T11(5);
+    bool skipAll = true;
+    for (int i = 0; i < 500 && skipAll; ++i) skipAll = T11(4) == 0x5151 && T11(6) == 18;
+    check(h11b == 15 && g_t11Ran == 1 && skipAll, "skip hook not taken for other arguments; 500 skipped + 500 normal calls");
+
     Shadow *s = static_cast<Shadow *>(TlsGetValue(g_tls));
     check(s && s->depth == 0, "shadow stack empty after the calls");
     check(g_shadowMiss == 0 && g_enterFaults == 0 && g_leaveFaults == 0 && g_shadowFull == 0,
@@ -2737,6 +3225,7 @@ BOOL WINAPI DllMain(HINSTANCE instance, DWORD reason, LPVOID) {
         InitializeCriticalSection(&g_fileLock);
         InitializeCriticalSection(&g_soundLock);
         InitializeCriticalSection(&g_burstLock);
+        InitializeCriticalSection(&g_modelLock);   // 0.3.3
         Start(instance);
     } else if (reason == DLL_PROCESS_DETACH) {
         InterlockedExchange(&g_stop, 1);
@@ -2758,10 +3247,12 @@ extern "C" __declspec(dllexport) int __cdecl TruTraceSelfTest(char *report, int 
 }
 
 extern "C" __declspec(dllexport) const char *TruTraceVersion() {
-    return "TruTrace 0.3.2 (log only: sound start / end F5, teleport + chart state F6, 0x1f4 / 0x1f5 receivers, spawn "
+    return "TruTrace 0.3.3 (log only: sound start / end F5, teleport + chart state F6, 0x1f4 / 0x1f5 receivers, spawn "
            "requests, object 858 entry, TimeVector; 0.2: level change requests, unit loads, player placement + checkpoint "
            "id, stream unit moves / portals / table, save / restore, progress instances, messages, game data changes; "
            "0.3: [Sound] SoundSlots object sound-slot play; 0.3.1: dated log lines, this export said 0.2 until 0.3.1; "
            "0.3.2: ProgressFilter default + _rw_, weightbreak, ping_map, grapple; stale player machines cleared; [Ground] "
-           "the player's contact messages 0x1c7 / 0x1c9 / 0x1ca)";
+           "the player's contact messages 0x1c7 / 0x1c9 / 0x1ca; 0.3.3: [ModelInst] drawable births with their models and "
+           "who built them, [NullModel] line before the null model draw tru+0x1b7476, SkipNullModelDraw diagnostic "
+           "skip, default 0)";
 }

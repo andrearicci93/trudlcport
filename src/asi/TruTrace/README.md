@@ -3,11 +3,60 @@
 A **log-only** ASI plugin for the PC `tru.exe` (Steam, image base `0x400000`). It changes nothing in the game: every
 hook writes log lines and then runs the original code with all registers, the flags and the x87 / SSE state as they
 were. It answers "where do we have to change it?" for open points of the DLC port. Log `TruTrace.log`, options
-`TruTrace.ini` `[Trace]` (both next to `tru.exe`). Every category is on by default and rate limited.
+`TruTrace.ini` `[Trace]` (both next to `tru.exe`). Every category is on by default and rate limited. The one exception
+to "changes nothing" is the 0.3.3 diagnostic switch `SkipNullModelDraw=1` (default 0, section 0.3.3).
 
 **Status 0.3: built 2026-11-05 (`work\asi\trace03`), offline self test 17 / 17 (framework; the new hook itself only
 runs in the game), byte checks 0.1 51 / 51 + 0.2 55 / 55 + 0.3 8 / 8, not played.** 0.2: built 2026-11-05
 (`work\asi\trace02`), self test 17 / 17. 0.1: built 2026-11-04 (`work\asi\trace01`), self test 11 / 11.
+
+## 0.3.3: model instances and the null-model draw (crash tru+0x1b7476, 2026-11-14)
+
+Built 2026-11-14 into `work\asi\trutrace033` (sha256 `eb3a3b4433683ffa9f825dd0534752b832d76d2377e3e7d61ec6dc5a254ee123`,
+0 warnings), offline self test 20 / 20, byte checks `work\trutrace033_1411\precheck_trutrace033.txt` 34 / 34 against the
+Steam exe and 32 / 32 sites unpatched in the code of both crash dumps; not installed, not played. Why: two DLC 1 starts
+with the ported DLC 2 g_pda crashed at tru+0x1b7476 in **0x5b7430** (cdecl: model DTP, world matrix, 0, flag, PCMatrixState), whose path
+0x5b7467 takes `[[DTP+0x68]+4]` (the mesh bone table's segment array) when `+0x68` is set, else `[DTP+0xc]`, and reads
+`[0+0x20]`. In both dumps the drawn instance is the **`g_pda` object (id 48)**, runtime intro 0x40000008, `+0x54` = the
+player; its only model's bone table is `{count 0, segments NULL}`. The `0x1235` read before as a "model id" is
+PCRenderModel `+8` = a render resource serial (`[0xa14148]++` in 0x502600; 4661 in one dump, 2624 in the other for the
+same model data) - not a section id.
+
+* **`[Trace] ModelInst=1`** (category `modelinst`, own rate limit `ModelInstMaxPerSecond=200`): every InstanceDrawable
+  from its ctor `tru+0x1b93e0` (vtable 0x853abc; +4 instance, +0x10 render model instances, +0x14 matrix state):
+  `drawable 0x.. (vtable ..) for inst 0x.. obj n <name> intro i at x y z (+0x54 ..); built by <instance init 0x5ba810 from
+  intro 0x5bcc30 / birth 0x5bd0f0 / child birth 0x5bd270 / instance clone 0x4d0e50 / ...; inside <intro / birth> of obj
+  n called from 0x.. <module> [parent ..]>; k model(s): [0] DTP 0x.. (word0, segments, +0xc, bone table +0x68 {count,
+  segments}) PCRenderModel 0x.. (render serial n, not an id) instance 0x..`. A model with NULL segments is written at
+  level 0 with ` - NULL SEGMENTS: a draw (0x5b7430) reads [0+0x20]`; otherwise the first drawable per object and unit at
+  level 1, the rest at level 2. 3 s after the last drawable of a burst: `summary: n drawables of m objects ...` plus
+  `summary part k: id name xN (models) [NULL SEGMENTS]`. The intro / birth hooks (0x5bcc30 / 0x5bd0f0 / 0x5bd270) are
+  placed for this too (also with `Spawn=0`); spawn lines still only for `SpawnFilter`.
+* **`[Trace] NullModelGuard=1`** (category `nullmodel`): entry hook of 0x5b7430. When the DTP is 0, or `+0x68 != 0` and
+  `[+0x68]+4 == 0`, or `+0x68 == 0` and `+0xc == 0`: `NULL MODEL DRAW ahead: 0x5b7430 called from 0x5bbd0b for inst ..
+  obj 48 g_pda ..., model 0 of 1: [0] DTP ...; bone table words ...; drawable ..., world matrix .. (pos ..), arg 3 / 4 /
+  5; drawable built x s ago by ...; the game reads [0+0x20] next - crash expected (SkipNullModelDraw=0)` - written to
+  the file at once (the crash follows on the next instruction). Callers: 0x5bbd06 (drawable = ebx) and 0x5b80af in
+  0x5b7fe0 (drawable = esi). Repeats of the same model / drawable: one line per 1000.
+* **`[Trace] SkipNullModelDraw=0`** (default): `1` returns from 0x5b7430 for exactly that case without running it (the
+  entry hook points `CommonEnter`'s return at a plain `ret`; cdecl, the callers remove the 5 arguments and do not use
+  eax). **A diagnostic aid, not a fix**: the matrix state then keeps the previous model's data - the PDA model is drawn
+  wrong or not at all. Needs `NullModelGuard=1`.
+* Offline proof (both dumps, `work\trutrace033_1411\guard_replay.py`, same reads as the C++): condition TRUE in
+  `tru.exe.60720.dmp` (dlc_level1_start, DTP 0x1830e250, bone table 0x208d1e98 {0, NULL}) and `tru.exe.9480.dmp`
+  (dlc_caverns, DTP 0x1837e560, bone table 0x20a0c8f8 {0, NULL}); every logged field readable.
+* Install: `scripts\windows\Set-TruTrace.ps1 -Install -SourceDir work\asi\trutrace033` (copies the new sample .ini as
+  well; an owner-edited .ini is kept - the new keys then take their built-in defaults ModelInst 1, NullModelGuard 1,
+  SkipNullModelDraw 0).
+
+| # | TO TEST 0.3.3 | expected |
+|---|---|---|
+| 1 | install, start the game, read `TruTrace.log` from the last `session start` | `TruTrace 0.3.3` header; `0.3.3: model inst 1 (...), null model guard 1 (...), SkipNullModelDraw 0`; the `hooks:` line names `InstanceDrawable ctor tru+0x1b93e0` and `model draw tru+0x1b7430`; no `fact check ... differs` |
+| 2 | load a base-game save, wait 5 s | `modelinst: drawable ... built by ...` lines (Lara `lara_casual` from the init, objects of the unit), then `summary: n drawables of m objects` + parts; no `NULL SEGMENTS` |
+| 3 | with the ported DLC 2 g_pda (the crash setup): DLC 1 from the main menu or a chapter | before the crash: a `modelinst` line for `obj 48 g_pda` with `NULL SEGMENTS` (who built it, which birth / caller), then `nullmodel: NULL MODEL DRAW ahead ...` as the last line before the crash |
+| 4 | the same with `SkipNullModelDraw=1` (diagnostic only) | the game does not crash at tru+0x1b7476; one `NULL MODEL DRAW ahead ... SKIPPED` line, then `null model draw again ... skipped` every 1000; status line `null model draws n, skipped n`; the PDA model looks wrong / missing - expected |
+| 5 | negative: `ModelInst=0`, `NullModelGuard=0` | no `modelinst` / `nullmodel` lines, neither hook in the `hooks:` line; with `Spawn=0` too the intro / birth hooks are gone |
+| 6 | play 10 min in a base level | frame rate as before (0x5b7430 runs per model per frame; the hook only reads three words); status `enter faults 0` |
 
 ## 0.3.2: progress filter for rewards, jars, pings, grapple walls (P5, 2026-11-13)
 

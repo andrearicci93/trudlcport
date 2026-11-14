@@ -1,0 +1,42 @@
+# TruTrace 0.3.3 byte checks: the 0.3.3 additions only (0.1 / 0.2 / 0.3 / 0.3.2 lists unchanged); same strings as
+# TruTrace.cpp g_hooks (kHDrawCtor / kHModelDraw) and the kCatModel / kCatNull rows of kFacts, in order
+# (checked offline: ../bin/pyt -t 120 tools/pe_bytes_check.py <Steam tru.exe> --file work/trutrace033_1411/precheck_trutrace033.txt
+#  -> 34 checks, 0 mismatches; in the code of both crash dumps 14.11.: work/trutrace033_1411/dump_bytes_check.py with the
+#  db list m.cdb -> 32 sites, 0 mismatches each)
+# ---- hook sites (entry patches: first 6 bytes relocated) ----
+0x005b93e0 53 55 8b6c240c 56 8bf1 57 c706bc3a8500
+0x005b7430 55 8bec 83e4f0 81ec44010000 f605b061da0001 8b4d08
+# ---- [ModelInst] facts ----
+0x005b93ea c706bc3a8500 896e04 8b4d10 0fbf513a
+0x005b9430 8b4040 8b0c98 8b4164
+0x005b9444 8b7e10 8b0d7c40a100 03fa 8b11 50 8b82b0000000 ffd0 8907
+0x005b947c 894614
+0x005b94c7 5f 8bc6 5e 5d 5b c20400
+0x005ba810 83ec08 53 55 56 8b742418 8b5e44 57
+0x005ba9c6 8b0dac9ccd00 8b4948 8b11 8b4234 6a00 6a24 ffd0 85c0 7416 56 8bc8 e8fae9ffff
+0x005d07e0 55 8bec 83e4f0
+0x005d093e 56 8bc8 e89a8afeff
+0x006d0c20 8b442404 53 55 56 57 50 8bf1 e8b087eeff 8d4e24 c70668d48500
+0x006d1b1b e800f1ffff
+0x004d0eae e85d990e00
+0x005bb2fb e810f5ffff
+0x005bb848 e8c3efffff
+0x005bccff e80cdbffff
+0x005bd17b e890d6ffff
+0x005bd2d5 e836d5ffff
+0x00538025 e8b6870900
+0x0053f2f6 e8e5140900
+0x006c6e9f e83c99f0ff
+0x006d40c6 e815c7efff
+0x00502600 8bc1 c700c48e8400 8b0d4841a100 894804 83054841a10001
+0x0050ea89 8d7e04 53 8bcf c706bc968400 e8663bffff
+0x0050eaa8 c70604978400
+# ---- [NullModel] facts ----
+0x005b7467 8b4168 85c0 7405 8b4004 eb03 8b410c 8b7020
+0x005b76a1 5f 5e 5b 8be5 5d c3
+0x005bbcf5 8b4314 8b4c2420 8b54241c 50 57 6a00 51 52 e825b7ffff 8b4b14 8b01 8b531c 8b400c 83c414
+0x005b809f 8b4e14 8b7c241c 8b542418 51 57 53 55 52 e87cf3ffff 8b4e14 8b01 8b561c 8b400c 83c414
+0x005bbc71 8bcb e868c3ffff
+0x005b7fe0 56 8bf1 8b4e14
+0x005b93ea c706bc3a8500 896e04 8b4d10 0fbf513a
+0x005b9430 8b4040 8b0c98 8b4164

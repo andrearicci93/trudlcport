@@ -1310,6 +1310,7 @@ def build(argv):
     f111 = p93.it[vte31 + 4]
     if p93.u32(vte31) != 1: sys.exit('PC 93 slot 31 VTE is not a single function')
     per = {}
+    KNOWN_UT = None
     for key in sorted(targets, key=lambda q: int(q.split(':')[1])):
         t, sid = map(int, key.split(':'))
         s = D.sections[idx[(t, sid)]]; xs = pk[inv[(t, sid)]]
@@ -1331,6 +1332,9 @@ def build(argv):
         d = bytearray(s.data); r = R.parse(s.reloc, 'le')
         port_init2(d, r, s.data, pc.get((t, sid)) if rec[key] == 'port' else None, xs, K, key, sst, srisk)
         if rec[key] == 'port': twin_names(d, r, xs, pc[(t, sid)], K, key, sst, srisk)
+        if rec[key] == 'port':
+            if KNOWN_UT is None: KNOWN_UT = known_user_types([q for q in D.sections if q.type == 8])
+            twin_types(d, r, pc[(t, sid)], K, key, sst, srisk, KNOWN_UT)
         u16_paths(d, r, xs, sst, srisk, sid)          # after twin_names: paths name the final member names
         # c) PC vtable slot 31 for the uiscreen classes
         v0 = View(s.data, s.reloc, 'le')
@@ -1656,7 +1660,69 @@ def gate_sections(S, pc, PCS, pk, inv, rec, targets, K=None):
                 xbad.append('%d:%d +0x%x -> %d:%d +0x%x, PC +0x%x' % (k[0], k[1], so, tk[0], tk[1], do, eb[so][1]))
     out.append(('ok   ' if not xbad else 'FAIL ') + 'external pointer targets into PC sections = the PC targets: %s, bad %d %s' % (
         dict(xst), len(xbad), xbad[:8]))
+    # (11) entry userTypes (crash 5, 2026-11-15 22:35, l3_chapel PDA, tru.exe +0x1a775c): every member / arg / local
+    # of a ported / new script has a userType the PC knows - a script id, or a userType the PC g_pda / generalbank
+    # use with the same tag; one with a PC twin must not keep an unknown one (FAIL), a DLC-only one is listed (WARN)
+    known = known_user_types([s for s in S if s.type == 8])
+    tst = collections.Counter(); tbad, twarn = [], []
+    import script_member_pairs as MP
+    for key in sorted(tset):
+        v = view(key)
+        if v is None: continue
+        tw = K['_twins'].get(k_(*key), {})
+        for kind, lst in MP.entries(v.d, R.write(v.rel, 'le'), 'le')[1].items():
+            for q in lst:
+                if user_type_known(known, q['tag'], q['ut']): tst['known'] += 1; continue
+                line = '%d:%d %s #%d tag %d userType %d name 0x%x' % (key[0], key[1], kind, q['k'], q['tag'], q['ut'], q['name'])
+                (tbad if q['a'] in tw else twarn).append(line)
+    out.append(('ok   ' if not tbad else 'FAIL ') + 'entry userTypes of the ported / new scripts known to the PC: %s, unknown with a PC twin %d %s' % (
+        dict(tst), len(tbad), tbad[:8]))
+    out += ['WARN userType unknown to the PC (DLC-only entry): ' + x for x in twarn]
     return out
+
+
+def known_user_types(script_sections):
+    """({script ids}, {tag: {userTypes}}) of the PC: script sections of the given (built) file + the PC g_pda +
+    the PC generalbank; userTypes per tag as the PC g_pda / generalbank entries use them"""
+    import script_member_pairs as MP
+    sids = {s.id for s in script_sections}
+    per = collections.defaultdict(set)
+    for src in (read_pc(), read_pc_generalbank()):
+        for s in src:
+            if s['type'] != 8 or not s['data']: continue
+            sids.add(s['id'])
+            for k, lst in MP.entries(s['data'], s['reloc'], 'le')[1].items():
+                for q in lst: per[q['tag']].add(q['ut'])
+    return sids, per
+
+
+def user_type_known(known, tag, ut):
+    return ut in known[0] or ut in known[1].get(tag, ())
+
+
+def twin_types(d, rel, pc_sec, K, key, st, risk, known):
+    """crash 5 (2026-11-15 22:35, base game l3_chapel, PDA opened: tru.exe +0x1a775c `cmp [ecx+8],ebx`, ecx =
+    [screen+0x230] = 0): 3365 member #0 (the ping map widget, name 0x149a) kept the converter's userType 5272 - no
+    script, no PC type; the PC twin has 5275 = generalbank script 5275. The screen's child / focus list
+    (ScriptUIScreen +0x228 / +0x230, filled by slot 2 -> 0x5a76d0 for focusable children) stayed empty, and the Xbox
+    code's SetFocus (uiscreen 93 f73 -> 0x5a7730) on that widget read the null list. The converter guesses userTypes
+    like names (DlcIds.sym, 40000 + Xbox for DLC-new ones); Q55 twins carry the PC one. Rule: an entry with a PC twin
+    (same tag, same name) whose userType the PC does not know takes the twin's userType when the PC knows that one;
+    a known userType is left alone (e.g. 3368 518 / 526 on different names)"""
+    import script_member_pairs as MP
+    sid = int(key.split(':')[1])
+    tw = K['_twins'].get(key, {})
+    for kind, lst in MP.entries(bytes(d), R.write(rel, 'le'), 'le')[1].items():
+        for q in lst:
+            b = tw.get(q['a'])
+            if b is None or user_type_known(known, q['tag'], q['ut']): continue
+            ptag, put = struct.unpack_from('<IH', pc_sec['data'], b)
+            pnm = struct.unpack_from('<H', pc_sec['data'], b + 14)[0]
+            if ptag != q['tag'] or pnm != q['name'] or not user_type_known(known, ptag, put):
+                risk.append('%d %s #%d: userType %d unknown to the PC, twin tag %d / name 0x%x / userType %d - kept' % (
+                    sid, kind, q['k'], q['ut'], ptag, pnm, put)); st['userTypes unknown, no usable twin (kept)'] += 1; continue
+            struct.pack_into('<H', d, q['a'] + 4, put)
+            st['userTypes unknown to the PC -> the PC twin userType'] += 1
 
 
 def gate_cli(argv):

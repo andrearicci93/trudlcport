@@ -10,6 +10,14 @@ Version 0.3 - built and checked with `dumpbin` only, not yet tried in the game (
 `diff`) to find unknown values (health, ammo, walking speed) live without a debugger - see
 [Memory search](#memory-search-03).
 
+## 0.4: live objects - inspect, change, undo (2026-11-15)
+
+Built 2026-11-15 into `work\asi\trulink04` (sha256 `e0e142a2b65c93046620ac2a1e137a4d447bb582d5ed4846e18429670bad6bd0`,
+`TruLink.ini` unchanged), **not installed, not tried in the game**. Install (game closed):
+`scripts\windows\Set-TruLink.ps1 -Install -SourceDir work\asi\trulink04`. Commands, safety and the live test:
+[Objects (0.4)](#objects-04). Offline: the decoders ran on the full dump of 2026-11-15 20:07 (`l3_chapel`), all 81
+byte check rows match the Steam `tru.exe` and that dump's image (`scripts\windows\Test-TruLinkObj.ps1`).
+
 ## 0.3.1: dated log lines (Q107, 2026-11-12)
 
 Built 2026-11-12 into `work\asi\i_1211\TruLink`, not installed, not played. Only the log format and the version
@@ -89,6 +97,7 @@ Numbers (`len`, `value`, `msg`, `data`, `mode`): `0x...` hex, otherwise decimal 
 | `watch log [n]` | block: the last n (default 50) of up to 1024 events `ms-ago game-clock name address old -> new` | server |
 | `snapshot <name> <addr> <len> [force]` | `ok snapshot p 0x... 2048 bytes` (len up to 4096, 16 snapshots); `snapshot <name>` takes it again at the same address; `snapshot list`, `snapshot del <name>` | server |
 | `diff <name> [update]` | block: every changed dword since the snapshot `+offset address old new f:old f:new i:old i:new` (at most 400 lines); `update` makes the current bytes the new baseline | server |
+| `obj.near`, `obj.info`, `obj.set`, `obj.journal`, `obj.undo`, `uber.events`, `uber.send`, `sticky.get`, `sticky.set`, `joint.get`, `joint.drive` | 0.4, see [Objects (0.4)](#objects-04) | game |
 | `log <0-3>` | `ok log level n` (TruLink.log; not saved) | server |
 | `quit` / `exit` / `bye` | `ok bye`, connection closed | server |
 
@@ -191,12 +200,88 @@ scan next changed
 Pointers found in the instance (`i:` values that look like addresses) can be followed with another
 `snapshot` / `scan ... at <pointer> <len>`.
 
+## Objects (0.4)
+
+A general live channel to look at and change objects (puzzles, positions, switches, script values) while playing,
+without a new build per question. Everything here runs as **one job on the game thread** (the pad-poll hook, like
+`camera` / `post`): the server thread parses the line, the game thread resolves the instance, reads, writes and fills
+the answer - no read races the instance list, every write happens where the game itself writes. The decoders are pure
+memory reads in `TruLinkObj.h`, shared with the offline test `selftest\TruLinkObjTest.cpp` (same code on a full
+minidump). Every layout and every called function is a byte check row (81 rows in 10 groups, `status` line
+`0.4 checks`); a command whose group failed answers `err byte checks '<group>' failed`.
+
+`<id>` = intro id (decimal), `0x<instance>` (must be in the instance list), `#<list index>` or `player`. Distances: the
+radius is given in metres at **~290 units per metre** (ENGINE 4.3, not proven exactly); the answers show both.
+
+| Command | Answer |
+|---|---|
+| `obj.near [m] [filter] [max n]` | block, nearest first (default 10 m, at most 500 m / 400 rows): `#index instance intro obj name unit name pos dist (m)` plus `uber '<node>'` (`-> '<target>'` while a transition runs), `multibody links n`, `hidden`, `kill`, `parent <intro>`. Filter: `uber` (only uber states), `multi` (only multibody placed instances), or a part of the object name |
+| `obj.info <id>` | block: intro id (placed / runtime and whose intro record it carries), object, list index, stamp `+0x44`; unit `+0xe0` / birth unit `+0xe4`; pos `+0x20` (and the start-of-frame copy `+0xc0`), rot `+0x30` (rad + deg); iflags `+0x14` / `+0x18` / `+0x1c`, no-draw masks; intro record (pos, rot, **scale `+0x40`**, object, unique id, data); intro data `+0x104`, parent `+0x54`, child / sibling `+0x218` / `+0x21c`, link parent id `+0x228`; models; process / message handlers; **script members** of the instance's own script type with their type (`instanceref` -> intro id + name, `stickybool` / `stickyint` / `stickyfloat` -> key + store value, others raw); **multibody**: links (part instances + uber node), joints (type, value, limits, limit / motor bits, motor velocity / force), command table; **uber state**: node, running transition, time, flags and the whole graph (every node with its transitions and conditions, joint ranges with the joint index) |
+| `obj.set <id> pos x y z` / `move dx dy dz` / `rot x y z` (degrees) / `yaw deg` | writes `+0x20` / `+0x30` (journaled). Notes in the answer: a multibody placed instance is only the hidden anchor (move a part = a link), an instance with a physics body `+0x274` may be put back by the solver |
+| `obj.set <id> hide 0\|1` | `INSTANCE_Post(id, 7, 1 / 0)` - the game's own hide / unhide (default handler 0x5b4110: `+0x14 \|= 0x40800`, `+0x18 \|= 0x20000000`; the multibody handler 0x4d14d0 does it for every part). Journaled with the old state |
+| `obj.set <id> collide ...` / `scale ...` | **refused**: no proven collision switch and no per-instance scale field (only the intro record's scale, read at birth 🔶) |
+| `obj.journal [clear]` | block: every 0.4 change `#n kind what old -> new` (at most 256; full = writes refused until `obj.undo all` / `clear`) |
+| `obj.undo` / `obj.undo all` | undoes the last / every change, newest first, after checking the instance is still the same (stamp `+0x44`, intro id, in the list): pos / rot written back, hide = message 7 with the old state, sticky = the old value through the game's set + notification; `uber.send` is **not undoable** (the game's logic ran - passed with a note); a `joint.drive` entry stops the drive (the joint stays where the physics left it) |
+| `uber.events <id>` | block: the current node of the uber state (or of every link of a multibody placed instance): each transition with its target and how to fire it (`command c`, `event v`, `broadcast v`, joint range with the joint index and its value, time, object check, damage ...); then the **command table** of the multibody: `cmd n.r: link k (intro, node) <kind> <value> -> '<node it would reach now>'` or `(no transition in this node now)` |
+| `uber.send <id> cmd <n>` | entry n of the object command table through the multibody's own vf+4 = **0x4d77a0** - the same call uber action 11 makes (0x4d886d) and the path a lever / plate command takes; it delivers each record with 0x4d7680 to the linked uber. Answer: every target link's node before -> after |
+| `uber.send <id> command <c>` / `event <v>` / `broadcast <v>` `[link k]` `[force]` | one uber message through **0x4d7680** (kind 4 / 2 / 3: cond 16 with arg c / cond == v / cond 13 with arg v). For a multibody placed instance the link is taken from `link k`, else the only link whose current node takes the message. Refused without `force` when the engine would drop it (transition running, `+0x90 & 9`) or no transition of the node matches. Set-node (kind 1) is refused: it is not the event path |
+| `sticky.get <owner> <key>` | `ok sticky 0:<owner> key <k> (...) = bool 1 (index n)`. Owner = intro id (kind 0) or `<kind>:<id>`; key = the Symbol, or a script member of the owner's instance: `m<index>` / `+<offset>` (from `obj.info`; the key is the member's init word, the owner the script's owning instance) |
+| `sticky.set [int\|bool\|float] <owner> <key> <value>` | an existing entry only: the store write + the game's change notification (0x4af740 / 0x4af6d0 / 0x4af7b0, as TruMenu `sticky.set`), journaled with the old value |
+| `joint.get <id> <index>` | block: the joint line (as in `obj.info`) and every joint-range transition on this joint in every linked uber (node, target, enter / leave, range) |
+| `joint.drive <id> <index> <target> [speed s] [force f] [hold s] [through 1]` | drives a hinge (degrees) / rail (units) with **the joint's own motor**, limits untouched; see below. `joint.drive status` / `joint.drive stop` |
+
+**joint.drive (safe drive).** TruMenu 0.22.53 `joint.set` locked lo = hi = target; on 2026-11-15 20:28 that replaced
+the shadow door rail's limits [0, 948.2] and the door went to -1115. `joint.drive` never writes the limits:
+
+- the target is clamped inside the joint's limits (limit bit on, lo < hi; 1 degree / 2 units inside); a joint without
+  limits moves at most 180 degrees / 3000 units per drive;
+- each game frame the motor velocity (axis 0, 0x4da160; hinge in rad/s) is set proportional to the rest (2 /s), at
+  most `speed` (default 30 deg/s or 150 units/s), at least 10 % of it, with the force `force` (default 20000, the
+  order of the engine's own hinge / rail motors in the chapel door; at most 1e6), motor on (0x4da0c0), both bodies
+  woken (0x4d8fd0);
+- it stops and puts the saved motor velocity / force / enable back on: reached (then `hold` s at velocity 0, default
+  2), moving away from the target by more than 3 degrees / 10 units (the motor sign is not proven: one sign flip is
+  allowed and logged, the second time it stops), overshoot by 2 degrees / 5 units, a step larger than 4x the commanded
+  speed, leaving the limits, no progress for 1.5 s, **a node change of any linked uber** (the game reacts; its node
+  actions own the joint from then on - `through 1` goes on and logs it), 10 s, `joint.drive stop`, unit change;
+- the saved settings are only put back while the joint still carries our force (a node action may have set its own).
+  Every tick (the first 20, then every 10th, at most 300) is a log line.
+
+**Journal / log.** Every change is a `TruLink.log` line (LogLevel 1) with the old and new value and its journal
+number; `obj.journal` lists them, `obj.undo` reverts them. Nothing of it is saved.
+
+**Offline test** (no game): `scripts\windows\Test-TruLinkObj.ps1 -Dump <full tru.exe dump> [-Command 'near 15;info
+4820;events 4835']` builds `TruLinkObjTest.exe` and runs `checks` against `tru.exe` and the dump image, then the
+decoder commands on the dump (joint values need the engine's getter: `n/a` offline). 2026-11-15: dump 20:07
+(`l3_chapel`, 213 instances) - all 81 rows match, `obj.near` / `obj.info` / `uber.events` / joints / stickies decode
+(shadow pillars 4837: 6 links, 6 commands, 5 stickybools with store values, instancerefs to the four wall switches
+4819 - 4822; shadow door 4835: 6 links, 8 joints, commands 0 / 1 = command 1 / 0 to the lock links 3 / 4); dump 19:48
+(no level) - the "needs a level" refusals.
+
+### TO TEST 0.4 (live, `l3_chapel`, at the shadow pillars / shadow door)
+
+Start with `Set-TruLink.ps1 -Install -SourceDir work\asi\trulink04`, load the chapel, stand near the wall switches.
+
+| # | TO TEST | expected |
+|---|---|---|
+| 1 | `ping`, `status` | `pong TruLink 0.4`; `0.4 checks (81 rows, 0 bad ...)` with every group 1 |
+| 2 | `obj.near 15`, `obj.near 60 uber` | the switches 4819 - 4822, the pillars 4837 (multibody) and their runtime links with node names (`position_a` ...) |
+| 3 | `obj.info 4820` | 3 instancerefs: 4802 cameraanchor_object, 4837 ma_uo_shadow_pillars, 4834 ma_rb_press_plate |
+| 4 | `uber.events 4837`, press wall switch 4820 in the game, `uber.events 4837` again | one link moved one position; which `cmd n` predicted it (the switch's command) |
+| 5 | `uber.send 4837 cmd <n>` (the n of row 4), `obj.journal`, `obj.undo` | the pillar turns like with the switch; journal row `uber`; undo answers "not undoable - passed" |
+| 6 | `sticky.get 4837 m1` ... `m5` | the pillar stickybools (m1 = 1 in the dump) |
+| 7 | `uber.events 4835`, then `uber.send 4835 cmd 0` and `uber.send 4835 cmd 1` | links 3 / 4 `locked -> unlocked`; then link 2 `start -> turn` (object check) = the shadow door opens the game's way |
+| 8 | `joint.get 4835 2`, `joint.drive 4835 2 5`, `joint.drive status` | rail value near 0, limits [0, 948.17]; the drive reaches ~5 (or stops with a reason in `TruLink.log`), motor settings back; the door never leaves [0, 948.2] |
+| 9 | `joint.drive 4835 2 -200` | `target -200 clamped into the limits -> 2.00`; no move below 0 |
+| 10 | `obj.set 4820 hide 1`, `obj.undo` | the switch disappears / comes back; iflags 0x800 set / clear |
+
 ## Threading
 
 - **Server thread** (created at load; `WSAStartup` runs there, not in `DllMain`): non-blocking listening socket,
   `select` every 100 ms (`WatchIntervalMs`, at most 250), one client socket (blocking sends with a 5 s timeout). All
   memory commands run here, including `scan` (while a scan runs, the next command waits for it) and the watch polling.
-- **Game thread**: `camera` and `post` are put into a one-slot job (`queued` -> `running` -> `done`, interlocked) and
+- **Game thread** (0.4: also every object command and, once per game frame, the `joint.drive` tick): `camera` and
+  `post` are put into a one-slot job (`queued` -> `running` -> `done`, interlocked) and
   executed inside TruLink's pad-poll hook, i.e. once per poll on the thread that runs the game's frame. A fault inside
   the game function is caught and answered as `err`.
 - **Hook thread**: installs and watches the pad-poll hook (below), every 100 ms until installed, then every 500 ms.

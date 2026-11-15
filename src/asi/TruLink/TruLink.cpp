@@ -13,6 +13,11 @@
 // 0.3 adds a Cheat-Engine-style value search (scan / scan next), polled watches with a change log, and struct
 // snapshots with a diff - all on the server thread, so the game keeps running while they work.
 //
+// 0.4 adds live object inspection and manipulation (obj.near / obj.info / obj.set / obj.undo, uber.events /
+// uber.send, sticky.get / sticky.set, joint.get / joint.drive): the decoders are pure memory reads shared with the
+// offline dump test (TruLinkObj.h, selftest\TruLinkObjTest.cpp); every command runs as a job on the game thread,
+// every write is journaled with its old value (obj.undo) and logged, and nothing runs when its byte checks failed.
+//
 // Every game address is checked against the expected bytes at load; on a mismatch the affected command answers
 // "err" and the reason is logged. Loaded by the Ultimate ASI Loader (binkw32.dll of the installed game).
 
@@ -26,13 +31,15 @@
 #include <stdarg.h>
 #include <string.h>
 #include <math.h>
+#include <initializer_list>
 #include "../TruLog.h"                      // Q107: date + time in every log line, session header
+#include "TruLinkObj.h"                     // 0.4: object decoders (shared with selftest\TruLinkObjTest.cpp)
 
 #pragma comment(lib, "ws2_32.lib")
 
 namespace {
 
-const char kVersion[] = "0.3.1";           // 0.3.1: dated log lines (Q107)
+const char kVersion[] = "0.4";             // 0.4: obj / uber / sticky / joint commands; 0.3.1: dated log lines (Q107)
 
 typedef DWORD(WINAPI *XInputGetStateFn)(DWORD, void *);
 typedef void(__cdecl *CameraSetModeFn)(int mode);
@@ -218,7 +225,16 @@ bool Read32(DWORD address, DWORD *value) {
 // ---- game-thread job (one slot; the server handles one command at a time) ----
 
 enum { kJobIdle = 0, kJobQueued = 1, kJobRunning = 2, kJobDone = 3 };
-enum { kKindCamera = 1, kKindCameraRestore = 2, kKindPost = 3 };
+enum { kKindCamera = 1, kKindCameraRestore = 2, kKindPost = 3, kKindObj = 4 };
+void ObjRun();                                 // 0.4: the obj / uber / sticky / joint job (section 0.4 below)
+void DriveTick();                              // 0.4: joint.drive, once per pad poll on the game thread
+volatile LONG g_driveOn = 0;
+bool g_onGameThread = false;                   // 0.4: set while a job runs (the joint getters are game-thread only)
+bool g_grp[tlobj::kGrpCount];                  // 0.4: byte check groups (Start)
+int g_grpRows[tlobj::kGrpCount];
+int g_grpBad = -1;
+DWORD g_grpFirstBad = 0;
+int g_jCount = 0;                              // 0.4: journal entries in use
 struct Job {
     volatile LONG state;
     int kind;
@@ -241,6 +257,9 @@ void RunJobBody() {
         reinterpret_cast<InstancePostFn>(kInstancePost)(reinterpret_cast<void *>(g_job.a), static_cast<int>(g_job.b),
                                                         static_cast<int>(g_job.c));
         break;
+    case kKindObj:
+        ObjRun();
+        break;
     }
 }
 
@@ -248,13 +267,27 @@ void RunJob() {
     if (InterlockedCompareExchange(&g_job.state, kJobRunning, kJobQueued) != kJobQueued) return;
     g_job.faulted = false;
     g_job.frame = *reinterpret_cast<volatile DWORD *>(kGameClock);
+    g_onGameThread = true;
     __try {
         RunJobBody();
     } __except (EXCEPTION_EXECUTE_HANDLER) {
         g_job.faulted = true;
     }
+    g_onGameThread = false;
     InterlockedExchange(&g_job.state, kJobDone);
     SetEvent(g_jobDone);
+}
+
+// 0.4: joint.drive runs once per pad poll; a fault stops the drive (the tick itself restores nothing then)
+void RunDriveTick() {
+    g_onGameThread = true;
+    __try {
+        DriveTick();
+    } __except (EXCEPTION_EXECUTE_HANDLER) {
+        InterlockedExchange(&g_driveOn, 0);
+        Log(0, "joint.drive: access fault in the tick (caught) - drive stopped without restore");
+    }
+    g_onGameThread = false;
 }
 
 // queues a job and waits; returns nullptr when it ran, else the reason
@@ -345,6 +378,7 @@ DWORD WINAPI PadHook(DWORD index, void *state) {
         InterlockedIncrement(&g_frames);
     }
     if (g_job.state == kJobQueued) RunJob();
+    if (g_driveOn) RunDriveTick();
     TlsSetValue(g_tls, nullptr);
     return result;
 }
@@ -453,7 +487,7 @@ bool ParseAddress(const char *s, DWORD *value, char *err, size_t errSize) {
 // ---- answers ----
 
 struct Out {
-    char buf[65536];
+    char buf[262144];                                          // 0.4: 256 KB (obj.info of a big uber graph)
     size_t n;
     void Reset() { n = 0; buf[0] = 0; }
     void Add(const char *fmt, ...) {
@@ -501,6 +535,16 @@ void CmdHelp() {
               "watch add <addr> <type> [name] | watch del <name|#i|addr|all> | watch list | watch log [n]\n"
               "snapshot <name> <addr> <len> | snapshot <name> (again) | snapshot list | snapshot del <name>\n"
               "diff <name> [update]          changed dwords since the snapshot (block)\n"
+              "obj.near [m] [filter|uber|multi] [max n]   instances near Lara (block; default 10 m, ~290 units/m)\n"
+              "obj.info <id>                 everything readable: pos / rot / flags / intro / script members / links / "
+              "joints / commands / uber graph\n"
+              "obj.set <id> pos x y z | move dx dy dz | rot x y z (deg) | yaw deg | hide 0|1   (collide / scale: refused)\n"
+              "obj.journal [clear] | obj.undo [all]   every 0.4 write with its old value; undo the last one / all\n"
+              "uber.events <id>              current node: transitions and how to fire them; links; command table\n"
+              "uber.send <id> cmd <n> | command <c> | event <v> | broadcast <v> [link k] [force]   the game's path\n"
+              "sticky.get <owner> <key|m<i>|+<off>> | sticky.set [int|bool|float] <owner> <key|m<i>|+<off>> <value>\n"
+              "joint.get <id> <index> | joint.drive <id> <index> <target> [speed s] [force f] [hold s] [through 1] | stop | status\n"
+              "id: intro id | 0x<instance> | #<list index> | player   (all 0.4 commands run on the game thread)\n"
               "log <0-3>                    TruLink.log level\n"
               "quit                          close the connection\n"
               "addr: hex or player | gametracker | cheat | camera | cameramgr | playerstate, optional +hexoffset\n"
@@ -524,6 +568,9 @@ void CmdStatus() {
               since == 0xffffffff ? -1L : static_cast<long>(since), g_reentries);
     g_out.Add("checks camera %d restore %d post %d objects %d image 0x%08lx-0x%08lx\n", g_cameraOk, g_restoreOk,
               g_postOk, g_tableOk, g_imageStart, g_imageEnd);
+    g_out.Add("0.4 checks (%d rows, %d bad, first bad 0x%08lx):", tlobj::kTlCheckCount, g_grpBad, g_grpFirstBad);
+    for (int g = 0; g < tlobj::kGrpCount; ++g) g_out.Add(" %s %d", tlobj::kGrpNames[g], g_grp[g] ? 1 : 0);
+    g_out.Add("\njournal %d entries, joint.drive %s\n", g_jCount, g_driveOn ? "running" : "idle");
     g_out.Add(".\n");
 }
 
@@ -1525,6 +1572,935 @@ void CmdDiff(char **tok, int count, bool force) {
     }
 }
 
+// ---- 0.4: live object inspection and manipulation (README "Objects (0.4)") ----
+//
+// All obj.* / uber.* / sticky.* / joint.* commands run as ONE job on the game thread (kKindObj, ObjRun): the server
+// thread parses the line into g_oj, the game thread resolves the instance, reads / writes and fills g_out. So no read
+// races the instance list, and every write happens where the game itself writes. Reads go through TlRead (VirtualQuery
+// per region, guarded copy); decoders: TruLinkObj.h. Writes: obj.set pos / move / rot / yaw (instance +0x20 / +0x30),
+// hide (INSTANCE_Post message 7, the game's hide / unhide), sticky.set (the store write + the game's change
+// notification, as TruMenu sticky.set), uber.send (the game's command / message path 0x4d77a0 / 0x4d7680),
+// joint.drive (the joint's own motor, limits untouched). Each write goes into the journal with its old value
+// (obj.journal, obj.undo [all]) and into TruLink.log (LogLevel 1). collide and scale are refused: no proven field.
+
+struct ObjJobArgs {
+    int op;
+    int argc;
+    char argv[16][64];
+    bool force;
+};
+enum { kOpNear = 1, kOpInfo, kOpSet, kOpUndo, kOpJournal, kOpEvents, kOpSend, kOpStGet, kOpStSet, kOpJGet, kOpJDrive };
+ObjJobArgs g_oj;
+
+const char *GroupWhy(int g) {
+    static char why[96];
+    if (g_grp[g]) return nullptr;
+    _snprintf_s(why, sizeof(why), _TRUNCATE, "byte checks '%s' failed (status; other exe?)", tlobj::kGrpNames[g]);
+    return why;
+}
+bool NeedGroups(std::initializer_list<int> groups) {
+    for (int g : groups) {
+        const char *why = GroupWhy(g);
+        if (why) { g_out.Add("err %s\n", why); return false; }
+    }
+    return true;
+}
+
+// ---- journal ----
+enum { kJPos = 1, kJRot, kJHide, kJSticky, kJUber, kJJoint };
+const char *const kJNames[] = {"?", "pos", "rot", "hide", "sticky", "uber", "joint"};
+struct JEntry {
+    int kind;
+    DWORD inst, stamp, intro;
+    float old[3], now[3];
+    DWORD oldWord, newWord;
+    int stType;
+    DWORD stOwner;
+    WORD stKey;
+    int stKind;
+    bool undone;
+    DWORD tick;
+    char what[128];
+};
+const int kJMax = 256;
+JEntry g_journal[kJMax];
+JEntry *JournalAdd(int kind, DWORD inst) {
+    if (g_jCount >= kJMax) return nullptr;
+    JEntry &e = g_journal[g_jCount++];
+    memset(&e, 0, sizeof(e));
+    e.kind = kind;
+    e.inst = inst;
+    e.stamp = inst ? tlobj::D(inst + 0x44) : 0;
+    e.intro = inst ? tlobj::D(inst + 0x58) : 0;
+    e.tick = GetTickCount();
+    return &e;
+}
+bool JournalRoom() {
+    if (g_jCount < kJMax) return true;
+    g_out.Add("err journal full (%d entries): obj.undo all, or obj.journal clear\n", kJMax);
+    return false;
+}
+// the journaled instance still the same object (stamp +0x44 and intro id unchanged, in the list)
+bool JAlive(const JEntry &e) {
+    return e.inst && tlobj::D(e.inst + 0x44) == e.stamp && e.stamp && tlobj::D(e.inst + 0x58) == e.intro &&
+           tlobj::ListIndex(e.inst) >= 0;
+}
+
+DWORD ObjInst(const char *arg) {
+    char why[128];
+    const DWORD inst = tlobj::FindInst(arg, why, sizeof(why));
+    if (!inst) g_out.Add("err %s\n", why);
+    return inst;
+}
+void InstLabel(DWORD inst, char *out, size_t n) {
+    char name[64];
+    tlobj::InstName(inst, name, sizeof(name));
+    _snprintf_s(out, n, _TRUNCATE, "%ld %s (0x%08lx)", static_cast<LONG>(tlobj::D(inst + 0x58)), name, inst);
+}
+bool ParseFloat(const char *s, float *f) {
+    char *end = nullptr;
+    const double d = strtod(s, &end);
+    if (end == s || *end || !(d > -1.0e9 && d < 1.0e9)) return false;
+    *f = static_cast<float>(d);
+    return true;
+}
+bool ParseDwordArg(const char *s, DWORD *v) { return ParseNumber(s, v); }
+
+// ---- writes (game thread) ----
+bool WriteFloats(DWORD a, const float *v, int n) {
+    if (CheckRange(a, 4u * n, true, false)) return false;
+    return CopyGuarded(a, reinterpret_cast<const BYTE *>(v), 4u * n);
+}
+void PostMsg(DWORD inst, int msg, int data) {
+    reinterpret_cast<InstancePostFn>(kInstancePost)(reinterpret_cast<void *>(inst), msg, data);
+}
+typedef unsigned char(__fastcall *StNotifyFn)(void *store, void *edx, DWORD index, DWORD value);
+typedef unsigned char(__fastcall *StNotifyFloatFn)(void *store, void *edx, DWORD index, float value);
+// the store write + the game's change notification (TruMenu 0.21.1 sticky.set)
+bool StWrite(const tlobj::StHit &h, DWORD raw) {
+    bool ok = false;
+    __try {
+        if (h.type == 1) {
+            volatile BYTE *bits = reinterpret_cast<volatile BYTE *>(*reinterpret_cast<volatile DWORD *>(h.store + 0x14) +
+                                                                    (h.index >> 3));
+            const BYTE bit = static_cast<BYTE>(1u << (h.index & 7));
+            if (raw) *bits = static_cast<BYTE>(*bits | bit);
+            else *bits = static_cast<BYTE>(*bits & ~bit);
+            reinterpret_cast<StNotifyFn>(tlobj::kStNotify[1])(reinterpret_cast<void *>(h.store), nullptr, h.index, raw ? 1 : 0);
+        } else {
+            volatile DWORD *values = reinterpret_cast<volatile DWORD *>(*reinterpret_cast<volatile DWORD *>(h.store + 0x18));
+            values[h.index] = raw;
+            if (h.type == 0) {
+                reinterpret_cast<StNotifyFn>(tlobj::kStNotify[0])(reinterpret_cast<void *>(h.store), nullptr, h.index, raw);
+            } else {
+                float f = 0.0f;
+                memcpy(&f, &raw, 4);
+                reinterpret_cast<StNotifyFloatFn>(tlobj::kStNotify[2])(reinterpret_cast<void *>(h.store), nullptr, h.index, f);
+            }
+        }
+        ok = true;
+    } __except (EXCEPTION_EXECUTE_HANDLER) {
+    }
+    return ok;
+}
+
+// ---- obj.near / obj.info / uber.events / joint.get (reads) ----
+void OpNear() {
+    float metres = 10.0f;
+    const char *filter = "";
+    int max = 64;
+    for (int i = 1; i < g_oj.argc; ++i) {
+        if (!_stricmp(g_oj.argv[i], "max") && i + 1 < g_oj.argc) { max = atoi(g_oj.argv[++i]); continue; }
+        float f = 0.0f;
+        if (i == 1 && ParseFloat(g_oj.argv[i], &f)) metres = f;
+        else filter = g_oj.argv[i];
+    }
+    if (!(metres > 0.0f && metres <= 500.0f)) { g_out.Add("err radius 0..500 m\n"); return; }
+    tlobj::Near(metres * tlobj::kUnitsPerMetre, filter, max < 1 ? 1 : max > 400 ? 400 : max);
+}
+void OpInfo() {
+    if (g_oj.argc < 2) { g_out.Add("err usage: obj.info <intro id | 0x<instance> | #<index> | player>\n"); return; }
+    const DWORD inst = ObjInst(g_oj.argv[1]);
+    if (inst) tlobj::Info(inst);
+}
+void OpEvents() {
+    if (g_oj.argc < 2) { g_out.Add("err usage: uber.events <id>\n"); return; }
+    if (!NeedGroups({tlobj::kGrpCmd})) return;
+    const DWORD inst = ObjInst(g_oj.argv[1]);
+    if (inst) tlobj::Events(inst);
+}
+void OpJointGet() {
+    if (g_oj.argc < 3) { g_out.Add("err usage: joint.get <id> <index> (obj.info lists the joints)\n"); return; }
+    if (!NeedGroups({tlobj::kGrpJoint})) return;
+    const DWORD inst = ObjInst(g_oj.argv[1]);
+    if (!inst) return;
+    const DWORD x = tlobj::MultiOfAny(inst);
+    if (!x) { g_out.Add("err %s has no multibody object (no joints)\n", g_oj.argv[1]); return; }
+    const int index = atoi(g_oj.argv[2]);
+    g_out.Add("ok+ joint.get %s %d (multibody X 0x%08lx of intro %lu, %d joints)\n", g_oj.argv[1], index, x,
+              tlobj::D(tlobj::D(x + 0x58) + 0x58), tlobj::JointCount(x));
+    tlobj::JointLine("", x, index);
+    DWORD jrec = 0, joint = 0;
+    if (tlobj::JointAt(x, index, &jrec, &joint)) {         // the range transitions on this joint in every linked uber
+        for (int i = 0; i < tlobj::Links(x); ++i) {
+            const DWORD li = tlobj::LinkInst(x, i), b = li ? tlobj::Uber(li) : 0;
+            const DWORD cur = b ? tlobj::D(b + 0x84) : 0;
+            for (int k = 0; b && k < tlobj::NodeCount(b); ++k) {
+                const DWORD node = tlobj::NodeAddr(b, k);
+                for (int j = 0; j < tlobj::TransCount(node); ++j) {
+                    const DWORD t = tlobj::TransAt(node, j), c = tlobj::D(t + 0x18);
+                    float lo = 0, hi = 0;
+                    if ((c != 14 && c != 15) || tlobj::D(t + 0x20) != jrec || !tlobj::RangeOf(tlobj::D(t + 0x24), &lo, &hi)) continue;
+                    char from[48], to[48];
+                    tlobj::NodeName(b, k, from, sizeof(from));
+                    tlobj::NodeName(b, static_cast<LONG>(tlobj::D(t + 4)), to, sizeof(to));
+                    g_out.Add("link %d (intro %lu): node %d '%s'%s -> %lu '%s' on %s [%.2f, %.2f)\n", i, tlobj::D(li + 0x58), k,
+                              from, static_cast<DWORD>(k) == cur ? " (current)" : "", tlobj::D(t + 4), to,
+                              c == 14 ? "enter" : "leave", static_cast<double>(lo), static_cast<double>(hi));
+                }
+            }
+        }
+    }
+    g_out.Add(".\n");
+}
+
+// ---- obj.set ----
+void OpSet() {
+    if (g_oj.argc < 3) {
+        g_out.Add("err usage: obj.set <id> pos x y z | move dx dy dz | rot x y z (deg) | yaw deg | hide 0|1 | collide 0|1 | scale s\n");
+        return;
+    }
+    if (!NeedGroups({tlobj::kGrpList})) return;
+    const DWORD inst = ObjInst(g_oj.argv[1]);
+    if (!inst) return;
+    char label[96];
+    InstLabel(inst, label, sizeof(label));
+    const char *what = g_oj.argv[2];
+    if (!_stricmp(what, "collide")) {
+        g_out.Add("err collide: no proven collision switch on an instance (ENGINE.md 5.2 open) - refused; hide 1 also stops "
+                  "the drawing only\n");
+        return;
+    }
+    if (!_stricmp(what, "scale")) {
+        float s[3] = {0, 0, 0};
+        const DWORD irec = tlobj::D(inst + 0x100);
+        if (irec) TlRead(irec + 0x40, s, 12);
+        g_out.Add("err scale: no proven per-instance scale field (only the intro record +0x40 = %.3f %.3f %.3f, read at birth "
+                  "?) - refused\n", static_cast<double>(s[0]), static_cast<double>(s[1]), static_cast<double>(s[2]));
+        return;
+    }
+    if (!JournalRoom()) return;
+    const DWORD x = tlobj::Multi(inst), body = tlobj::D(inst + 0x274);
+    char note[160] = "";
+    if (x) _snprintf_s(note, sizeof(note), _TRUNCATE, " - note: multibody placed instance (its parts are the links, obj.info)");
+    else if (body) _snprintf_s(note, sizeof(note), _TRUNCATE, " - note: physics body +0x274 0x%08lx, the solver may move it back", body);
+    if (!_stricmp(what, "pos") || !_stricmp(what, "move") || !_stricmp(what, "rot") || !_stricmp(what, "yaw")) {
+        const bool isRot = !_stricmp(what, "rot") || !_stricmp(what, "yaw");
+        const DWORD at = inst + (isRot ? 0x30 : 0x20);
+        float old[3], v[3];
+        if (!TlRead(at, old, 12)) { g_out.Add("err %s: +0x%x not readable\n", label, isRot ? 0x30 : 0x20); return; }
+        memcpy(v, old, sizeof(v));
+        if (!_stricmp(what, "yaw")) {
+            float d = 0;
+            if (g_oj.argc < 4 || !ParseFloat(g_oj.argv[3], &d)) { g_out.Add("err usage: obj.set <id> yaw <degrees>\n"); return; }
+            v[2] = d / tlobj::kRadToDeg;
+        } else {
+            if (g_oj.argc < 6) { g_out.Add("err usage: obj.set <id> %s <x> <y> <z>\n", what); return; }
+            for (int k = 0; k < 3; ++k) {
+                float f = 0;
+                if (!ParseFloat(g_oj.argv[3 + k], &f)) { g_out.Add("err bad number '%s'\n", g_oj.argv[3 + k]); return; }
+                v[k] = !_stricmp(what, "move") ? old[k] + f : isRot ? f / tlobj::kRadToDeg : f;
+            }
+        }
+        if (!WriteFloats(at, v, 3)) { g_out.Add("err %s: write failed\n", label); return; }
+        JEntry *e = JournalAdd(isRot ? kJRot : kJPos, inst);
+        memcpy(e->old, old, sizeof(old));
+        memcpy(e->now, v, sizeof(v));
+        _snprintf_s(e->what, sizeof(e->what), _TRUNCATE, "%s %s", label, isRot ? "rot" : "pos");
+        if (isRot)
+            g_out.Add("ok %s rot %.2f %.2f %.2f deg (was %.2f %.2f %.2f) journal #%d%s\n", label, tlobj::Deg(v[0]),
+                      tlobj::Deg(v[1]), tlobj::Deg(v[2]), tlobj::Deg(old[0]), tlobj::Deg(old[1]), tlobj::Deg(old[2]), g_jCount - 1, note);
+        else
+            g_out.Add("ok %s pos %.2f %.2f %.2f (was %.2f %.2f %.2f) journal #%d%s\n", label, static_cast<double>(v[0]),
+                      static_cast<double>(v[1]), static_cast<double>(v[2]), static_cast<double>(old[0]),
+                      static_cast<double>(old[1]), static_cast<double>(old[2]), g_jCount - 1, note);
+        Log(1, "obj.set %s %s %.3f %.3f %.3f (was %.3f %.3f %.3f) journal #%d", label, isRot ? "rot (rad)" : "pos",
+            static_cast<double>(v[0]), static_cast<double>(v[1]), static_cast<double>(v[2]), static_cast<double>(old[0]),
+            static_cast<double>(old[1]), static_cast<double>(old[2]), g_jCount - 1);
+        return;
+    }
+    if (!_stricmp(what, "hide")) {
+        if (!g_postOk || !NeedGroups({tlobj::kGrpHide})) { if (!g_postOk) g_out.Add("err INSTANCE_Post not verified\n"); return; }
+        if (g_oj.argc < 4 || (strcmp(g_oj.argv[3], "0") && strcmp(g_oj.argv[3], "1"))) { g_out.Add("err usage: obj.set <id> hide 0|1\n"); return; }
+        const int hide = g_oj.argv[3][0] == '1' ? 1 : 0;
+        if (!tlobj::D(inst + 0x120)) { g_out.Add("err %s has no message handler (+0x120 = 0)\n", label); return; }
+        // the state shown: the instance itself, for a multibody placed instance its first part (the handler hides the parts)
+        const DWORD probe = x && tlobj::LinkInst(x, 0) ? tlobj::LinkInst(x, 0) : inst;
+        const DWORD before = tlobj::D(probe + 0x14);
+        PostMsg(inst, 7, hide);
+        const DWORD after = tlobj::D(probe + 0x14);
+        JEntry *e = JournalAdd(kJHide, inst);
+        e->oldWord = (before & 0x800) ? 1 : 0;
+        e->newWord = static_cast<DWORD>(hide);
+        _snprintf_s(e->what, sizeof(e->what), _TRUNCATE, "%s hide %d", label, hide);
+        g_out.Add("ok %s: INSTANCE_Post(7, %d)%s - iflags 0x%08lx -> 0x%08lx (%s) journal #%d\n", label, hide,
+                  x ? " to the multibody (all parts)" : "", before, after, (after & 0x800) ? "hidden" : "shown", g_jCount - 1);
+        Log(1, "obj.set %s hide %d: INSTANCE_Post(0x%08lx, 7, %d), iflags 0x%08lx -> 0x%08lx, journal #%d", label, hide,
+            inst, hide, before, after, g_jCount - 1);
+        return;
+    }
+    g_out.Add("err unknown obj.set field '%s' (pos move rot yaw hide collide scale)\n", what);
+}
+
+// ---- sticky.get / sticky.set ----
+// owner: intro id (kind 0) or <kind>:<id>; key: a Symbol number, or a script member of the owner's instance: m<k>
+// (member index, obj.info) or +<offset> (member data offset)
+bool StResolve(const char *ownerArg, const char *keyArg, int *kind, DWORD *owner, WORD *key, char *label, size_t ln) {
+    *kind = 0;
+    char ow[64];
+    strncpy_s(ow, sizeof(ow), ownerArg, _TRUNCATE);
+    char *idText = ow;
+    if (char *colon = strchr(ow, ':')) { *colon = 0; *kind = atoi(ow); idText = colon + 1; }
+    DWORD id = 0;
+    if (*kind < 0 || *kind > 2 || !ParseNumber(idText, &id)) { g_out.Add("err owner '%s': intro id or <kind 0..2>:<id>\n", ownerArg); return false; }
+    *owner = id;
+    if (keyArg[0] == 'm' || keyArg[0] == 'M' || keyArg[0] == '+') {
+        if (*kind) { g_out.Add("err a member name needs an intro id owner (kind 0)\n"); return false; }
+        if (!NeedGroups({tlobj::kGrpScript})) return false;
+        const DWORD inst = tlobj::InstByIntro(id);
+        const DWORD so = inst ? tlobj::ScriptObj(inst) : 0, root = so ? tlobj::ScriptRoot(so) : 0;
+        if (!root) { g_out.Add("err intro %lu: no instance with a script object\n", id); return false; }
+        const bool byOffset = keyArg[0] == '+';
+        DWORD want = 0;
+        if (!ParseNumber(keyArg + 1, &want)) { g_out.Add("err bad member '%s' (m<index> or +<offset>)\n", keyArg); return false; }
+        for (int k = 0; k < tlobj::MemberCount(root); ++k) {
+            tlobj::Member m;
+            if (!tlobj::MemberAt(root, k, &m) || (byOffset ? m.offset != want : static_cast<DWORD>(k) != want)) continue;
+            if (!tlobj::IsSticky(m)) { g_out.Add("err member %s of intro %lu is %s, not a sticky\n", keyArg, id, m.type); return false; }
+            if (!tlobj::MemberKey(m, key)) { g_out.Add("err member %s: key unreadable\n", keyArg); return false; }
+            *owner = tlobj::D(tlobj::ScriptOwner(inst) + 0x58);
+            _snprintf_s(label, ln, _TRUNCATE, "m%d +%u %s", k, m.offset, m.type);
+            return true;
+        }
+        g_out.Add("err intro %lu has no member %s (obj.info lists them)\n", id, keyArg);
+        return false;
+    }
+    DWORD k = 0;
+    if (!ParseNumber(keyArg, &k) || k > 0xffff) { g_out.Add("err key '%s': a u16 Symbol, m<index> or +<offset>\n", keyArg); return false; }
+    *key = static_cast<WORD>(k);
+    _snprintf_s(label, ln, _TRUNCATE, "key %lu", k);
+    return true;
+}
+void OpStGet() {
+    if (g_oj.argc < 3) { g_out.Add("err usage: sticky.get <owner> <key | m<index> | +<offset>>\n"); return; }
+    if (!NeedGroups({tlobj::kGrpSticky})) return;
+    int kind = 0;
+    DWORD owner = 0;
+    WORD key = 0;
+    char label[64];
+    if (!StResolve(g_oj.argv[1], g_oj.argv[2], &kind, &owner, &key, label, sizeof(label))) return;
+    tlobj::StHit hits[3];
+    char why[96];
+    const int k = tlobj::StFind(kind, owner, key, hits, why, sizeof(why));
+    if (k < 0) { g_out.Add("err %s\n", why); return; }
+    if (!k) { g_out.Add("ok sticky %d:%lu key %u (%s): no store entry (not created yet - the script has not used it)\n", kind, owner, key, label); return; }
+    for (int i = 0; i < k; ++i) {
+        DWORD raw = 0;
+        char v[32] = "?";
+        if (tlobj::StRaw(hits[i], &raw)) tlobj::StText(hits[i].type, raw, v, sizeof(v));
+        g_out.Add("ok sticky %d:%lu key %u (%s) = %s %s (index %lu)\n", kind, owner, key, label, tlobj::kStTypes[hits[i].type],
+                  v, hits[i].index);
+    }
+}
+void OpStSet() {
+    int at = 1, want = -1;
+    for (int t = 0; t < 3 && at < g_oj.argc; ++t)
+        if (!_stricmp(g_oj.argv[at], tlobj::kStTypes[t])) { want = t; ++at; break; }
+    if (g_oj.argc - at < 3) { g_out.Add("err usage: sticky.set [int|bool|float] <owner> <key | m<index> | +<offset>> <value>\n"); return; }
+    if (!NeedGroups({tlobj::kGrpSticky})) return;
+    if (!JournalRoom()) return;
+    int kind = 0;
+    DWORD owner = 0;
+    WORD key = 0;
+    char label[64];
+    if (!StResolve(g_oj.argv[at], g_oj.argv[at + 1], &kind, &owner, &key, label, sizeof(label))) return;
+    tlobj::StHit hits[3];
+    char why[96];
+    const int k = tlobj::StFind(kind, owner, key, hits, why, sizeof(why));
+    if (k < 0) { g_out.Add("err %s\n", why); return; }
+    int pick = -1;
+    for (int i = 0; i < k; ++i)
+        if (want < 0 || hits[i].type == want) { if (pick >= 0) { pick = -2; break; } pick = i; }
+    if (pick == -2) { g_out.Add("err sticky %d:%lu key %u is in more than one store - say int / bool / float first\n", kind, owner, key); return; }
+    if (pick < 0) { g_out.Add("err sticky %d:%lu key %u: no %s entry (never created - not set)\n", kind, owner, key, want >= 0 ? tlobj::kStTypes[want] : ""); return; }
+    const tlobj::StHit &h = hits[pick];
+    const char *text = g_oj.argv[at + 2];
+    DWORD raw = 0;
+    if (h.type == 2) {
+        float f = 0;
+        if (!ParseFloat(text, &f)) { g_out.Add("err value '%s' is not a float\n", text); return; }
+        memcpy(&raw, &f, 4);
+    } else if (!ParseNumber(text, &raw) || (h.type == 1 && raw > 1)) {
+        g_out.Add("err value '%s' is not %s\n", text, h.type == 1 ? "0 / 1" : "an integer");
+        return;
+    }
+    DWORD old = 0;
+    if (!tlobj::StRaw(h, &old)) { g_out.Add("err the value cannot be read (index %lu)\n", h.index); return; }
+    if (!StWrite(h, raw)) { g_out.Add("err access fault while setting the sticky (caught)\n"); return; }
+    DWORD now = 0;
+    tlobj::StRaw(h, &now);
+    char a[32], b[32];
+    tlobj::StText(h.type, old, a, sizeof(a));
+    tlobj::StText(h.type, now, b, sizeof(b));
+    JEntry *e = JournalAdd(kJSticky, 0);
+    e->stType = h.type; e->stOwner = owner; e->stKey = key; e->stKind = kind; e->oldWord = old; e->newWord = now;
+    _snprintf_s(e->what, sizeof(e->what), _TRUNCATE, "sticky %d:%lu key %u (%s) %s", kind, owner, key, label, tlobj::kStTypes[h.type]);
+    g_out.Add("ok sticky %d:%lu key %u (%s, %s): %s -> %s (the game's set + notification 0x%08lx) journal #%d\n", kind, owner,
+              key, label, tlobj::kStTypes[h.type], a, b, tlobj::kStNotify[h.type], g_jCount - 1);
+    Log(1, "sticky.set %s %d:%lu key %u (%s, index %lu): %s -> %s, journal #%d", tlobj::kStTypes[h.type], kind, owner, key,
+        label, h.index, a, b, g_jCount - 1);
+}
+
+// ---- uber.send ----
+typedef void(__thiscall *CmdExecFn)(void *x, int n);
+typedef void(__thiscall *UberMsgFn)(void *b, const void *record);
+void NodeNow(DWORD b, char *out, size_t n) {
+    char node[48], to[48] = "";
+    tlobj::NodeName(b, static_cast<LONG>(tlobj::D(b + 0x84)), node, sizeof(node));
+    const DWORD trans = tlobj::D(b + 0x80);
+    if (trans) tlobj::NodeName(b, static_cast<LONG>(tlobj::D(trans + 4)), to, sizeof(to));
+    _snprintf_s(out, n, _TRUNCATE, "'%s'%s%s%s", node, trans ? " -> '" : "", to, trans ? "' (transition runs)" : "");
+}
+void OpSend() {
+    if (g_oj.argc < 4) {
+        g_out.Add("err usage: uber.send <id> cmd <n> | command <c> | event <v> | broadcast <v> [link <k>] [force] "
+                  "(uber.events lists them)\n");
+        return;
+    }
+    if (!NeedGroups({tlobj::kGrpUber, tlobj::kGrpMulti, tlobj::kGrpCmd, tlobj::kGrpMsg})) return;
+    if (!JournalRoom()) return;
+    const DWORD inst = ObjInst(g_oj.argv[1]);
+    if (!inst) return;
+    char label[96];
+    InstLabel(inst, label, sizeof(label));
+    const char *how = g_oj.argv[2];
+    DWORD value = 0;
+    if (!ParseNumber(g_oj.argv[3], &value)) { g_out.Add("err bad number '%s'\n", g_oj.argv[3]); return; }
+    int link = -1;
+    for (int i = 4; i + 1 < g_oj.argc; ++i)
+        if (!_stricmp(g_oj.argv[i], "link")) link = atoi(g_oj.argv[i + 1]);
+    if (!_stricmp(how, "cmd")) {                               // the object command table: X vf+4 (0x4d77a0)
+        const DWORD x = tlobj::MultiOfAny(inst);
+        if (!x) { g_out.Add("err %s has no multibody object (no command table)\n", label); return; }
+        if (tlobj::D(tlobj::D(x) + 4) != tlobj::kCmdExec) { g_out.Add("err X 0x%08lx vf+4 is not 0x%08lx - refused\n", x, tlobj::kCmdExec); return; }
+        if (static_cast<int>(value) >= tlobj::CmdCount(x)) { g_out.Add("err cmd %lu: the table has %d entries (uber.events)\n", value, tlobj::CmdCount(x)); return; }
+        DWORD rec = 0;
+        int rn = 0;
+        tlobj::CmdRecords(x, static_cast<int>(value), &rec, &rn);
+        char before[16][96];
+        for (int r = 0; r < rn && r < 16; ++r) {
+            const DWORD li = tlobj::LinkInst(x, static_cast<int>(tlobj::D(rec + 12u * r))), b = li ? tlobj::Uber(li) : 0;
+            if (b) NodeNow(b, before[r], sizeof(before[r])); else strcpy_s(before[r], "-");
+        }
+        reinterpret_cast<CmdExecFn>(tlobj::kCmdExec)(reinterpret_cast<void *>(x), static_cast<int>(value));
+        JEntry *e = JournalAdd(kJUber, inst);
+        _snprintf_s(e->what, sizeof(e->what), _TRUNCATE, "%s cmd %lu", label, value);
+        g_out.Add("ok+ uber.send %s cmd %lu: X 0x%08lx vf+4 (0x%08lx, the object command table - as uber action 11 / a "
+                  "script command) journal #%d (not undoable)\n", label, value, x, tlobj::kCmdExec, g_jCount - 1);
+        for (int r = 0; r < rn && r < 16; ++r) {
+            const DWORD e0 = rec + 12u * r;
+            const int l = static_cast<int>(tlobj::D(e0));
+            const DWORD li = tlobj::LinkInst(x, l), b = li ? tlobj::Uber(li) : 0, kind = tlobj::D(e0 + 4);
+            char after[96] = "-";
+            if (b) NodeNow(b, after, sizeof(after));
+            g_out.Add("link %d (intro %lu) %s %lu: %s -> %s\n", l, li ? tlobj::D(li + 0x58) : 0,
+                      kind <= 4 ? tlobj::kKindNames[kind] : "kind?", tlobj::D(e0 + 8), before[r], after);
+            Log(1, "uber.send %s cmd %lu: link %d (intro %lu) %s %lu: %s -> %s", label, value, l, li ? tlobj::D(li + 0x58) : 0,
+                kind <= 4 ? tlobj::kKindNames[kind] : "kind?", tlobj::D(e0 + 8), before[r], after);
+        }
+        g_out.Add(".\n");
+        return;
+    }
+    DWORD kind = 0;
+    if (!_stricmp(how, "event")) kind = 2;
+    else if (!_stricmp(how, "broadcast")) kind = 3;
+    else if (!_stricmp(how, "command")) kind = 4;
+    else { g_out.Add("err '%s': cmd | command | event | broadcast (set node is refused: not the game's event path)\n", how); return; }
+    DWORD b = tlobj::Uber(inst);
+    if (!b) {                                                  // a multibody placed instance: one of its links
+        const DWORD x = tlobj::Multi(inst);
+        if (!x) { g_out.Add("err %s has no uber state and no multibody object\n", label); return; }
+        if (link >= 0) {
+            const DWORD li = tlobj::LinkInst(x, link);
+            b = li ? tlobj::Uber(li) : 0;
+            if (!b) { g_out.Add("err %s link %d has no uber state\n", label, link); return; }
+        } else {
+            int matches = 0;
+            for (int i = 0; i < tlobj::Links(x); ++i) {
+                const DWORD li = tlobj::LinkInst(x, i), lb = li ? tlobj::Uber(li) : 0;
+                bool dropped = false;
+                if (lb && tlobj::MatchNow(lb, kind, value, &dropped)) { b = lb; link = i; ++matches; }
+            }
+            if (matches != 1) {
+                g_out.Add("err %s: %d links take %s %lu now - give 'link <k>' (uber.events)\n", label, matches, how, value);
+                return;
+            }
+        }
+    }
+    bool dropped = false;
+    const DWORD t = tlobj::MatchNow(b, kind, value, &dropped);
+    char before[96];
+    NodeNow(b, before, sizeof(before));
+    if (dropped && !g_oj.force) { g_out.Add("err uber 0x%08lx node %s: the engine drops events now (transition / +0x90 & 9) - try again, or force\n", b, before); return; }
+    if (!t && !g_oj.force) { g_out.Add("err uber 0x%08lx node %s has no transition on %s %lu now (uber.events) - force sends it anyway\n", b, before, how, value); return; }
+    const DWORD record[3] = {0, kind, value};
+    reinterpret_cast<UberMsgFn>(tlobj::kUberMsg)(reinterpret_cast<void *>(b), record);
+    char after[96];
+    NodeNow(b, after, sizeof(after));
+    JEntry *e = JournalAdd(kJUber, inst);
+    _snprintf_s(e->what, sizeof(e->what), _TRUNCATE, "%s %s %lu%s", label, how, value, link >= 0 ? " (link)" : "");
+    g_out.Add("ok uber.send %s%s %s %lu: 0x%08lx (uber message kind %lu, the game's path): %s -> %s journal #%d (not undoable)\n",
+              label, link >= 0 ? " link" : "", how, value, tlobj::kUberMsg, kind, before, after, g_jCount - 1);
+    Log(1, "uber.send %s %s %lu (uber 0x%08lx, link %d, kind %lu%s): %s -> %s, journal #%d", label, how, value, b, link, kind,
+        g_oj.force ? ", force" : "", before, after, g_jCount - 1);
+}
+
+// ---- joint.drive: the joint's own motor (velocity + force, axis 0) towards a target; the limits stay as they are ----
+// 2026-11-15: TruMenu 0.22.53 joint.set (lock lo = hi = target) drove the l3_chapel shadow door rail from -0.84 to -1115
+// - the lock replaced the joint's limits [0, 948.2], nothing held the body. joint.drive never touches the limits: the
+// target is clamped inside them (limit on, lo < hi), the motor pushes at a ramped velocity with a bounded force, and the
+// drive stops (saved motor velocity / force / enable put back) on: reached (after the hold), moving away from the target
+// (one sign flip allowed - the motor sign is not proven), overshoot, a step larger than 4x the commanded one, leaving
+// the limits, no progress for 1.5 s, a node change of any linked uber, 10 s, or joint.drive stop.
+typedef void(__thiscall *JtSetAxisFn)(void *joint, int axis, float value);
+typedef void(__thiscall *JtEnableFn)(void *joint, int axis, int on);
+typedef void(__thiscall *JtWakeFn)(void *body);
+typedef double(__thiscall *JtValueFn)(void *joint);
+struct Drive {
+    DWORD inst, stamp, x, joint, jrec;
+    LONG intro;
+    int index, type, sign, flips, lines, journal;
+    float target, from, best, lastV, speed, force, lo, hi, vel, hold;
+    bool limits, through;                    // through: go on over node changes of the linked ubers (logged)
+    float saveVel, saveForce;
+    bool saveMotor;
+    DWORD start, lastTick, lastBetter, reached, clock;
+    DWORD nodes[64];                         // node + transition of each linked uber at the start
+    int links;
+};
+Drive g_drv;
+}  // namespace
+
+bool TlJointValue(DWORD joint, int type, float *value) {
+    if (!g_onGameThread || !g_grp[tlobj::kGrpJoint] || (type != 1 && type != 3)) return false;
+    double r = 0.0;
+    __try {
+        r = reinterpret_cast<JtValueFn>(type == 1 ? tlobj::kJtHinge : tlobj::kJtSlider)(reinterpret_cast<void *>(joint));
+    } __except (EXCEPTION_EXECUTE_HANDLER) {
+        return false;
+    }
+    if (type == 1) r *= 57.29577951308232;
+    if (!(r > -1.0e7 && r < 1.0e7)) return false;
+    *value = static_cast<float>(r);
+    return true;
+}
+
+namespace {
+DWORD g_tlRegStart = 0, g_tlRegEnd = 0;        // last region TlRead found readable (one job / tick)
+}  // namespace
+
+bool TlRead(DWORD address, void *out, DWORD length) {
+    if (!length || address + length < address) return false;
+    DWORD p = address, end = address + length;
+    while (p < end) {
+        if (p >= g_tlRegStart && p < g_tlRegEnd) { p = g_tlRegEnd; continue; }
+        MEMORY_BASIC_INFORMATION mbi;
+        if (!VirtualQuery(reinterpret_cast<void *>(p), &mbi, sizeof(mbi))) return false;
+        if (mbi.State != MEM_COMMIT || (mbi.Protect & (PAGE_GUARD | PAGE_NOACCESS)) || !(mbi.Protect & kReadable)) return false;
+        const bool inImage = p >= g_imageStart && p < g_imageEnd;
+        if (!inImage && mbi.Type != MEM_PRIVATE) return false;
+        g_tlRegStart = reinterpret_cast<DWORD>(mbi.BaseAddress);
+        g_tlRegEnd = g_tlRegStart + static_cast<DWORD>(mbi.RegionSize);
+        if (g_tlRegEnd <= p) return false;
+        p = g_tlRegEnd;
+    }
+    return ReadBytes(address, static_cast<BYTE *>(out), length);
+}
+
+// keeps 1 KB for the block end: a long answer (a big uber graph) is cut with a note, never without its "." line
+void TlAdd(const char *fmt, ...) {
+    static size_t cutAt = 0;
+    const bool end = !strcmp(fmt, ".\n");
+    if (g_out.n == 0) cutAt = 0;
+    if (!end && g_out.n + 1024 >= sizeof(g_out.buf)) {
+        if (!cutAt) {
+            cutAt = g_out.n;
+            g_out.Add("... answer cut (buffer %lu KB full)\n", static_cast<DWORD>(sizeof(g_out.buf) / 1024));
+        }
+        return;
+    }
+    va_list ap;
+    va_start(ap, fmt);
+    const int w = _vsnprintf_s(g_out.buf + g_out.n, sizeof(g_out.buf) - g_out.n, _TRUNCATE, fmt, ap);
+    va_end(ap);
+    g_out.n = w < 0 ? strlen(g_out.buf) : g_out.n + static_cast<size_t>(w);
+}
+
+namespace {
+
+void JtMotor(DWORD joint, float vel, float force, bool on) {
+    void *j = reinterpret_cast<void *>(joint);
+    reinterpret_cast<JtSetAxisFn>(tlobj::kJtMotorVel)(j, 0, vel);
+    reinterpret_cast<JtSetAxisFn>(tlobj::kJtMotorForce)(j, 0, force);
+    const bool isOn = (tlobj::D(joint + 0x174) & 0x10) != 0;
+    if (isOn != on) reinterpret_cast<JtEnableFn>(tlobj::kJtMotorOn)(j, 0, on ? 1 : 0);
+}
+void JtWakeBodies(DWORD joint) {
+    const DWORD a = tlobj::D(joint + 0x160), b = tlobj::D(joint + 0x15c);
+    if (a) reinterpret_cast<JtWakeFn>(tlobj::kJtWake)(reinterpret_cast<void *>(a));
+    if (b) reinterpret_cast<JtWakeFn>(tlobj::kJtWake)(reinterpret_cast<void *>(b));
+}
+DWORD LinkState(DWORD x, int i) {
+    const DWORD li = tlobj::LinkInst(x, i), b = li ? tlobj::Uber(li) : 0;
+    return b ? (tlobj::D(b + 0x84) & 0xffff) | (tlobj::D(b + 0x80) ? 0x10000u : 0u) : 0xffffffffu;
+}
+// stop: put the saved motor settings back when the joint still carries ours (a node action may have set its own)
+void DriveStop(const char *why) {
+    if (!g_driveOn) return;
+    InterlockedExchange(&g_driveOn, 0);
+    float v = 0.0f, vel = 0.0f, force = 0.0f;
+    const bool alive = tlobj::D(g_drv.inst + 0x44) == g_drv.stamp && tlobj::JointType(g_drv.joint) == g_drv.type;
+    bool restored = false;
+    if (alive && tlobj::RF(g_drv.joint + 0x108, &vel) && tlobj::RF(g_drv.joint + 0x10c, &force) && force == g_drv.force) {
+        __try {
+            JtMotor(g_drv.joint, g_drv.saveVel, g_drv.saveForce, g_drv.saveMotor);
+            restored = true;
+        } __except (EXCEPTION_EXECUTE_HANDLER) {
+        }
+    }
+    const bool val = alive && TlJointValue(g_drv.joint, g_drv.type, &v);
+    if (g_drv.journal >= 0 && g_drv.journal < g_jCount) g_journal[g_drv.journal].undone = true;   // nothing left to undo
+    Log(1, "joint.drive %ld joint %d: %s - value %s%.2f (from %.2f, target %.2f) after %.1f s; motor %s", g_drv.intro,
+        g_drv.index, why, val ? "" : "? ", static_cast<double>(v), static_cast<double>(g_drv.from),
+        static_cast<double>(g_drv.target), (GetTickCount() - g_drv.start) / 1000.0,
+        restored ? "settings put back (velocity / force / enable)" : alive ? "left alone (a node action changed it)" : "gone");
+}
+void DriveTick() {
+    if (!g_driveOn) return;
+    const DWORD clock = *reinterpret_cast<volatile DWORD *>(kGameClock);
+    if (clock == g_drv.clock) return;                          // once per game frame
+    g_drv.clock = clock;
+    g_tlRegStart = g_tlRegEnd = 0;
+    if (tlobj::D(g_drv.inst + 0x44) != g_drv.stamp || tlobj::JointType(g_drv.joint) != g_drv.type) {
+        DriveStop("instance / joint gone (unit change?)");
+        return;
+    }
+    for (int i = 0; i < g_drv.links; ++i) {
+        const DWORD s = LinkState(g_drv.x, i);
+        if (s != g_drv.nodes[i] && g_drv.through) {
+            Log(1, "joint.drive %ld joint %d: link %d node %lu -> %lu%s - going on (through 1)", g_drv.intro, g_drv.index, i,
+                g_drv.nodes[i] & 0xffff, s & 0xffff, (s & 0x10000) ? " (transition)" : "");
+            g_drv.nodes[i] = s;
+        } else if (s != g_drv.nodes[i]) {
+            char line[128];
+            _snprintf_s(line, sizeof(line), _TRUNCATE, "stopped: link %d changed node %lu -> %lu%s (the game reacts; its node "
+                        "actions own the joint now)", i, g_drv.nodes[i] & 0xffff, s & 0xffff, (s & 0x10000) ? " (transition)" : "");
+            DriveStop(line);
+            return;
+        }
+    }
+    float v = 0.0f;
+    if (!TlJointValue(g_drv.joint, g_drv.type, &v)) { DriveStop("value unreadable"); return; }
+    const DWORD now = GetTickCount();
+    const bool hinge = g_drv.type == 1;
+    const float tol = hinge ? 0.5f : 2.0f, away = hinge ? 3.0f : 10.0f, over = hinge ? 2.0f : 5.0f, margin = hinge ? 2.0f : 5.0f;
+    const float dist = fabsf(g_drv.target - v);
+    const float dt = g_drv.lastTick && now > g_drv.lastTick ? (now - g_drv.lastTick) / 1000.0f : 0.0f;
+    const float step = fabsf(v - g_drv.lastV);
+    char line[200] = "";
+    if (g_drv.limits && (v < g_drv.lo - margin || v > g_drv.hi + margin))
+        _snprintf_s(line, sizeof(line), _TRUNCATE, "stopped: value %.2f outside the joint's limits [%.2f, %.2f]",
+                    static_cast<double>(v), static_cast<double>(g_drv.lo), static_cast<double>(g_drv.hi));
+    else if (dt > 0.0f && step > 4.0f * g_drv.speed * dt + (hinge ? 1.0f : 3.0f))
+        _snprintf_s(line, sizeof(line), _TRUNCATE, "stopped: step %.2f in %.3f s is more than 4x the drive speed %.1f /s",
+                    static_cast<double>(step), static_cast<double>(dt), static_cast<double>(g_drv.speed));
+    else if ((g_drv.from - g_drv.target) * (v - g_drv.target) < 0.0f && dist > over)
+        _snprintf_s(line, sizeof(line), _TRUNCATE, "stopped: value %.2f overshot the target %.2f", static_cast<double>(v),
+                    static_cast<double>(g_drv.target));
+    else if (dist > g_drv.best + away) {
+        if (!g_drv.flips) {                                    // the motor sign is not proven: one flip, then stop
+            g_drv.flips = 1;
+            g_drv.sign = -g_drv.sign;
+            g_drv.best = dist;
+            g_drv.lastBetter = now;
+            Log(1, "joint.drive %ld joint %d: value %.2f moves away from %.2f - motor sign flipped once", g_drv.intro,
+                g_drv.index, static_cast<double>(v), static_cast<double>(g_drv.target));
+        } else {
+            _snprintf_s(line, sizeof(line), _TRUNCATE, "stopped: value %.2f moves away from the target %.2f (best %.2f) after "
+                        "the sign flip", static_cast<double>(v), static_cast<double>(g_drv.target), static_cast<double>(g_drv.best));
+        }
+    }
+    if (!line[0] && dist + tol < g_drv.best) { g_drv.best = dist; g_drv.lastBetter = now; }
+    if (!line[0] && dist <= tol && !g_drv.reached) g_drv.reached = now ? now : 1;
+    if (!line[0] && g_drv.reached && now - g_drv.reached > static_cast<DWORD>(g_drv.hold * 1000.0f))
+        _snprintf_s(line, sizeof(line), _TRUNCATE, "reached %.2f (target %.2f), held %.1f s", static_cast<double>(v),
+                    static_cast<double>(g_drv.target), static_cast<double>(g_drv.hold));
+    if (!line[0] && !g_drv.reached && now - g_drv.lastBetter > 1500)
+        _snprintf_s(line, sizeof(line), _TRUNCATE, "stopped: no progress for 1.5 s at %.2f (blocked: Lara, contact, a lock?)",
+                    static_cast<double>(v));
+    if (!line[0] && !g_drv.reached && now - g_drv.start > 10000)
+        _snprintf_s(line, sizeof(line), _TRUNCATE, "stopped: timeout 10 s at %.2f", static_cast<double>(v));
+    g_drv.lastV = v;
+    g_drv.lastTick = now;
+    if (line[0]) { DriveStop(line); return; }
+    // the commanded velocity: proportional to the rest, at most speed, at least 10 % of it; 0 while holding
+    const float err = g_drv.target - v;
+    float cmd = 2.0f * fabsf(err);
+    if (cmd > g_drv.speed) cmd = g_drv.speed;
+    if (cmd < 0.1f * g_drv.speed) cmd = 0.1f * g_drv.speed;
+    if (g_drv.reached) cmd = 0.0f;
+    g_drv.vel = (err >= 0.0f ? 1.0f : -1.0f) * static_cast<float>(g_drv.sign) * cmd;
+    JtMotor(g_drv.joint, hinge ? g_drv.vel / tlobj::kRadToDeg : g_drv.vel, g_drv.force, true);
+    JtWakeBodies(g_drv.joint);
+    if (g_drv.lines < 300 && (g_drv.lines < 20 || (g_drv.lines % 10) == 0))
+        Log(1, "joint.drive %ld joint %d t %.2f s: value %.2f target %.2f motor velocity %.2f%s force %.6g best %.2f",
+            g_drv.intro, g_drv.index, (now - g_drv.start) / 1000.0, static_cast<double>(v), static_cast<double>(g_drv.target),
+            static_cast<double>(g_drv.vel), hinge ? " deg/s" : " /s", static_cast<double>(g_drv.force),
+            static_cast<double>(g_drv.best));
+    ++g_drv.lines;
+}
+void OpJointDrive() {
+    if (g_oj.argc >= 2 && !_stricmp(g_oj.argv[1], "stop")) {
+        if (!g_driveOn) { g_out.Add("ok joint.drive: nothing running\n"); return; }
+        DriveStop("stopped (joint.drive stop)");
+        g_out.Add("ok joint.drive stopped (TruLink.log)\n");
+        return;
+    }
+    if (g_oj.argc >= 2 && !_stricmp(g_oj.argv[1], "status")) {
+        if (!g_driveOn) { g_out.Add("ok joint.drive: idle\n"); return; }
+        g_out.Add("ok joint.drive %ld joint %d -> %.2f since %.1f s, last value %.2f, motor velocity %.2f\n", g_drv.intro,
+                  g_drv.index, static_cast<double>(g_drv.target), (GetTickCount() - g_drv.start) / 1000.0,
+                  static_cast<double>(g_drv.lastV), static_cast<double>(g_drv.vel));
+        return;
+    }
+    if (g_oj.argc < 4) {
+        g_out.Add("err usage: joint.drive <id> <index> <target: hinge deg | rail units> [speed s] [force f] [hold s] "
+                  "[through 1] | stop | status\n");
+        return;
+    }
+    if (!NeedGroups({tlobj::kGrpMulti, tlobj::kGrpJoint, tlobj::kGrpDrive})) return;
+    if (!JournalRoom()) return;
+    const DWORD inst = ObjInst(g_oj.argv[1]);
+    if (!inst) return;
+    const DWORD x = tlobj::MultiOfAny(inst);
+    if (!x) { g_out.Add("err %s has no multibody object (no joints)\n", g_oj.argv[1]); return; }
+    const int index = atoi(g_oj.argv[2]);
+    float target = 0.0f;
+    if (!ParseFloat(g_oj.argv[3], &target)) { g_out.Add("err bad target '%s'\n", g_oj.argv[3]); return; }
+    DWORD jrec = 0, joint = 0;
+    if (!tlobj::JointAt(x, index, &jrec, &joint)) { g_out.Add("err no joint %d (obj.info lists %d)\n", index, tlobj::JointCount(x)); return; }
+    const int type = tlobj::JointType(joint);
+    if (type != 1 && type != 3) { g_out.Add("err joint %d: physics type %d - only hinge (1) / rail (3)\n", index, type); return; }
+    const bool hinge = type == 1;
+    float v = 0.0f, lim[2] = {0, 0}, vel = 0, force = 0;
+    DWORD flags = 0;
+    if (!TlJointValue(joint, type, &v) || !tlobj::RF(joint + 0xd8, &lim[0]) || !tlobj::RF(joint + 0xdc, &lim[1]) ||
+        !tlobj::R32(joint + 0x174, &flags) || !tlobj::RF(joint + 0x108, &vel) || !tlobj::RF(joint + 0x10c, &force)) {
+        g_out.Add("err joint %d: value / limits / motor unreadable\n", index);
+        return;
+    }
+    Drive d;
+    memset(&d, 0, sizeof(d));
+    d.speed = hinge ? 30.0f : 150.0f;
+    d.force = 20000.0f;
+    d.hold = 2.0f;
+    for (int i = 4; i + 1 < g_oj.argc; i += 2) {
+        float f = 0.0f;
+        if (!ParseFloat(g_oj.argv[i + 1], &f)) { g_out.Add("err bad number '%s'\n", g_oj.argv[i + 1]); return; }
+        if (!_stricmp(g_oj.argv[i], "speed")) d.speed = f;
+        else if (!_stricmp(g_oj.argv[i], "force")) d.force = f;
+        else if (!_stricmp(g_oj.argv[i], "hold")) d.hold = f;
+        else if (!_stricmp(g_oj.argv[i], "through")) d.through = f != 0.0f;
+        else { g_out.Add("err unknown option '%s' (speed / force / hold / through)\n", g_oj.argv[i]); return; }
+    }
+    if (!(d.speed > 0.0f && d.speed <= (hinge ? 120.0f : 600.0f))) { g_out.Add("err speed 0..%s\n", hinge ? "120 deg/s" : "600 units/s"); return; }
+    if (!(d.force > 0.0f && d.force <= 1.0e6f)) { g_out.Add("err force 0..1e6\n"); return; }
+    if (!(d.hold >= 0.0f && d.hold <= 30.0f)) { g_out.Add("err hold 0..30 s\n"); return; }
+    d.limits = (flags & 2) && lim[0] < lim[1];
+    d.lo = hinge ? lim[0] * tlobj::kRadToDeg : lim[0];
+    d.hi = hinge ? lim[1] * tlobj::kRadToDeg : lim[1];
+    char clamp[96] = "";
+    const float m = hinge ? 1.0f : 2.0f;                       // stay a little inside the limits
+    if (d.limits && (target < d.lo + m || target > d.hi - m)) {
+        const float want = target;
+        target = target < d.lo + m ? d.lo + m : d.hi - m;
+        _snprintf_s(clamp, sizeof(clamp), _TRUNCATE, "; target %.2f clamped into the limits -> %.2f", static_cast<double>(want),
+                    static_cast<double>(target));
+    }
+    if (!d.limits && fabsf(target - v) > (hinge ? 180.0f : 3000.0f)) {
+        g_out.Add("err joint %d has no limits (free): at most %s per drive\n", index, hinge ? "180 deg" : "3000 units");
+        return;
+    }
+    if (g_driveOn) DriveStop("replaced by a new joint.drive");
+    d.inst = inst; d.stamp = tlobj::D(inst + 0x44); d.x = x; d.joint = joint; d.jrec = jrec;
+    d.intro = static_cast<LONG>(tlobj::D(inst + 0x58)); d.index = index; d.type = type; d.sign = 1;
+    d.target = target; d.from = v; d.best = fabsf(target - v); d.lastV = v;
+    d.saveVel = vel; d.saveForce = force; d.saveMotor = (flags & 0x10) != 0;
+    d.start = d.lastBetter = GetTickCount();
+    d.clock = *reinterpret_cast<volatile DWORD *>(kGameClock);
+    d.links = tlobj::Links(x);
+    for (int i = 0; i < d.links && i < 64; ++i) d.nodes[i] = LinkState(x, i);
+    if (d.links > 64) d.links = 64;
+    JEntry *e = JournalAdd(kJJoint, inst);
+    e->old[0] = v;
+    e->now[0] = target;
+    char label[96];
+    InstLabel(inst, label, sizeof(label));
+    _snprintf_s(e->what, sizeof(e->what), _TRUNCATE, "%s joint %d drive %.2f -> %.2f", label, index, static_cast<double>(v),
+                static_cast<double>(target));
+    d.journal = g_jCount - 1;
+    g_drv = d;
+    InterlockedExchange(&g_driveOn, 1);
+    Log(1, "joint.drive %s joint %d (%s): %.2f -> %.2f, limits [%.2f, %.2f] limit %s (kept), saved motor %s vel %.4f force "
+        "%.6g; speed %.1f%s force %.6g hold %.1f s%s; journal #%d", label, index, tlobj::JointTypeName(type),
+        static_cast<double>(v), static_cast<double>(target), static_cast<double>(d.lo), static_cast<double>(d.hi),
+        (flags & 2) ? "on" : "off", d.saveMotor ? "on" : "off", static_cast<double>(vel), static_cast<double>(force),
+        static_cast<double>(d.speed), hinge ? " deg/s" : " /s", static_cast<double>(d.force), static_cast<double>(d.hold),
+        clamp, d.journal);
+    g_out.Add("ok joint.drive %s joint %d (%s): %.2f -> %.2f, limits [%.2f, %.2f] kept%s - motor speed %.1f%s force %.6g; "
+              "stops on reach / away / overshoot / node change / 10 s (TruLink.log, joint.drive status | stop)\n", label, index,
+              tlobj::JointTypeName(type), static_cast<double>(v), static_cast<double>(target), static_cast<double>(d.lo),
+              static_cast<double>(d.hi), clamp, static_cast<double>(d.speed), hinge ? " deg/s" : " /s",
+              static_cast<double>(d.force));
+}
+
+// ---- journal / undo ----
+void OpJournal() {
+    if (g_oj.argc >= 2 && !_stricmp(g_oj.argv[1], "clear")) {
+        const int n = g_jCount;
+        g_jCount = 0;
+        g_out.Add("ok journal cleared (%d entries forgotten - nothing undone)\n", n);
+        Log(1, "obj.journal clear: %d entries forgotten", n);
+        return;
+    }
+    g_out.Add("ok+ obj.journal %d of %d entries (#n kind what old -> new state)\n", g_jCount, kJMax);
+    const DWORD now = GetTickCount();
+    for (int i = 0; i < g_jCount; ++i) {
+        const JEntry &e = g_journal[i];
+        char vals[128] = "";
+        if (e.kind == kJPos || e.kind == kJRot)
+            _snprintf_s(vals, sizeof(vals), _TRUNCATE, "%.2f %.2f %.2f -> %.2f %.2f %.2f%s", static_cast<double>(e.old[0]),
+                        static_cast<double>(e.old[1]), static_cast<double>(e.old[2]), static_cast<double>(e.now[0]),
+                        static_cast<double>(e.now[1]), static_cast<double>(e.now[2]), e.kind == kJRot ? " rad" : "");
+        else if (e.kind == kJHide || e.kind == kJSticky)
+            _snprintf_s(vals, sizeof(vals), _TRUNCATE, "%lu -> %lu", e.oldWord, e.newWord);
+        g_out.Add("#%d %s %s %s %s(%lu s ago)\n", i, kJNames[e.kind], e.what, vals, e.undone ? "UNDONE " : "", (now - e.tick) / 1000);
+    }
+    g_out.Add(".\n");
+}
+// undoes entry i; the answer line goes to g_out
+void UndoOne(int i) {
+    JEntry &e = g_journal[i];
+    if (e.undone) return;
+    switch (e.kind) {
+    case kJPos:
+    case kJRot: {
+        if (!JAlive(e)) { g_out.Add("#%d %s: instance gone - skipped\n", i, e.what); break; }
+        float cur[3];
+        TlRead(e.inst + (e.kind == kJRot ? 0x30 : 0x20), cur, 12);
+        if (!WriteFloats(e.inst + (e.kind == kJRot ? 0x30 : 0x20), e.old, 3)) { g_out.Add("#%d %s: write failed\n", i, e.what); break; }
+        e.undone = true;
+        g_out.Add("#%d %s: back to %.2f %.2f %.2f%s (was %.2f %.2f %.2f)\n", i, e.what, static_cast<double>(e.old[0]),
+                  static_cast<double>(e.old[1]), static_cast<double>(e.old[2]), e.kind == kJRot ? " rad" : "",
+                  static_cast<double>(cur[0]), static_cast<double>(cur[1]), static_cast<double>(cur[2]));
+        Log(1, "obj.undo #%d %s: %.3f %.3f %.3f restored", i, e.what, static_cast<double>(e.old[0]),
+            static_cast<double>(e.old[1]), static_cast<double>(e.old[2]));
+        break;
+    }
+    case kJHide:
+        if (!JAlive(e)) { g_out.Add("#%d %s: instance gone - skipped\n", i, e.what); break; }
+        PostMsg(e.inst, 7, static_cast<int>(e.oldWord));
+        e.undone = true;
+        g_out.Add("#%d %s: INSTANCE_Post(7, %lu) - iflags now 0x%08lx\n", i, e.what, e.oldWord, tlobj::D(e.inst + 0x14));
+        Log(1, "obj.undo #%d %s: INSTANCE_Post(0x%08lx, 7, %lu)", i, e.what, e.inst, e.oldWord);
+        break;
+    case kJSticky: {
+        tlobj::StHit hits[3];
+        char why[96];
+        const int k = tlobj::StFind(e.stKind, e.stOwner, e.stKey, hits, why, sizeof(why));
+        int pick = -1;
+        for (int h = 0; h < k; ++h)
+            if (hits[h].type == e.stType) pick = h;
+        if (pick < 0 || !StWrite(hits[pick], e.oldWord)) { g_out.Add("#%d %s: store entry gone / write failed - skipped\n", i, e.what); break; }
+        e.undone = true;
+        g_out.Add("#%d %s: back to %lu\n", i, e.what, e.oldWord);
+        Log(1, "obj.undo #%d %s: %lu restored (store write + notification)", i, e.what, e.oldWord);
+        break;
+    }
+    case kJUber:
+        e.undone = true;
+        g_out.Add("#%d %s: not undoable (the game's logic ran) - passed\n", i, e.what);
+        break;
+    case kJJoint:
+        if (g_driveOn && g_drv.journal == i) DriveStop("obj.undo: drive stopped");
+        e.undone = true;
+        g_out.Add("#%d %s: drive %s; the joint stays where the physics left it (its motor settings were put back)\n", i, e.what,
+                  "stopped");
+        break;
+    }
+}
+void OpUndo() {
+    const bool all = g_oj.argc >= 2 && !_stricmp(g_oj.argv[1], "all");
+    int last = -1;
+    for (int i = g_jCount - 1; i >= 0; --i)
+        if (!g_journal[i].undone) { last = i; break; }
+    if (last < 0) { g_out.Add("ok nothing to undo (obj.journal)\n"); return; }
+    g_out.Add("ok+ obj.undo%s\n", all ? " all" : "");
+    for (int i = last; i >= 0; --i) {
+        if (g_journal[i].undone) continue;
+        UndoOne(i);
+        if (!all) break;
+    }
+    g_out.Add(".\n");
+}
+
+void ObjRun() {
+    g_tlRegStart = g_tlRegEnd = 0;
+    switch (g_oj.op) {
+    case kOpNear: if (NeedGroups({tlobj::kGrpList, tlobj::kGrpUber, tlobj::kGrpMulti})) OpNear(); break;
+    case kOpInfo: if (NeedGroups({tlobj::kGrpList, tlobj::kGrpUber, tlobj::kGrpMulti})) OpInfo(); break;
+    case kOpSet: OpSet(); break;
+    case kOpUndo: OpUndo(); break;
+    case kOpJournal: OpJournal(); break;
+    case kOpEvents: if (NeedGroups({tlobj::kGrpList, tlobj::kGrpUber, tlobj::kGrpMulti})) OpEvents(); break;
+    case kOpSend: OpSend(); break;
+    case kOpStGet: OpStGet(); break;
+    case kOpStSet: OpStSet(); break;
+    case kOpJGet: if (NeedGroups({tlobj::kGrpList, tlobj::kGrpMulti})) OpJointGet(); break;
+    case kOpJDrive: OpJointDrive(); break;
+    }
+}
+
+// server thread: tokens -> g_oj, one game-thread job
+void CmdObj(int op, char **tok, int count, bool force) {
+    memset(&g_oj, 0, sizeof(g_oj));
+    g_oj.op = op;
+    g_oj.force = force;
+    for (int i = 0; i < count && i < 16; ++i) strncpy_s(g_oj.argv[i], sizeof(g_oj.argv[i]), tok[i], _TRUNCATE);
+    g_oj.argc = count < 16 ? count : 16;
+    if (g_grpBad < 0) { g_out.Add("err byte checks not run\n"); return; }
+    if (!g_grp[tlobj::kGrpList]) { g_out.Add("err byte checks 'list' failed (status) - no object commands\n"); return; }
+    const char *why = CallOnGameThread(kKindObj, 0, 0, 0);
+    if (why) {
+        g_out.Reset();
+        g_out.Add("err %s\n", why);
+        Log(0, "%s: %s", tok[0], why);
+        return;
+    }
+    if (!g_out.n) g_out.Add("err no answer\n");
+    Log(2, "%s done (%lu bytes, frame %lu)", tok[0], static_cast<DWORD>(g_out.n), g_job.frame);
+}
+
 // one line in, answer in g_out; returns false to close the connection
 bool HandleLine(char *line) {
     g_out.Reset();
@@ -1557,6 +2533,17 @@ bool HandleLine(char *line) {
     else if (!_stricmp(cmd, "watch")) CmdWatch(tok, count, force);
     else if (!_stricmp(cmd, "snapshot")) CmdSnapshot(tok, count, force);
     else if (!_stricmp(cmd, "diff")) CmdDiff(tok, count, force);
+    else if (!_stricmp(cmd, "obj.near")) CmdObj(kOpNear, tok, count, force);          // 0.4
+    else if (!_stricmp(cmd, "obj.info")) CmdObj(kOpInfo, tok, count, force);
+    else if (!_stricmp(cmd, "obj.set")) CmdObj(kOpSet, tok, count, force);
+    else if (!_stricmp(cmd, "obj.undo")) CmdObj(kOpUndo, tok, count, force);
+    else if (!_stricmp(cmd, "obj.journal")) CmdObj(kOpJournal, tok, count, force);
+    else if (!_stricmp(cmd, "uber.events")) CmdObj(kOpEvents, tok, count, force);
+    else if (!_stricmp(cmd, "uber.send")) CmdObj(kOpSend, tok, count, force);
+    else if (!_stricmp(cmd, "sticky.get")) CmdObj(kOpStGet, tok, count, force);
+    else if (!_stricmp(cmd, "sticky.set")) CmdObj(kOpStSet, tok, count, force);
+    else if (!_stricmp(cmd, "joint.get")) CmdObj(kOpJGet, tok, count, force);
+    else if (!_stricmp(cmd, "joint.drive")) CmdObj(kOpJDrive, tok, count, force);
     else if (!_stricmp(cmd, "log")) {
         DWORD level = 0;
         if (count < 2 || !ParseNumber(tok[1], &level) || level > 3) g_out.Add("err usage: log <0-3>\n");
@@ -1728,6 +2715,16 @@ void Start(HMODULE self) {
                 BytesAt(kFindObjectLoop, kFindObjectLoopBytes, sizeof(kFindObjectLoopBytes));
     Log(1, "code checks: pad call %d, CAMERA_SetMode %d, camera restore %d, INSTANCE_Post %d, object table %d", callOk,
         g_cameraOk, g_restoreOk, g_postOk, g_tableOk);
+    g_grpBad = tlobj::RunChecks(g_grp, &g_grpFirstBad, g_grpRows);   // 0.4: object commands (TruLinkObj.h rows)
+    char groups[256] = "";
+    for (int g = 0; g < tlobj::kGrpCount; ++g) {
+        char one[40];
+        _snprintf_s(one, sizeof(one), _TRUNCATE, "%s%s %d/%d", g ? ", " : "", tlobj::kGrpNames[g], g_grp[g] ? g_grpRows[g] : 0,
+                    g_grpRows[g]);
+        strncat_s(groups, sizeof(groups), one, _TRUNCATE);
+    }
+    Log(g_grpBad ? 0 : 1, "0.4 object checks: %d of %d rows bad%s (first 0x%08lx) - %s", g_grpBad, tlobj::kTlCheckCount,
+        g_grpBad ? ", the affected commands answer err" : "", g_grpFirstBad, groups);
     g_jobDone = CreateEventA(nullptr, FALSE, FALSE, nullptr);
     g_tls = TlsAlloc();
     if (callOk && g_jobDone && g_tls != TLS_OUT_OF_INDEXES) {
@@ -1757,5 +2754,5 @@ BOOL WINAPI DllMain(HINSTANCE instance, DWORD reason, LPVOID) {
 
 // exported so TruLink's own "modules" command and other tools can identify the plugin
 extern "C" __declspec(dllexport) const char *TruLinkVersion() {
-    return "TruLink 0.3.1 (127.0.0.1 text channel: read / write / camera / post / objects / modules / menu / scan / watch / snapshot; 0.3.1: dated log lines)";
+    return "TruLink 0.4 (127.0.0.1 text channel: read / write / camera / post / objects / modules / menu / scan / watch / snapshot; 0.3.1: dated log lines; 0.4: obj / uber / sticky / joint with journal + undo)";
 }

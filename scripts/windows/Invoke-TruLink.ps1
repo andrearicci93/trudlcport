@@ -13,7 +13,11 @@
       -Interactive  a prompt (REPL); 'quit' or an empty line followed by Ctrl+C ends it
     Every run writes <workspace>\logs\Invoke-TruLink_<time>.log with every command and answer. -Verbose shows the
     connection steps, -Debug every line sent / received, -Trace adds a PowerShell line trace.
-    The script changes nothing by itself - only the commands you send do (write*, camera, post, menu).
+    The script changes nothing by itself - only the commands you send do (write*, camera, post, menu; TruLink 0.4:
+    obj.set, obj.undo, uber.send, sticky.set, joint.drive - each journaled with its old value, obj.journal / obj.undo).
+    TruLink 0.4 object commands (game thread, src\asi\TruLink\README.md "Objects (0.4)"): obj.near [m] [filter],
+    obj.info <id>, uber.events <id>, joint.get <id> <index>, sticky.get <owner> <key>; <id> = intro id,
+    0x<instance>, #<list index> or player.
 
 .PARAMETER Command
     Command line(s) to send, in order.
@@ -47,6 +51,10 @@
     .\scripts\windows\Invoke-TruLink.ps1 -Script .\my-checks.txt
 .EXAMPLE
     .\scripts\windows\Invoke-TruLink.ps1 -Command 'scan float range 1 1000', 'scan status'
+.EXAMPLE
+    .\scripts\windows\Invoke-TruLink.ps1 -Command 'obj.near 15', 'obj.info 4820', 'uber.events 4835'
+.EXAMPLE
+    .\scripts\windows\Invoke-TruLink.ps1 -Command 'uber.send 4835 cmd 0', 'obj.journal', 'obj.undo'
 #>
 [CmdletBinding(DefaultParameterSetName = 'Command')]
 param(

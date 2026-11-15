@@ -44,7 +44,8 @@ $names   = 'TruLink.asi', 'TruLink.ini'
 # SHA-256 of earlier builds of ours - recognised as ours for update / removal
 $earlierBuilds = @{
     'TruLink.asi' = @('1b4651857e8b6c6e6d912cd91211269c35a465075df98206edc2502652adc185',   # 0.3 (work\asi\link03, installed since 2026-10-31)
-                      '411fa8575f619cbda27617022e0f89bfbf504fa71c36749c6abc2d1a7a457151')   # 0.3.1 dated log lines (work\asi\i_1211\TruLink, current)
+                      '411fa8575f619cbda27617022e0f89bfbf504fa71c36749c6abc2d1a7a457151',   # 0.3.1 dated log lines (work\asi\i_1211\TruLink)
+                      'e0e142a2b65c93046620ac2a1e137a4d447bb582d5ed4846e18429670bad6bd0')   # 0.4 objects (work\asi\trulink04, built 2026-11-15)
     'TruLink.ini' = @('e02d6799db2a778e9f25137b9da1fab13d87834c45246e322322856c60480e78')   # sample .ini of 0.3 / 0.3.1
 }
 $logDir  = $paths.Logs

@@ -173,7 +173,8 @@ $earlierBuilds = @{
                       'fa98427c3e4cac0d22886b05c5012232c6faf098b183a6c3d86663e1cbc8340d',   # 0.22.49 sonar all floors, adrenaline options (work\asi\menu0272)
                       'b1262935dc898fd7f55201d943c9ddd6dd2a686093292f0084797e6c93154ced',   # 0.22.50 sound log, FMOD channels, Kapitel from the main menu (work\asi\menu0273)
                       '866d19ef44f6b545417729add7c053515fed17e10c99299f71b7183dc26a2785',   # 0.22.51 sonar view, base PDA, reverb follows mute (work\asi\menu0274)
-                      '7f467c3a2b659fd021d9f9364b09546d1b9c6a465416dfda6659f417d322af51')   # 0.22.52 reverb mark, DSP graph, sonar shader fade (work\asi\menu0275)
+                      '7f467c3a2b659fd021d9f9364b09546d1b9c6a465416dfda6659f417d322af51',   # 0.22.52 reverb mark, DSP graph, sonar shader fade (work\asi\menu0275)
+                      'a8829f0d65b72af4af686716c384a1d80e337b55ea9f81ff39f01e7df3162fef')   # 0.22.53 sound log trees, sonar extra loads (work\asi\menu0276)
     'TruMenu.ini' = @('9a82044330189540488a98f2d53224d60e7eadb53a9b3246582eb1109912896a',
                       'dea74bda46400d0f743494d85536c1d11011d347fdea16f3fc5978491e5bd9c1',
                       '91bde312e5a0c2e5bbcaab6d217328f7d63846c2a24ef714bd839177e19393da',

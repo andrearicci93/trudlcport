@@ -2928,6 +2928,56 @@ Reihenfolge fest (Flacker-Test)".
   combos as set now (e.g. `LB + View = weiter . RB + View = 1 Bild . LB + RB + View = Foto`), built from the INI values,
   so it follows any change.
 
+## 0.22.54 - two crash fixes (sub-group mute, sonar close after extra loads), sound switches reset at start, Menue-Musik (2026-11-15 evening)
+
+Build `work\asi\menu0277`, not installed. Workspace finding `docs\Befund-TruMenu-02254-1511.md`.
+
+- **Crash TruMenu+0x13aec6 (19:48, main menu, Stumm / Solo / Musik -> stumm):** every `snd.mute sub:<sub-group>`
+  (0.22.53 `snd.hear <sub> stumm`) crashed - the log line's `%s` took `kHow[7]`, one past the end of the 7 texts (the
+  sub-group kind had none), i.e. the bytes `ever` of the first text as a pointer. One text per rule kind now
+  (`kW6Kinds`, `static_assert`), the index checked. All printf-style functions carry `_Printf_format_string_`; the
+  check `work\fmt_1511\Test-TruMenuFormats.ps1` (MSVC `/analyze`, ImGui text calls included, with its own negative
+  probe) found 2 harmless sign mismatches (fixed) and nothing else.
+- **Crash tru+0x14f05d (20:07, closing the sonar after "alles Verbundene laden") and the stop after one extra step
+  (20:04 chapel):** the game's find 0x6e2a60 appends a new list entry whose constructor never sets the load handle
+  +0x88; the extra-load step read that heap garbage as "requested already" - no load, no further step through that
+  unit (the villa stayed unloaded), and the close released the garbage (1.0f) as a handle. A new entry now gets +0x88 /
+  +0xb2 / +0xb4 = 0 at once (as the game's "no file" path); 6 more byte checks (23); the open line names
+  `new list entries n (handle cleared)`. The two switches stay default off.
+- **Ton-Schalter beim Start zuruecksetzen** (`snd.resetatstart`, `[Sound] ResetAtStart`, default 1, last row of the
+  Stumm / Solo block): every start begins with the game's sound - `[Media] MuteMusic`, `[Media] MuteAmbient`,
+  `[Sound] ReverbOff` go to 0, also in TruMenu.ini; the Stumm / Solo rules start empty anyway. Kept: the log filters
+  (Filter (Zeigen), LogHideSubs, LogOnlyAudible, LogFollowMute ...), Hall folgt Stumm, Sonar-Ton aus. Off = 0.22.53.
+  Log line after `loaded`: `0.22.54 sound switches at start: [Media] MuteMusic 1 -> 0, ...`.
+- **Menue-Musik (g1):** a sub-group of its own for group 1 (the main theme stream of the menu / costume screens);
+  `Musik` is g2-3, g10-12 now. Group 1 is the parent of all music groups, so it is never muted as a group - its voices
+  (the two stream voices, wave -1) are muted per channel.
+- The heading row `-- Schnell-Hoeren` is gone. "Filter folgt Stumm": no fault in the value / display path (log 19:43:
+  the row switched off / on / off / on by the bar); the start line `0.22.50 sound log: ...` names `LogFollowMute` now.
+- **joint.set / Raetsel "loesen" (20:28 l3_chapel, `ma_rb_shadow_door_b` rail: from -0.84 to -1115 instead of 60.05,
+  outside its limits [0, 948]):** the lock jumped to the target and replaced the joint's limits. Now the target is
+  clamped into the joint's own limits, the lock point moves from the value towards the target (hinge 90 deg/s, lead
+  10 deg; rail 300 units/s, lead 30 units), and the drive stops at once (saved limits back) when the value leaves the
+  limits, moves away from the target (3 deg / 10 units farther than its best) or overshoots it (2 deg / 5 units). One
+  log line per tick `joint.set <intro> joint <n> tick <s>: value, velocity, lock, target, best distance` (at most 400).
+  A drive that stood at the target without a node change marks its row `Bereich hier nicht scharf (versucht)` - no
+  second "loesen" in that node.
+
+### TO TEST 0.22.54
+
+| # | Where | Do | Expected |
+|---|---|---|---|
+| 1 | start (INI with MuteMusic=1, MuteAmbient=1, ReverbOff=1) | read `TruMenu.log`, TruMenu.ini | `0.22.54 sound switches at start: [Media] MuteMusic 1 -> 0, [Media] MuteAmbient 1 -> 0, [Sound] ReverbOff 1 -> 0`; music, ambience, reverb audible; the INI holds 0; filters as before |
+| 2 | main menu, box on | Stumm / Solo / Musik / Menue-Musik (g1) -> stumm, then solo, then hoerbar | no crash; main theme silent / alone / back; log `snd.mute sub:mu_menu 1 ... the sub-group: ...` |
+| 3 | main menu | Musik (ganze Art) -> stumm / hoerbar, Musik (g2-3, g10-12) -> stumm | no crash; whole music off / on |
+| 4 | Ton-Log groups | open | no `-- Schnell-Hoeren`; Stumm / Solo ends its first block with `Ton-Schalter beim Start zuruecksetzen` (an) |
+| 5 | same row off, restart | | Musik aus / Ambient aus / Hall aus kept as before (log `off ([Sound] ResetAtStart=0) ...`) |
+| 6 | l3_chapel, Sonar komplett + alles Verbundene laden | open the sonar, wait, close it, close TruMenu | the whole villa (main hall, bedroom hall, bedrooms) on the map; log `sonar load open n: ... extra n (...), new list entries n (handle cleared)`; close: no crash |
+| 7 | same | close the sonar at once while it still loads | no crash, no hang |
+| 8 | Filter (Zeigen) / Filter folgt Stumm | look after a start | the row shows the INI value (start line `LogFollowMute 1`) |
+| 9 | l3_chapel, Kapitel / Raetsel in der Naehe, row `ma_rb_shadow_door_b` G2 | right 2x | the door slides to ~60 and stops (tick lines in the log, no value < -5 or > 953); if the node does not change: after ~2 s `stood 1.5 s at the target ...` and the row reads `Bereich hier nicht scharf (versucht)` |
+| 10 | same, Lara standing in the door's way | right 2x | `stopped: value ... moves away from the target` within a few ticks, the door back inside its limits, no fling |
+
 ## 0.22.53 - sound log trees (Filter / Stumm-Solo per kind and sub-group), the kind Waffen, Lara by source, the sonar loads more areas, markups in the sonar view (2026-11-15)
 
 Build `work\asi\menu0276`, not installed. Workspace finding `docs\Befund-TruMenu-02253-1411.md`.

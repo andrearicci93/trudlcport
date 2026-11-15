@@ -1,0 +1,35 @@
+positive (unchanged sources): 0 problem(s) ok
+case version           : 1 problem(s) ok - TruMenu.cpp: kVersion must start with "TruMenu 0.22.54 (two crash fixes ..."
+case kHow unchecked    : 2 problem(s) ok - TruMenu.cpp: RunW6Mute lacks how >= 0 && how < kW6Kinds ? kHow[how] : "?"
+case no static_assert  : 1 problem(s) ok - TruMenu.cpp: RunW6Mute lacks static_assert(sizeof(kHow) / sizeof(kHow[0]) == kW6Kinds,
+case no kind count     : 1 problem(s) ok - TruMenu.cpp: the rule kinds must end with kW6Sub, kW6Kinds
+case Log bare          : 2 problem(s) ok - TruMenu.cpp: void Log(int level,...) needs _Printf_format_string_ on fmt
+case Out bare          : 2 problem(s) ok - TruMenu.cpp: void Out(char *out, size_t size,...) needs _Printf_format_string_ on fmt
+case lambda bare       : 1 problem(s) ok - TruMenu.cpp: printf-style function(s) without _Printf_format_string_: auto add = [&](const char *fmt, ...)
+case auto forward      : 1 problem(s) ok - TruMenu.cpp: a format forwarded through auto... escapes the /analyze check
+case S7 no fresh       : 1 problem(s) ok - TruMenu.cpp: S7Extend must clear a new entry (count + 1, last = it) before it reads +0x8c / +0x88 ([1093, 1156, 1325, 1439, -1, 1619, 1727])
+case S7 fresh no +0x88 : 1 problem(s) ok - TruMenu.cpp: S7FreshEntry lacks (nb + 0x88) = 0;
+case S7 count loose    : 1 problem(s) ok - TruMenu.cpp: S7Extend must clear a new entry (count + 1, last = it) before it reads +0x8c / +0x88 ([1093, 1156, -1, 1435, 1469, 1676, 1784])
+case S7 not last       : 1 problem(s) ok - TruMenu.cpp: S7Extend must clear a new entry (count + 1, last = it) before it reads +0x8c / +0x88 ([1093, 1156, 1325, -1, 1459, 1666, 1774])
+case S7 row dropped    : 1 problem(s) ok - TruMenu.cpp: kS7Checks must be the 23 rows of precheck_02254.txt
+case reset not called  : 1 problem(s) ok - TruMenu.cpp: ReadOptions must call SndResetAtStart before MuteMusic / MuteAmbient / ReverbOff ([-1, 16769, 16865, 17868])
+case reset filter too  : 1 problem(s) ok - TruMenu.cpp: SndResetAtStart must keep LogFollowMute (a filter / kept switch)
+case reset no INI      : 1 problem(s) ok - TruMenu.cpp: SndResetAtStart lacks WritePrivateProfileStringA(k[0], k[1], "0", ini)
+case reset per reload  : 1 problem(s) ok - TruMenu.cpp: SndResetAtStart lacks static bool done
+case reset default 0   : 1 problem(s) ok - TruMenu.cpp: kOpts [Sound] ResetAtStart=1 missing
+case reset row kind    : 1 problem(s) ok - TruMenu.cpp: Stumm / Solo needs the row snd.resetatstart right after Hall aus
+case reset no log      : 1 problem(s) ok - TruMenu.cpp: Start must log the reset (0.22.54 sound switches at start)
+case g1 not menu       : 1 problem(s) ok - TruMenu.cpp: kW8GroupSub[1] must be kW8sMuMenu, [2] kW8sMuMusic
+case g1 by slider      : 1 problem(s) ok - TruMenu.cpp: W8SubOfGroup must give group 1 the sub-group mu_menu
+case mu_menu no row    : 1 problem(s) ok - TruMenu.cpp: row snd.logsub mu_menu missing
+case heading back      : 1 problem(s) ok - TruMenu.cpp: the heading row Schnell-Hoeren must be gone
+case drive target      : 1 problem(s) ok - TruMenu.cpp: JtWrite must write the moving lock, not the target
+case no limit guard    : 1 problem(s) ok - TruMenu.cpp: JtTick lacks if (g_jt.limits && (v < g_jt.limLo - margin || v > g_jt.limHi + margin))
+case no away guard     : 1 problem(s) ok - TruMenu.cpp: JtTick lacks else if (dist > g_jt.best + away)
+case no lead           : 1 problem(s) ok - TruMenu.cpp: JtTick lacks if (val && next > v + lead) next = v + lead;
+case no clamp          : 1 problem(s) ok - TruMenu.cpp: RunJointSet lacks d.limits = d.saveLimit && lim[0] < lim[1];
+case solve again       : 1 problem(s) ok - TruMenu.cpp: a puzzle row tried without a node change must not offer "solve" again
+case no tick log       : 1 problem(s) ok - TruMenu.cpp: JtTick must log the tick and stop on limits / away / overshoot before JtWrite ([-1, 2568, 2877, 3196, 3351, 5185])
+case reset live        : 1 problem(s) ok - switches: row TruMenu | Sound | ResetAtStart | bool | ... | restart | 1 | ... | TruMenu 0.22.54 missing
+case reset row 0.22.53 : 1 problem(s) ok - switches: row TruMenu | Sound | ResetAtStart | bool | ... | restart | 1 | ... | TruMenu 0.22.54 missing
+33 cases + 1 positive, 0 failed

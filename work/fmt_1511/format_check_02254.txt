@@ -1,0 +1,12 @@
+Test-TruMenuFormats.ps1 on TruMenu 0.22.54 (2026-11-15 20:24; full log with the compiler output in _out\, local)
+[INFO] ImGui headers: 21 format parameter(s) annotated in the copies
+[INFO] negative test (probe, 3 bad lines 4 / 5 / 6, 1 good line 7): warnings on line(s) 4, 5, 6
+[INFO] negative test ok: the analysis finds the three mismatches and not the good line
+[INFO] cl exit code 0, 578 output line(s)
+[INFO] format warnings in TruMenu.cpp: 0; other /analyze warnings (not judged): 134
+[INFO] ok: no format / argument mismatch found
+First run (19:58, the 0.22.53 source with the annotations only): 2 format warnings
+  TruMenu.cpp light.list Log: C6340 int as %u (bit 2 of +0xc5) -> static_cast<unsigned>
+  TruMenu.cpp photo pose Out: C6340 int as %u (kPpLastSection + 1 - pose) -> %d
+Not judged (other /analyze rules, 134): mostly C6320 (exception filter EXCEPTION_EXECUTE_HANDLER), C6385 / C6386
+  (index ranges the analyzer cannot prove), C6011 / C6387 (null paths) - not format checks, left as they are

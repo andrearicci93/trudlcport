@@ -1,0 +1,306 @@
+depth: 14400 form / scale / sign cases, 0 wrong; unrelated views refused 398, falsely accepted 2; one frame of lag accepted 400 / 400
+depth:   unrelated form 2 k 1 accepted as form 3 k 1.006, cameras 62751 units apart x1
+depth:   unrelated form 4 k 1 accepted as form 3 k 1.002, cameras 36055 units apart x1
+chord: both at once: opens, game sees nothing                                      ok
+chord: View, then Start 100 ms later: opens, game sees nothing                     ok
+chord: lone Start tap 80 ms: game gets a tap at 80 ms                              ok
+chord: lone Start hold 600 ms: game gets it from 256 ms                            ok
+chord: open: D-pad / LB kept, B passes                                             ok
+chord: closed with D-pad held: kept until released, the next press passes          ok
+chord: menu / ring open: no toggle, the pad unchanged (their own neutral pad applies) ok
+chord: 0.21.3 open: X / Y kept from the game, A passes                             ok
+chord: 0.21.3 closed: X / Y reach the game unchanged                               ok
+chord: 0.21.3 closed with Y held: kept until released, the next press passes       ok
+frames: dlc_yggdrasil_hall01   -V + P =    756.2   -696.1  -2119.6  dump    756.2   -696.1  -2119.6  ok
+frames: dlc_level2_start       -V + P = -11569.0   -647.1   -855.2  dump -11569.0   -647.1   -855.2  ok
+frames: dlc_yggdrasil_hall02   -V + P =   7076.0  10680.0  -2118.5  dump   7076.0  10680.0  -2118.5  ok
+frames: saved in level2_start 684.0 -1149.0 -7947.0 -> from hall01 -10885.0 -4845.0 -8119.0 (= data - V + P now)  ok
+segments: 0.17 rules - 1 segment, 10 pairs, the last at +34.5 s (live: +35 s)  ok
+segments: 0.18 rules - 2 segments (10 + 10 pairs), 10 pair(s) in the exterior part  ok
+segments: cinematic appears 0.3 s after the camera signal -> 1 segment(s)  ok
+segments: script print at 12.0 s, unit change at 12.5 s -> segment starts [0.0, 12.0, 13.0]  ok
+segments: unit name changes only in case -> 1 segment(s)  ok
+segments: signal gone 1.9 s -> 1 burst(s), 2.1 s -> 2  ok
+segments: 0.20 - track changes of one cinematic every second for 60 s -> 0.18 rule 60 segments / 60 pairs, 0.20 rule 1 segment / 10 pairs  ok
+segments: 0.20 - another cinematic object at 20 s -> 2 segments  ok
+confirm: 4 / 4 press sequences as expected (3 s window, same key)  ok
+presets: 10 / 10 ring / bar / command sequences as expected  ok
+burst: per-frame removals for 95 s -> 4 line(s) goes on / goes on / goes on / ended  ok
+burst: 3 short bursts 5 s apart -> 3 line(s) ended / ended / ended  ok
+burst: pause of 1.5 s inside a burst -> 1 line(s) ended  ok
+burst: pause of 3.5 s splits it -> 2 line(s) ended / ended  ok
+burst: nothing happens -> 0 line(s) -  ok
+bits: 4 / 4 record cases as expected (only TruMenu's bits are cleared)  ok
+goload: 5 / 5 path cases (loaded / portal / case / two hops / forced load)  ok
+waitunit: 4 / 4 cases (1 s in a row, flicker, 30 s limit)  ok
+forget: once per enemy and setting, slot rule (mode 1 / 0 / -1 / 2, stale id), +0x70 / +0xb0 only counted, reset and a reused instance slot  ok
+soundlist: wave id rule, group / category by the ancestors (direct and via an owner node, root, loop), state precedence, filters, the three orders, line limit  ok
+mutemusic: music groups [cats+0] / [cats+0xc] only, one mute per group, level load re-mute, loading keeps the records, off restores only its own unchanged groups, foreign mute untouched, no volume written  ok
+spiders: Match / Exclude on the object name (giant = 3, generators excluded, other enemies none), cached only once the name is known, the INI list normalised  ok
+wobble: centre = spot - bob (|bob| <= amp x size), squash / stretch on the sides, the tilt keeps them, longest side = size, still picture axis-aligned, flip only swaps the UVs, phases differ  ok
+drawmask: V1 sets -1 only during the call and puts the game's value back (a value the game wrote meanwhile stays), a spider the game hides is left alone, V2 writes no mask (0x200 + counter as the game), picture-only / off / other instances draw normally  ok
+shake: strength x ShakeScale / 100 (100 = the game's own, no patch; 0 = none), a refused patch is tried once until switched again  ok
+labels: one label per reward pot (the runtime copy with the parent's intro dropped, the spawned artifact kept, a lone copy kept; 0.21.1: a hidden template's drawn copy keeps its label), hidden / collected / being removed / scene-entity off / masks -1 -> no label  ok
+airemove: others = all but the nearest to Lara, nearest, all, one intro id; only AI enemies of family 14, not Lara, not flagged (0x20 / 0x20000 / 0x400), not the doppelganger  ok
+killpath: ai.kill takes type 6 (the game's own Kill) unless absorbed / on the regeneration list, then 4 / 2 / 1 / 0; never with brain+8 0x800, brain+0xc bit 1 or in a death state; the TruShadowCombat table changes nothing for these types; every pick ends in Death (counts), a lying RegenerateDeath thrall too; refused in the physics step or with fewer than 60 of 405 bodies free  ok
+sticky: sticky.set finds (kind, owner, key) in the three stores without creating one, refuses an absent / ambiguous entry and a bad value (bool 0 / 1), kind 2 owners by <kind>:<id>; the hall02 repair 11270 17287 0 / 18509 2 hits the int store  ok
+roomcheck: player.goto refuses a parked template (resident unit), an unloaded unit, a not drawn target and one far outside Lara's unit, "force" jumps; unit.go = nothing / portal of a loaded unit / level.load (hall02 from the DLC 2 start: level.load - two portals away)  ok
+unitgo: the shortcut step unit.go is replaced in place by its steps (level.load / flight + portal / nothing), the rest keeps its order, more than 12 steps stop the run  ok
+favrecent: page 0 = favourites, then the last RecentMax rows that ran (newest first, a row again moves to the top, no info / heading / planned / group rows, no favourite twice), [Quick] Recent round trip  ok
+groups: a closed group hides its rows up to the next heading / group, the views map to their own rows, [Quick] Closed is rewritten as a comma list (no doubles)  ok
+padchain: 0.21.1 cuts the chain in 2 of 6 orders (link/menu/sp, link/sp/menu), 0.21.2 in 0; the item runs once, Start of the combo never reaches the game with 0.21.2  ok
+padblock: TruShadowPower 0.19 with TruMenuPadBlock inside and outside TruMenu - bar LB / RB, RB through the bar / menu close never counted, plain RB counted; without the export only the outside order works  ok
+xyfav: Y on a bool row: pinned, page 0 at once (out of Zuletzt, into Favoriten)                   ok
+xyfav: Y again (also from page 0): unpinned, back in Zuletzt                                      ok
+xyfav: the same item from two rows: toggled by id, never twice in [Favorites] Ids                 ok
+xyfav: 500 random Y presses on 5 rows: no id ever twice (max 1)                                   ok
+xyfav: hand-edited double: Y removes every copy, the next Y adds one (unknown ids dropped as FavSet) ok
+xyfav: rows with an argument / heading / group / planned / special rows: refused, nothing changed ok
+xyfav: Y with X / right in the same frame: only the pin                                           ok
+xyfav: [Favorites] Ids written as today (comma list of item ids)                                  ok
+xyexec: action row: X runs it once (= right)                                                                     ok
+xyexec: confirm row ai.kill others: X arms, X / right within 3 s runs, late / other row / X+right once: no       ok
+xyexec: confirm row ai.kill all: X arms, X / right within 3 s runs, late / other row / X+right once: no          ok
+xyexec: confirm row ai.remove others: X arms, X / right within 3 s runs, late / other row / X+right once: no     ok
+xyexec: confirm row level.reload : X arms, X / right within 3 s runs, late / other row / X+right once: no        ok
+xyexec: confirm row sticky.set 11270 17287 0: X arms, X / right within 3 s runs, late / other row / X+right once: no ok
+xyexec: confirm row level.load l1_seatop: X arms, X / right within 3 s runs, late / other row / X+right once: no ok
+xyexec: game.quit: X arms (its own 10 s), a second X within 10 s quits, later re-arms                            ok
+xyexec: bool row: X toggles off -> on -> off -> on; greyed: says why, runs nothing                               ok
+xyexec: value row: X does nothing (footer hint), left / right unchanged                                          ok
+xyexec: group row: X closes an open group, opens a closed one                                                    ok
+xyexec: choice rows run with the current choice (spawn: X twice), info shows, heading / planned nothing          ok
+xyexec: special rows: X = right (checkpoint go X twice, TO TEST = ok)                                            ok
+footer: second line "X: ausfuehren  Y: Favorit   View + Start: zu" (EN "X: run  Y: favourite ..."), kept while a result replaces line 1, not wider than the hint line (44 / 64 chars)  ok
+sndwidth: right corner 0.21 keeps the widest width ever (500), 0.21.3 follows this frame (250); left corners 250 / 250; rows stay right-aligned, a growing list re-aligns one frame later, a row over 70 % is cut  ok
+h2drift: birth +8 = 2, restore +8 = 0, the dispatcher counts only 2 - the live rounds give 2 / 3 counted deaths and population 4 with the wall closed (as measured 15:53:10)  ok
+fixhall02: refused in another unit / without values / broken / with a living tutorial thrall (Idle, Regenerate, RegenerateDeath, no brain), dead = the four count states, kill flag, gone, hidden; tutorial 2 only below 2 and first; the next 11268 check breaks the wall  ok
+scriptval: H2ValueAddr = the interpreter's op14 address of "R.+8" (22809 f0) for 2000 random memories, 0 when the script or its member data is missing (op2f then stores nothing)  ok
+switches: SwNext (bool left / right / X toggle, int steps / ends / wrap / out-of-range INI, choice prev / next / wrap / unknown), RunSwSet (listed key, type / range, INI exists, unchanged = no write, live / restart / live-if)  ok
+swfold: one group open at a time (right / X opens and closes the others, left / X closes, no change = no action); shipped file 243 rows in 16 groups: largest page 60 rows <= 320 (all open would be 259)  ok
+ringparity: 172 ring entries (frozen at 172), 891 bar rows, 0 entries without a bar row; the rule (bool 0 / 1, choice list, same argument)  ok
+cosbar: 4 rows + the open list (36 -> 40 rows), only the current one marked, no level = every row refused, labels for dlc_costume_a..p only, records with an object id; own page <= 64 rows (list cut after 60), Lara page over 64 from N = 38, 17 pages  ok
+cosdebounce: 5 taps / a held right switch once 0.5 s after the last step, two steps 0.7 s apart twice, wraps at both ends, X at once, full circle = nothing; negative model (switch on every step: 5 switches) caught  ok
+flighthint: shown only with FlightHint=1 + flight on + menu closed + a level (1 of 16 cases); 2000 random corner layouts: the line never overlaps a bottom-right window  ok
+quickcmd: L3 alone opens / closes, L3 + R3 (either order) never, menu / bar close it, A runs once per press, B closes, D-pad = history (the menu bar's walk), 4 answers newest first, one run path (CmdRunLine)  ok
+togglerows: bool rows right = on (no second write), left = off, X flips (the old action row ended off after two rights); NavRowNote "(Ebene fehlt)" only with a graph layer outside the mask, "(nur mit Flaechen)" for the area-loop switches; shipped bar: 31 toggle rows all bool (14 nav.draw / dbg.flatpass)  ok
+yfooter: "Y: -" exactly where Y is refused (11 row kinds incl. special rows), footer <= 64 chars (62)  ok
+utf8cut: 3000 random German texts cut at random sizes: valid UTF-8, a prefix, at most one character lost  ok
+cosvalid: 400 random lists: left / right never land on a refused entry, every offered one reached both ways, all refused = refused  ok
+uber: gate texts "oben, noch 12 s" / "unten, bereit in 1.5 s" / "unten, bereit" / "faehrt hoch|runter", the countdown falls 25 -> 0 s  ok
+navwalk: 300 random area blocks walked area by area to the exact end; fill colour red > magenta > yellow > green  ok
+chapters: 111 units in 10 groups from kUnits, one group open, page <= 64 rows (largest group 23), 10 DLC 2 units with the note  ok
+shlive: 23164 installed S-SS SURR, test copy 2851 / 2988 S-TS PART, full T-TT TU, cleared LEER, foreign lib ?  ok
+qcdanger: 22 lines (cheat.god 0 asks, its reads never; level / save / costume reset / sw.set ask), 34 table ids all items, 9 cheat items  ok
+qcarm: 7 sequences (second A within 3 s, re-arm after 3 s, edit disarms, Enter at once, after a run asks again)  ok
+favargs: old lists, pairs add / remove, separators refused, full list refused unchanged, case-insensitive, old TruMenu keeps id-only favourites, 400 random steps  ok
+sgcover: 8 sliders, weapons skips 60 (child of 58), cross-slider paths written, 50 -> 30 -> 100 = 2 writes + 1 restore  ok
+qcsuggest: Up / Down walk the suggestions of a typed line, else the history; Tab = selected or first  ok
+cinepad: LB, View, then RB (the live case) -> photo only: [2]  ok
+cinepad: LB + View held 1 s, released -> continue once: [0]  ok
+cinepad: LB + View, LB let go first -> continue at once: [0]  ok
+cinepad: RB + View, released -> one frame: [1]  ok
+cinepad: all three in one poll -> photo: [2]  ok
+cinepad: photo, then RB let go while LB + View stay -> nothing more: [2]  ok
+cinepad: LB + View, RB tapped for 10 ms -> photo (at once), no continue: [2]  ok
+cinepad: View alone -> nothing: []  ok
+cinepad: LB + RB, RB let go, View added, released -> nothing (RB was part of this press): []  ok
+cinepad: two presses of LB + View -> continue twice: [0, 0]  ok
+cinepad: menu / ring own the pad (not active) -> nothing: []  ok
+cinepad 0.22.18: 0.22.13: View held, RB tapped twice -> only ONE frame (the bug): [1]  ok
+cinepad 0.22.18: View held, RB tapped three times -> three frames: [1, 1, 1]  ok
+cinepad 0.22.18: RB + View short (200 ms) -> one frame: [1]  ok
+cinepad 0.22.18: RB + View held 1 s, rate 10 -> 6 repeat frames (400 .. 900 ms), release gives no extra frame: ['r', 'r', 'r', 'r', 'r', 'r']  ok
+cinepad 0.22.18: RB + View held 1 s, rate 5 -> 3 frames: ['r', 'r', 'r']  ok
+cinepad 0.22.18: RB + View held 1 s, rate 15 -> 9 frames: ['r', 'r', 'r', 'r', 'r', 'r', 'r', 'r', 'r']  ok
+cinepad 0.22.18: held 1 s, then LB added -> repeat stops, photo, pause stays (no continue): ['r', 'r', 'r', 'r', 'r', 'r', 2]  ok
+cinepad 0.22.18: held 1 s, RB let go (View stays), RB tapped -> repeats, then one frame: ['r', 'r', 'r', 'r', 'r', 'r', 1]  ok
+cinepad 0.22.18: View let go first while repeating -> stop, no extra frame: ['r', 'r', 'r', 'r', 'r', 'r']  ok
+cinepad 0.22.18: cutscene not held: RB + View held 1 s -> nothing: []  ok
+cinepad 0.22.18: View held, LB tapped -> continue (pause off) as before: [0]  ok
+cinepad 0.22.18: View held: RB tap, then LB tap -> frame, then continue: [1, 0]  ok
+sublang: held cutscene, sub.lang 2: both lines German: [b'Amanda hat die Energiezufuhr gekappt.', b'Schalte sie wieder ein.']  ok
+sublang: German shown, sub.lang 0: back to English: [b'Amanda cut the power.', b'Go reactivate it.']  ok
+sublang: sub.lang 1: French keeps the UTF-8 bytes: [b'Go reactivate it.', b'Amanda a coup\xc3\xa9 le courant.']  ok
+sublang: clock ran out (upper = newest, lower empty): [b'Schalte sie wieder ein.', b'']  ok
+sublang: Bink line (no stored record) stays: [b'Movie line', b'Schalte sie wieder ein.']  ok
+sublang: -1 = game language (2) for kind 1: [b'Amanda hat die Energiezufuhr gekappt.', b'Schalte sie wieder ein.']  ok
+sublang: -1 with kind 0: no line -> left: [b'Amanda cut the power.', b'Go reactivate it.']  ok
+sublang: kind 2 shows nothing: []  ok
+sublang: 2 English lines -> 1 German: upper from the record before: [b'Amanda hat die Energiezufuhr gekappt.', b'Zeile eins und zwei']  ok
+sublang: no German entry: lower = the record before, upper left: [b'Amanda cut the power.', b'Amanda hat die Energiezufuhr gekappt.']  ok
+sublang: speaker strip only at ": " with a byte after it: [b'Note:x', b'A: ', b'c']  ok
+sublang: 255 bytes at most: [255]  ok
+sublang: id "-1" matches word -1 directly: [b'minus']  ok
+sublang: U3 chain EN -> DE -> NL -> EN (each switch rewrites again): [[b'Amanda hat die Energiezufuhr gekappt.', b'Schalte sie wieder ein.'], [b'Amanda heeft de stroom uitgezet.', b'Zet hem weer aan.'], [b'Amanda cut the power.', b'Go reactivate it.']]  ok
+sublang: U3 one line, four switches back to English: [b'', b'Amanda cut the power.']  ok
+aimwhy: bits as live 10.11. (18 / 19 set, 9 / 10 clear), no pad bit 2, timers 0: noinput  ok
+aimwhy: pad bit 2 held, no lock bits yet (one frame before 0x7216b0): nolockbits  ok
+aimwhy: held, but chart bit 18 clear: nobit18  ok
+aimwhy: LT (action 35) held, tuning byte +0x294 = 0, timers 0: tunezero  ok
+aimwhy: LT held, tuning byte 15 but timer not yet set: nolockbits  ok
+aimwhy: no weapon: noweapon  ok
+aimwhy: weapon kind 12: weaponblocks  ok
+aimwhy: menu bit 0xe7f144: gamegate  ok
+aimwhy: byte 0x8ab4e6 = 0: gamegate  ok
+aimwhy: scripted target P+0x788: scripted  ok
+aimwhy: bit 11 with input: bit11  ok
+aimwhy: lock (bit 10), nearest rejected: rejected  ok
+aimwhy: lock, nearest not offered: notcand  ok
+aimwhy: lock, no candidates: nocand  ok
+aimwhy: lock, other target: othertarget  ok
+aimwhy: soft lock (bit 9), nearest = target: ok  ok
+aimwhy: locked target wins over a game gate: ok  ok
+aimwhy: no enemy: noenemy  ok
+settings: defaults = the game's bytes at every site: [8710352, 8657872, 22, 44, 1, 1073741824, 4293866181]  ok
+settings: size 0.9: own float, step 33, limit 66: [20, 33, 66]  ok
+settings: size 1.1: step 40 (imm8, limit 80 < 128): [40, 80]  ok
+settings: size 0.5: step 18: 18  ok
+settings: opacity 0 / 60 / 80 / 100 %: [0, 154, 205, 255]  ok
+settings: show off or a colour: the line call goes to the stub: [153, 153]  ok
+settings: bar off: flag 0: 0  ok
+settings: volume step = round(v / 8), 17 steps: [0, 1, 8, 16, 16]  ok
+settings: start-closed group closed with an empty list: True  ok
+settings: opened: "+set_gfxn" kept: ('+set_gfxn', False)  ok
+settings: closed again: the word goes: ('', True)  ok
+settings: a normal group as before: ('ki_dumm,set_sub', True, True)  ok
+subfallback: DLC stream, game language 9: English lines, a French-only cue adds nothing: [[b'Amanda cut the power.'], [], [b'Go reactivate it.']]  ok
+subfallback: DLC stream, fallback off: nothing (the game's): [[], []]  ok
+subfallback: English game (9 not wanted): unchanged: [[b'Amanda cut the power.']]  ok
+subfallback: sub.lang word 9 (not -1) also falls back: [[b'Amanda cut the power.']]  ok
+subfallback: kind 0 with word -1: the reader shows nothing, no fallback: [[]]  ok
+subfallback: kind 2: nothing: [[]]  ok
+subfallback: base stream (per-language cues): only id 9 lines, no English stand-in: ([b'L0-9', b'L1-9', b'L4-9', b'L10-9', b'L12-9'], 0)  ok
+subfallback: new handler after a base cutscene: the DLC line falls back: [b'Amanda cut the power.']  ok
+subfallback: same handler, time back to 0.2 s: fresh stream, fallback: [b'Amanda cut the power.']  ok
+subfallback: same handler, time goes on: the stream had 9, no fallback: []  ok
+subfallback: stream time unreadable: handler only (same handler -> no fallback): []  ok
+subfallback: SrLines(record, word, language) = the reader's lines for every record: True  ok
+subfallback: sub.lang 2 -> 9 in a DLC cutscene: both lines English: [b'Amanda cut the power.', b'Go reactivate it.']  ok
+subfallback: SfBuild form: b'9\rZip: Go reactivate it.\r'  ok
+subfallback: two-digit id (10) in SfBuild: [b'Amanda cut the power.']  ok
+groups 0.22.18: all open: every row, depths 0 1 1 1 2 2 0 1 1 2 0 1                    ok
+groups 0.22.18: Ton closed: its sub-group and rows hidden, Grafik next                 ok
+groups 0.22.18: Ton-Gruppen closed: Ton rows stay, its rows hidden                     ok
+groups 0.22.18: Geraet closed inside open Grafik: Steuerung (level 0) still shown      ok
+groups 0.22.18: Grafik closed + Geraet closed: no Geraet heading                       ok
+groups 0.22.18: counts: Ton 4 (with sub-group rows), Ton-Gruppen 2, Grafik 2, Geraet 1 ok
+groups 0.22.18: a header sits left of its rows (depth heading < depth rows)            ok
+volsave: 0.22.17 music 128 (live 16:44): MusicVolume NOT written (the bug)          ok
+volsave: music: MusicVolume written by 0x4796b0, next-start values again            ok
+volsave: effects + speech in one save: SfxVolume + VoVolume                         ok
+volsave: mouse: MouseSensitivity (also missing before)                              ok
+volsave: inversion only: 0x478010 alone (no Graphics rewrite)                       ok
+volsave: sub.lang path: SubtitleLanguage, no Graphics                               ok
+volsave: checks differ: root only, volumes not written (logged)                     ok
+volsave: volume + inversion in one window: both                                     ok
+persist: quick.lang en: [Quick] Language=en, comments + Closed + [Menu] Enabled=1 kept ok
+persist: restart: the written en is read as English                                   ok
+persist: missing key -> English (0.22.18 default)                                     ok
+persist: a user's "de" stays German                                                   ok
+persist: a key of a missing section ([Settings] StepRate) is added, the rest unchanged ok
+persist: cam.rumble 50 replaces only that line                                        ok
+persist: [Menu] Enabled missing -> big window off; a user's Load=1 + Enabled=1 keeps it ok
+persist: 0.22.44: an INI before 0.22.18 (Enabled=1, no [Menu] Load) -> big window off ok
+subalign: centre (game): x = (640 - 200) / 2 = 220                               ok
+subalign: left 5 %: x = 32                                                       ok
+subalign: right 5 %: right edge at 608                                           ok
+subalign: left 0 %: x = 0                                                        ok
+subalign: bottom keeps 250 .. 420 (game 352)                                     ok
+subalign: top: y 16                                                              ok
+subalign: free, size 0.6: up to 448 - 44 - 8 = 396 (two lines fit)               ok
+subalign: free, size 1.1: step 40, up to 360                                     ok
+subalign: free: two lines always end above 448                                   ok
+lastpage: 17 bar pages, every name unique (de + en, case-insensitive)                    ok
+lastpage: empty LastPage -> start page 6 (Level data, as before)                         ok
+lastpage: RememberPage=0 ignores a stored page                                           ok
+lastpage: stored English name -> that page                                               ok
+lastpage: German name and page number accepted                                           ok
+lastpage: a name that is no page any more -> page 1, logged, saved = -1                  ok
+lastpage: LB / RB three times while open: one write 1 s after the last change            ok
+lastpage: page change, close within 1 s: written at the close                            ok
+lastpage: paged away and back before the write: nothing written                          ok
+lastpage: open / close without a page change: nothing written (never per frame)          ok
+lastpage: after the fallback: the first close writes a real page name                    ok
+lastpage: RememberPage=0: never written                                                  ok
+lastpage: restart: the written name opens that page, other lines kept                    ok
+menupages: 28 page keys, unique, defaults totest / quick among them                      FAIL
+menupages: default list -> TO TEST + Quick access open                                   ok
+menupages: unknown key dropped (logged), the rest kept in page order                     ok
+menupages: only unknown keys -> the built-in pages (logged)                              ok
+menupages: empty value (the owner closed every page) stays all closed                    ok
+menupages: open Fixes: added in page order                                               ok
+menupages: close Quick access: removed, the others stay                                  ok
+menupages: a toggle of an already listed page writes no doubles                          ok
+menupages: Once: the stored list opens the page once, a later click wins over the list   ok
+infinite: sample TruShadowPower.ini has [Meter] Infinite=0                               ok
+infinite: the older INI (game folder style) has no Infinite key                          ok
+infinite: older INI + power.infinite 1: key added in [Meter], every other line kept in order ok
+infinite: sample INI + power.infinite 0: already 0, nothing written                      ok
+infinite: sample INI + 1: only the key line changes                                      ok
+infinite: no argument = report, never a flip, nothing written                            ok
+infinite: bad value refused (usage)                                                      ok
+infinite: TruShadowPower.asi not loaded: refused, nothing written                        ok
+infinite: TruShadowPower 0.22 (or no version export): refused                            ok
+infinite: no TruShadowPower.ini: refused (no INI is created)                             ok
+infinite: TruShadowPower reads the written 1 / 0 within its 1 s poll                     ok
+infinite: a missing key keeps TruShadowPower's current value (its read default)          ok
+infinite: bar state: missing key shows off (TruShadowPower starts with 0), 1 shows on    ok
+noattract: source: NaFrontEnd = main state 6 / 10 (uigamedata f37 0x5d56e0), clock vtable 0x845860 ok
+noattract: switch off: the clock fires at elapsed 40 and again 40 later (repeat) - the game as before ok
+noattract: switch on, clock taken: 10 000 menu frames, no event (no stopTitleMusic / StopMovie / teaser) ok
+noattract: switch on: another clock (alarm 5, no repeat) fires as the game's             ok
+noattract: switch on, main state 1 (level): the AttractTimer clock is the game's again   ok
+noattract: switch off after 1000 held frames: no event at once, the first after the idle time (40 - 1 dt) ok
+noattract: on before the clock is known: the game's; taken at the next RESTART (f11), then held ok
+noattract: f11 with another vtable / outside the front end: nothing taken (counted)      ok
+noattract: a new AttractTimer clock (main state 10) replaces the old one                 ok
+noattract: no argument = report, never a flip, nothing written                           ok
+noattract: a bad value: usage, nothing changed                                           ok
+noattract: menu.noattract 1: [Menu] NoAttract=1 written, the other lines kept            ok
+noattract: menu.noattract off: back to 0; a restart reads 0 (the game's teaser)          ok
+noattract: missing key = 0 (kOpts default, the game's behaviour)                         ok
+attracttimer: source: repeat rule, restart rule, front end only, position default tr     ok
+attracttimer: NoAttract off, line on: 400 frames, elapsed / events identical to the game alone (read only) ok
+attracttimer: NoAttract off: flashes at the frames the clock fires (40, 80), each "real" ok
+attracttimer: NoAttract on: 125 s idle - no event, flashes at shadow 40 / 80 / 120 ("held") ok
+attracttimer: NoAttract on, dt 2.5 / 1.0 / 0.25: the flash frames = the frames the free clock fires ok
+attracttimer: RESTART at 30 s: shadow anew, the flash 40 s after the restart (frame 70), not at 40 ok
+attracttimer: START on a running clock (f0 no-op): the shadow goes on, flash at 40 s     ok
+attracttimer: STOP 20 frames (shadow stays 25), START: shadow from 0, flash 40 s after the start (frame 85) ok
+attracttimer: a clock without repeat: one flash only (40 s)                              ok
+attracttimer: line off: no flash; turned on at 50 s, the next flash at shadow 80         ok
+attracttimer: main state 1 (level): the game's clock fires (not held), flash marked real ok
+attracttimer: no argument = report, never a flip, nothing written                        ok
+attracttimer: a bad value: usage, nothing changed                                        ok
+attracttimer: menu.attracttimer 1: [Menu] AttractTimerShow=1 written, NoAttract and the rest kept ok
+attracttimer: missing key = 0; AttractTimerPosition tl / BR kept, empty / bad = tr       ok
+ntclock: source: DrawNt language = g_qbLang (bar), marker rule bit + 0.5, de / en pairs found ok
+ntclock: bar language de: "Teaser-Uhr gesperrt" / "Spieluhr 19.2 s / Wanduhr 38.5 s seit Start" ok
+ntclock: bar language en: "Teaser timer held" / "game clock 19.2 s / wall clock 38.5 s since start" ok
+ntclock: pause bit, 29.97 Hz: first flash at game clock 40.02 s = wall 80.1 s (ratio 0.4995), marker on ok
+ntclock: bit cleared at wall 30 s: gap game / wall stays 15.01 s (+- 0.05) for 60 s, marker off after ok
+ntclock: 60 Hz, no pause bit: frame time 0.5 measured, marker off, game clock 60.00 s = wall 60.00 s ok
+ntclock: bit set, frame time 1.0: no marker; bit clear, 0.5: no marker; both: marker  ok
+ntclock: checks failed: "Pause-Bit: nicht prüfbar (TruMenu.log)" / "Pause bit: not checkable (TruMenu.log)" ok
+swcap: shipped file: 243 rows in 16 groups all shown, no limit line (269 free of 512)             ok
+swcap: 161 rows: 0.22.22 cap 160 shows 160 (log "line 164 skipped (too many switch lines)"), 0.22.23 shows 161, no limit line ok
+swcap: 600 rows: 512 shown, one line "exceeds the limit of 512 switch lines: 88 switch line(s) from line 523 on" ok
+swcap: negative model 0.22.22 on 600 rows: 5 of 440 dropped rows named (5-line cap) - caught      ok
+swcap: 26 groups: 24 shown, g23 3 rows (0.22.22: 9 - the rows of g24 / g25 joined it), 1 log line ok
+swcap: page Fixes, shipped file: every group open in turn, rows not shown max 0                   ok
+swcap: page Fixes, 10 groups, open group 322 rows: 320 rows built, 12 named in the head           ok
+swcap: page Fixes, 10 groups, open group 310 rows: 320 rows, nothing cut                          ok
+fallnet: source: constants 3000.0 / 1000.0 / 3000.0 / 3.0, 40.0 lines per 10000.0 ms, cap 100.0, records [742, 743, 1068, 1080], order / cadence / cap ok
+fallnet: Q19 fall, velocity kept: rescues at 3.03, 4.03, 5.03 s in 1068, samples newest -> oldest, 1 give-up line ok
+fallnet: Q19 fall: first rescue at z -25937 = 25642 below the floor sample (> 3000)                           ok
+fallnet: floor holds her: 1 rescue, fall-end line "end net", follow-up in record 1050                         ok
+fallnet: FallNet=0: 1 "would" line, 0 rescues                                                                 ok
+fallnet: menu open 2.5 .. 6.0 s: 1 waiting line, first rescue 6.03 s after the start                          ok
+fallnet: normal jump: 3 record lines, 0 watchdog lines, 0 rescues                                             ok
+fallnet: 10 s frame gap in 1068: time in 1068 2.97 s, no rescue                                               ok
+fallnet: 65 s in 1068: 33 watchdog lines ([1, 2] .. [40, 50, 60]), 1 "no sample" line                         ok
+fallnet: 742 <-> 743 every 100 ms: 40 lines in the first 10 s, the next line names 60 dropped                 ok
+fallnet: only samples of another unit / after the fall began: 0 rescues, 1 "no sample" line                   ok
+fallnet: negative model (no 1 s spacing): 3 rescues within 0.40 s - caught by case 1                          ok
+FAILED

@@ -1,0 +1,20 @@
+Built work\asi\menu0277\TruMenu.asi (2354176 bytes, x86 DLL, sha256 efc83ebe9bcb9798fbcfd9c50936e0d4a116da2fcc9e60657cf0d7092724f107) - TruMenu 0.22.54
+  Build-TruAsi.ps1 -Name TruMenu -OutDir work/asi/menu0277 from Git Bash; earlier builds of the same evening
+  overwritten (2a81c23b... with a multi-line kVersion that the version checks could not read; 5a3d56cb... = commit
+  78d4763 without the joint.set drive fix of the 20:28 report)
+  warnings: 2 (both imgui_demo.cpp), 0 in TruMenu.cpp; imports / exports = 0.22.53 (tools/pe_import_export_diff.py: 151
+  functions, same 6 exports, no new DLL - imports_exports_0276_0277.txt)
+Crash 1 mapping: the 0.22.53 objects (work\asi\menu0276\obj_TruMenu) relinked with /MAP into a scratch folder - the
+  relinked DLL differs from the installed one only in the header (rich header / e_lfanew, 265 bytes) and 3 bytes of
+  the debug timestamp, code identical; TruMenu+0x13aec6 = strnlen+0x36 (ucrt), called from the printf core under
+  Log (TruMenu+0x723ed = Log+0x7d); the stack holds "... snd.mute sub:mu_music 1 (src=snd.mute): " = RunW6Mute's line
+Byte checks: tools/pe_bytes_check.py --file work/menu54_1511/precheck_02254.txt -> 23 checks (= kS7Checks), 0 mismatches
+  on data\pc\tru.exe (precheck_02254_result.txt); the 6 new rows were read from the crash dump first
+Format check: work/fmt_1511/Test-TruMenuFormats.ps1 -> negative probe ok (3 of 3 bad lines found, the good one not),
+  0 format warnings in TruMenu.cpp (first run on the 0.22.53 source: 2 x C6340 sign mismatch, both fixed)
+trumenu_ini_check: exit 1 - 62 ok lines incl. "ok: 0.22.54 ..." and "TruMenu.ini = defaults table (321 keys)"; the
+  only problems are the 5 old lines of TruTrace 0.3.3 (as in 0.22.53: 4 x TruTrace.ini key without a switches row,
+  1 x check_02237 wants TruTrace 0.3.2) - ini_check_2.txt (78d4763), ini_check_3.txt (with the joint.set drive)
+negative cases m54_negative_tests.py: 33 cases + 1 positive, 0 failed (m54_negative_tests.txt; 26 at 78d4763)
+trumenu_quick_check: exit 1 - only the old "menupages: 28 page keys" FAIL (as 0.22.45 .. 0.22.53)
+trumenu_readability_check: exit 0

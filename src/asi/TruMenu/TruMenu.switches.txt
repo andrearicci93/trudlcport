@@ -337,3 +337,5 @@ TruMenu | Sound | ReverbOff | bool | Hall aus | Reverb off | live | 0 | Spiel-Ha
 # a key list, set by the bar rows of Ton-Log / Filter (Zeigen))
 TruMenu | Sound | LogWeapons | bool | Ton-Log: Waffen zeigen | Sound log: show weapons | live | 1 | Ziehen, Schüsse, Nachladen, Hülsen, Einschläge // Draw, shots, reload, brass, impacts | TruMenu 0.22.53
 TruMenu | Sound | LogFollowMute | bool | Filter folgt Stumm | Filter follows mute | live | 1 | Was Stumm / Solo stummt, fehlt auch im Log // What mute / solo silences leaves the log too | TruMenu 0.22.53
+# 2026-11-15: TruMenu 0.22.54 - the sound switches do not survive a restart (Musik aus, Ambient aus, Hall aus back to 0)
+TruMenu | Sound | ResetAtStart | bool | Ton-Schalter beim Start zurücksetzen | Reset sound switches at start | restart | 1 | Neustart: Musik, Ambient, Hall, Stumm / Solo normal // Restart: music, ambience, reverb, mute / solo as the game | TruMenu 0.22.54

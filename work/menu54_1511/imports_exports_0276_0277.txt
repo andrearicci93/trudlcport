@@ -1,0 +1,5 @@
+old imports: 151 functions from KERNEL32.DLL (116), SHELL32.DLL (1), USER32.DLL (34)
+new imports: 151 functions from KERNEL32.DLL (116), SHELL32.DLL (1), USER32.DLL (34)
+old exports: TruMenuInvoke, TruMenuList, TruMenuMark, TruMenuPadBlock, TruMenuShot, TruMenuVersion
+new exports: TruMenuInvoke, TruMenuList, TruMenuMark, TruMenuPadBlock, TruMenuShot, TruMenuVersion
+new DLLs: none

@@ -5473,11 +5473,11 @@ def check_02244(switches_path):
     header, opt_rows = table(src)
     # 0.22.44 added none, 0.22.45 the three [Sound] wave log keys, 0.22.47 the seven sound monitor / sonar keys, 0.22.48
     # the three [Sonar] keys, 0.22.49 [Sonar] AllFloors + TriangleCap, 0.22.50 the 11 [Sound] keys of W8_KEYS_02250,
-    # 0.22.51 the three keys of S5_KEYS_02251, 0.22.53 the six keys of W11_KEYS_02253
+    # 0.22.51 the three keys of S5_KEYS_02251, 0.22.53 the six keys of W11_KEYS_02253, 0.22.54 [Sound] ResetAtStart
     if len(opt_rows) != 283 + len(W6_KEYS_02245) + len(W7_KEYS_02247) + len(SO_KEYS_02248) + 2 + len(W8_KEYS_02250) + \
-            len(S5_KEYS_02251) + len(W11_KEYS_02253):
+            len(S5_KEYS_02251) + len(W11_KEYS_02253) + 1:
         problems.append('TruMenu.cpp: kOpts has %d keys - 0.22.44 adds no INI key (283), 0.22.45 adds %d, 0.22.47 adds %d, '
-                        '0.22.48 adds %d, 0.22.49 adds 2, 0.22.50 adds %d, 0.22.51 adds %d, 0.22.53 adds %d' % (
+                        '0.22.48 adds %d, 0.22.49 adds 2, 0.22.50 adds %d, 0.22.51 adds %d, 0.22.53 adds %d, 0.22.54 adds 1' % (
                             len(opt_rows), len(W6_KEYS_02245), len(W7_KEYS_02247), len(SO_KEYS_02248), len(W8_KEYS_02250),
                             len(S5_KEYS_02251), len(W11_KEYS_02253)))
     readme = open(os.path.join(ROOT, 'src', 'asi', 'TruMenu', 'README.md'), encoding='utf-8').read()
@@ -6958,13 +6958,14 @@ def check_02253(switches_path):
     problems = []
     src = read_cpp()
     ver = src[:src.find('\n', src.find('kVersion = '))]
-    if '"TruMenu 0.22.53 (sound log trees + kind Waffen + sonar extra loads + markups in the sonar view' not in ver:
-        problems.append('TruMenu.cpp: kVersion must start with "TruMenu 0.22.53 (sound log trees ..."')
+    if '0.22.53 (sound log trees + kind Waffen + sonar extra loads + markups in the sonar view' not in ver:   # 0.22.54: a part
+        problems.append('TruMenu.cpp: kVersion must hold the 0.22.53 part "0.22.53 (sound log trees ..."')
     # ---- (2) kinds / sub-groups
     if 'kW8CatKey[kW8Cats] = {"lara", "enemies", "world", "objects", "ui", "speech", "music", "weapons"};' not in src:
         problems.append('TruMenu.cpp: kW8CatKey must end with weapons')
     subs = w11_subs(src)
-    if len(subs) != 38 or len(set(subs)) != 38: problems.append('TruMenu.cpp: kW8Sub must hold 38 unique keys (%d)' % len(subs))
+    # 0.22.54: + mu_menu (group 1, the main menu music) = 39
+    if len(subs) != 39 or len(set(subs)) != 39: problems.append('TruMenu.cpp: kW8Sub must hold 39 unique keys (%d)' % len(subs))
     m = re.search(r'const signed char kW8GroupSub\[80\] = \{(.*?)\};', src, re.S)
     gs = re.findall(r'kW8s[A-Za-z0-9]+', re.sub(r'//[^\n]*', '', m.group(1))) if m else []
     if len(gs) != 80: problems.append('TruMenu.cpp: kW8GroupSub must have 80 entries (%d)' % len(gs))
@@ -7006,14 +7007,13 @@ def check_02253(switches_path):
         return keys.index((item, arg, kind), start) if (item, arg, kind) in keys[start:] else -1
     tl = at('-', 'ton_log', 'kQbGroup')
     tf = at('-', 'ton_log_filter', 'kQbGroup')
-    lab = [i for i, r in enumerate(rows) if r[4] == 'kQbLabel' and r[1].startswith('Schnell-H')]
     th = at('-', 'ton_log_hear', 'kQbGroup')
+    # 0.22.54 (owner 2026-11-15): the plain heading Schnell-Hoeren is gone (check_02254 refuses it)
     order = [tl, at('snd.list', '', 'kQbBool', tl), at('snd.logcollapse', '', 'kQbBool', tl),
              at('snd.logaudible', '', 'kQbBool', tl), at('sw.set', 'TruMenu:Sound:LogMaxDist', 'kQbSwitch', tl), tf,
-             at('snd.logfollow', '', 'kQbBool', tl),
-             lab[0] if len(lab) == 1 else -1, th]
+             at('snd.logfollow', '', 'kQbBool', tl), th]
     if any(x < 0 for x in order) or order != sorted(order):
-        problems.append('TruMenu.cpp: Ton-Log must be settings -> Filter (Zeigen) -> Schnell-Hoeren -> Stumm / Solo (%s)' % order)
+        problems.append('TruMenu.cpp: Ton-Log must be settings -> Filter (Zeigen) -> Stumm / Solo (%s)' % order)
     elif keys[th + 1:th + 5] != [('snd.mute', 'all 0', 'kQbAction'), ('snd.solonew', '', 'kQbAction'),
                                  ('snd.reverbmute', '', 'kQbBool'), ('snd.reverboff', '', 'kQbBool')]:
         problems.append('TruMenu.cpp: Stumm / Solo must start with Alles zurueck, Neuester Ton solo, Hall folgt Stumm, Hall aus')
@@ -7036,7 +7036,9 @@ def check_02253(switches_path):
     if os.path.exists(S7_CHECKS_02253) and os.path.exists(S7_DESIGN_02253):
         mine, design = pre_rows(S7_CHECKS_02253), pre_rows(S7_DESIGN_02253)
         rows7 = [(a.lower(), b.lower()) for a, b in sv_rows(src, 'kS7Checks')]
-        if rows7 != mine or len(mine) != 17: problems.append('TruMenu.cpp: kS7Checks must be the 17 rows of precheck_02253.txt')
+        # 0.22.54: + 6 rows (S7FreshEntry, check_02254 / precheck_02254.txt) after these 17
+        if rows7[:17] != mine or len(mine) != 17:
+            problems.append('TruMenu.cpp: kS7Checks must start with the 17 rows of precheck_02253.txt')
         if any(r not in design for r in mine): problems.append('precheck_02253.txt: every row must be one of the 51 design rows')
     else:
         problems.append('work/menu53_1411/precheck_02253.txt or sonar/precheck_sonarload.txt missing')
@@ -7078,6 +7080,129 @@ def check_02253(switches_path):
         problems.append('README.md: section "## 0.22.53" with "TO TEST 0.22.53" missing')
     return problems, 'sound log trees (8 kinds, %d sub-groups, 174 weapon waves), S7 sonar loads (%d byte checks), markup ' \
                      'in the sonar view' % (len(subs), len(sv_rows(src, 'kS7Checks')))
+
+
+S7_CHECKS_02254 = os.path.join(ROOT, 'work', 'menu54_1511', 'precheck_02254.txt')
+FMT_FUNCS_02254 = ('void Log(int level, ', 'void Out(char *out, size_t size, ', 'void LabelAdd(char *o, size_t n, size_t *used, ',
+                   'bool TextAdd(char *o, size_t n, size_t *used, ', 'void IniPut(IniTextOut &t, ', 'void Text(',
+                   'void ShotNote(bool failed, ', 'void LxAppend(', 'void SndNote(int level, ', 'void ClkNote(int level, ',
+                   'void QbResult(bool err, ')
+
+
+def check_02254(switches_path):
+    """0.22.54 (owner 2026-11-15 evening; workspace docs/Befund-TruMenu-02254-1511.md): (1) kVersion starts with 0.22.54;
+    (2) crash TruMenu+0x13aec6 (strnlen under RunW6Mute's log line): kHow holds one text per rule kind (kW6Kinds,
+    static_assert) and the index is checked; every printf-style function of TruMenu carries _Printf_format_string_ (the
+    MSVC /analyze check work/fmt_1511/Test-TruMenuFormats.ps1 needs it) and no format is forwarded through 'auto...';
+    (3) crash tru+0x14f05d (sonar close, 1.0f as a load handle): S7Extend clears +0x88 / +0xb2 / +0xb4 of a list entry
+    the find 0x6e2a60 has just appended (S7FreshEntry) before anything reads it; kS7Checks = precheck_02254.txt (23 rows);
+    (4) [Sound] ResetAtStart (default 1): SndResetAtStart runs once, before MuteMusic / MuteAmbient / ReverbOff are read,
+    writes the 0 into TruMenu.ini, never touches the log filters / ReverbFollowsMute / SonarMute; item, Stumm / Solo row,
+    switches row, start log line; (5) sub-group mu_menu = group 1; (6) no heading row Schnell-Hoeren; README"""
+    problems = []
+    src = read_cpp()
+    code = re.sub(r'//[^\n]*', '', src)
+    ver = src[:src.find('\n', src.find('kVersion = '))]
+    if '"TruMenu 0.22.54 (two crash fixes + sound switches reset at start' not in ver:
+        problems.append('TruMenu.cpp: kVersion must start with "TruMenu 0.22.54 (two crash fixes ..."')
+    # ---- (2) kHow + format annotations
+    if not re.search(r'kW6Sub,[^\n]*\n\s*kW6Kinds \};', src):
+        problems.append('TruMenu.cpp: the rule kinds must end with kW6Sub, kW6Kinds')
+    mu = fn_body(src, 'bool RunW6Mute(')
+    for want in ('static const char *const kHow[] = {', 'static_assert(sizeof(kHow) / sizeof(kHow[0]) == kW6Kinds,',
+                 'how >= 0 && how < kW6Kinds ? kHow[how] : "?"'):
+        if want not in mu: problems.append('TruMenu.cpp: RunW6Mute lacks %s' % want)
+    if 'kHow[r.kind]' in mu: problems.append('TruMenu.cpp: RunW6Mute indexes kHow unchecked')
+    for fn in FMT_FUNCS_02254:
+        if fn + '_Printf_format_string_ const char *fmt, ...) {' not in src:
+            problems.append('TruMenu.cpp: %s...) needs _Printf_format_string_ on fmt' % fn.strip())
+    bare = re.findall(r'\n[^\n]*(?<!_Printf_format_string_ )const char \*fmt, \.\.\.\)', code)
+    if bare: problems.append('TruMenu.cpp: printf-style function(s) without _Printf_format_string_: %s' % bare[0].strip()[:80])
+    if re.search(r'const char \*fmt, auto\.\.\.', code):
+        problems.append('TruMenu.cpp: a format forwarded through auto... escapes the /analyze check')
+    # ---- (3) S7 fresh entry
+    fe = fn_body(src, 'bool S7FreshEntry(')
+    for want in ('(nb + 0x88) = 0;', '(nb + 0xb2) = 0;', '(nb + 0xb4) = 0;', '__except (EXCEPTION_EXECUTE_HANDLER)'):
+        if want not in fe: problems.append('TruMenu.cpp: S7FreshEntry lacks %s' % want)
+    ex = re.sub(r'//[^\n]*', '', fn_body(src, 'void S7Extend('))
+    seq = [ex.find('ReadDword(kSoUnitCount, &before)'), ex.find('reinterpret_cast<S7FindFn>(kS7Find)(name)'),
+           ex.find('after == before + 1'), ex.find('last == nb'), ex.find('S7FreshEntry(nb)'),
+           ex.find('ReadDword(nb + 0x8c, &loaded)'), ex.find('ReadDword(nb + 0x88, &h)')]
+    if any(x < 0 for x in seq) or seq != sorted(seq):
+        problems.append('TruMenu.cpp: S7Extend must clear a new entry (count + 1, last = it) before it reads +0x8c / +0x88 (%s)'
+                        % seq)
+    if os.path.exists(S7_CHECKS_02254):
+        mine = pre_rows(S7_CHECKS_02254)
+        rows7 = [(a.lower(), b.lower()) for a, b in sv_rows(src, 'kS7Checks')]
+        if rows7 != mine or len(mine) != 23: problems.append('TruMenu.cpp: kS7Checks must be the 23 rows of precheck_02254.txt')
+        if os.path.exists(S7_CHECKS_02253) and pre_rows(S7_CHECKS_02253) != mine[:17]:
+            problems.append('precheck_02254.txt must start with the 17 rows of precheck_02253.txt')
+    else:
+        problems.append('work/menu54_1511/precheck_02254.txt missing')
+    # ---- (4) reset at start
+    rs = re.sub(r'//[^\n]*', '', fn_body(src, 'void SndResetAtStart('))
+    for want in ('OptInt(ini, "Sound", "ResetAtStart")', '{"Media", "MuteMusic"}', '{"Media", "MuteAmbient"}',
+                 '{"Sound", "ReverbOff"}', 'WritePrivateProfileStringA(k[0], k[1], "0", ini)', 'static bool done',
+                 'if (!g_sndResetAtStart) {'):
+        if want not in rs: problems.append('TruMenu.cpp: SndResetAtStart lacks %s' % want)
+    for keep in ('LogFollowMute', 'LogHideSubs', 'ReverbFollowsMute', 'SonarMute', 'LogOnlyAudible', 'LogLara'):
+        if keep in rs: problems.append('TruMenu.cpp: SndResetAtStart must keep %s (a filter / kept switch)' % keep)
+    ro = re.sub(r'//[^\n]*', '', fn_body(src, 'void ReadOptions('))
+    seq = [ro.find('SndResetAtStart(ini);'), ro.find('OptInt(ini, "Media", "MuteMusic")'),
+           ro.find('OptInt(ini, "Media", "MuteAmbient")'), ro.find('W9ReadOptions(ini);')]
+    if any(x < 0 for x in seq) or seq != sorted(seq):
+        problems.append('TruMenu.cpp: ReadOptions must call SndResetAtStart before MuteMusic / MuteAmbient / ReverbOff (%s)' % seq)
+    if 'Log(1, "0.22.54 sound switches at start: %s"' not in fn_body(src, 'void Start('):
+        problems.append('TruMenu.cpp: Start must log the reset (0.22.54 sound switches at start)')
+    header, opt_rows = table(src)
+    if {(s, k): d for s, k, d, _ in opt_rows}.get(('Sound', 'ResetAtStart')) != '1':
+        problems.append('TruMenu.cpp: kOpts [Sound] ResetAtStart=1 missing')
+    if item_types(src).get('snd.resetatstart') != 'bool': problems.append('TruMenu.cpp: item snd.resetatstart (bool) missing')
+    rows = [r for r in qb_rows(src) if r[0] == 'kQbSettings']
+    keys = [(r[2], r[3], r[4]) for r in rows]
+    th = keys.index(('-', 'ton_log_hear', 'kQbGroup')) if ('-', 'ton_log_hear', 'kQbGroup') in keys else -1
+    if th < 0 or keys[th + 4:th + 6] != [('snd.reverboff', '', 'kQbBool'), ('snd.resetatstart', '', 'kQbBool')]:
+        problems.append('TruMenu.cpp: Stumm / Solo needs the row snd.resetatstart right after Hall aus')
+    sw = open(switches_path, encoding='utf-8').read()
+    if not re.search(r'\nTruMenu \| Sound \| ResetAtStart \| bool \| [^\n]*\| restart \| 1 \| [^\n]*\| TruMenu 0\.22\.54', sw):
+        problems.append('switches: row TruMenu | Sound | ResetAtStart | bool | ... | restart | 1 | ... | TruMenu 0.22.54 missing')
+    # ---- (5) mu_menu = group 1
+    subs = w11_subs(src)
+    if 'mu_menu' not in subs: problems.append('TruMenu.cpp: sub-group mu_menu (group 1) missing')
+    m = re.search(r'const signed char kW8GroupSub\[80\] = \{(.*?)\};', src, re.S)
+    gs = re.findall(r'kW8s[A-Za-z0-9]+', re.sub(r'//[^\n]*', '', m.group(1))) if m else []
+    if len(gs) != 80 or gs[1] != 'kW8sMuMenu' or gs[2] != 'kW8sMuMusic':
+        problems.append('TruMenu.cpp: kW8GroupSub[1] must be kW8sMuMenu, [2] kW8sMuMusic')
+    if 'group == 13 ? kW8sMuStinger : group == 1 ? kW8sMuMenu : kW8sMuMusic' not in fn_body(src, 'int W8SubOfGroup('):
+        problems.append('TruMenu.cpp: W8SubOfGroup must give group 1 the sub-group mu_menu')
+    for item, kind in (('snd.logsub', 'kQbBool'), ('snd.hear', 'kQbValue')):
+        if (item, 'mu_menu', kind) not in keys: problems.append('TruMenu.cpp: row %s mu_menu missing' % item)
+    # ---- (6) heading gone
+    if re.search(r'\{"Schnell-H[^\n]*kQbLabel', code): problems.append('TruMenu.cpp: the heading row Schnell-Hoeren must be gone')
+    # ---- (7) joint.set drive (owner 20:28, l3_chapel door rail out of its limits): clamp, ramped lock, guards, tick log
+    jw = fn_body(src, 'void JtWrite(')
+    if 'd.type == 1 ? d.lock * 0.017453292519943295f : d.lock' not in jw:
+        problems.append('TruMenu.cpp: JtWrite must write the moving lock, not the target')
+    jt = re.sub(r'//[^\n]*', '', fn_body(src, 'void JtTick('))
+    seq = [jt.find('g_jt.lines < 400'), jt.find("left the joint's limits"), jt.find('moves away from the target'),
+           jt.find('overshot the target'), jt.find('if (line[0]) { JtStop(line, true); return; }'), jt.find('JtWrite(g_jt);')]
+    if any(x < 0 for x in seq) or seq != sorted(seq):
+        problems.append('TruMenu.cpp: JtTick must log the tick and stop on limits / away / overshoot before JtWrite (%s)' % seq)
+    for want in ('if (g_jt.limits && (v < g_jt.limLo - margin || v > g_jt.limHi + margin))',
+                 'else if (dist > g_jt.best + away)', 'else if (passed && dist > over)',
+                 'if (val && next > v + lead) next = v + lead;', 'if (val && next < v - lead) next = v - lead;',
+                 'if (g_jt.limits && next < g_jt.limLo) next = g_jt.limLo;', 'g_jtTried[g_jtTriedN++] ='):
+        if want not in jt: problems.append('TruMenu.cpp: JtTick lacks %s' % want)
+    js = fn_body(src, 'bool RunJointSet(')
+    for want in ('d.limits = d.saveLimit && lim[0] < lim[1];', 'clamped to the limit', 'd.lock = cur;'):
+        if want not in js: problems.append('TruMenu.cpp: RunJointSet lacks %s' % want)
+    if '&& usable && !tried)' not in src or '"range not armed here (tried)"' not in src:
+        problems.append('TruMenu.cpp: a puzzle row tried without a node change must not offer "solve" again')
+    readme = open(os.path.join(ROOT, 'src', 'asi', 'TruMenu', 'README.md'), encoding='utf-8-sig').read()
+    if '## 0.22.54' not in readme or 'TO TEST 0.22.54' not in readme:
+        problems.append('README.md: section "## 0.22.54" with "TO TEST 0.22.54" missing')
+    return problems, 'kHow per kind + format annotations, S7FreshEntry (%d byte checks), ResetAtStart, mu_menu, no heading' % \
+        len(sv_rows(src, 'kS7Checks'))
 
 
 def check_02227(ini_path, switches_path):
@@ -7719,6 +7844,10 @@ def main(argv):
     for p in cproblems53: print('Q02253 %s' % p)
     if not cproblems53: print('ok: 0.22.53 %s' % csummary53)
     problems += cproblems53
+    cproblems54, csummary54 = check_02254(opt.get('--switches', SWITCHES))   # 0.22.54 (two crash fixes, reset at start)
+    for p in cproblems54: print('Q02254 %s' % p)
+    if not cproblems54: print('ok: 0.22.54 %s' % csummary54)
+    problems += cproblems54
     cproblems27, csummary27 = check_02227(ini_path, opt.get('--switches', SWITCHES))   # 0.22.27
     for p in cproblems27: print('Q02227 %s' % p)
     if not cproblems27: print('ok: 0.22.27 %s' % csummary27)

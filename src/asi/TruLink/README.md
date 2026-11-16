@@ -10,6 +10,46 @@ Version 0.3 - built and checked with `dumpbin` only, not yet tried in the game (
 `diff`) to find unknown values (health, ammo, walking speed) live without a debugger - see
 [Memory search](#memory-search-03).
 
+## 0.5.1: mark.* (notes under TruMenu's labels), shared action code (2026-11-16)
+
+Built 2026-11-16 into `work\asi\trulink051` (0 warnings, imports `KERNEL32` / `WS2_32` as before; sha256
+`b7021fc73b366812b0802ad45165270506a56796f21e6404997c912d1915d440`, MD5 `a41d928f2571e019594ce427a18f9490`;
+`TruLink.ini` unchanged), **not installed, not tried in the game**. Needs TruMenu 0.22.56 for `mark.*` (the other
+commands work without it). Install (game closed): `scripts\windows\Set-TruLink.ps1 -Install -SourceDir work\asi\trulink051`.
+
+- **`mark.note <intro> [+keep] [+names] <text...>`** - TruMenu's `TruMenuNote(intro, text, flags)` (section
+  [mark.note](#marknote-needs-trumenu)): the rest of the line (printable ASCII, cut to 95 characters) as one more line
+  under TruMenu's label of that intro id. Default flags 1 = shown even when TruMenu's object names are off; `+names` =
+  only inside the name label; `+keep` = flag 2, kept over a level load. Answers `ok mark.note ...` / `err ... full` /
+  `err needs TruMenu 0.22.56 ...` (exports missing). Server thread (TruMenu locks its table).
+- **`mark.clear [<intro>|all]`** (no argument = all), **`mark.list`** (block: `intro<TAB>flags<TAB>text`).
+- **`mark.refs <id>`** - game thread: every instance `obj.refs <id>` finds gets the note `<- <id> <member>` (e.g.
+  `<- 4835 m0` on the shadow pillars); one note per referrer (the first member), flags 1.
+- **TruLinkAct.h**: `obj.place`'s placement (`PlaceCalls` / `PlaceBody`), the command-table call of `uber.send cmd`
+  (`CmdExec`, now with its own fault guard) and the whole `joint.drive` (record, motor / wake helpers, `DriveStop`,
+  `DriveTick` incl. hold-until-off) moved unchanged out of TruLink.cpp into a header that TruMenu 0.22.56 includes too
+  (its `puzzle.bring` / `puzzle.figures` / `puzzle.hold` run the same code). Only the log prefix comes from the caller
+  (`joint.drive` here, so TruLink.log reads as before); one log text is shorter ("holding until stop / hold off").
+  `obj.refs` walks through the new `tlobj::RefsEach` (same output: `refs 4834 / 4835 / 4837 / 4830` on dump 26292
+  identical to 0.5).
+- Offline test: `TruLinkObjTest ... puzzle <id>` runs TruMenu 0.22.56's `TruPuzzleCore.h` (switch base, plate flag,
+  portable, graph kinds, the best object check with steps / commands, hinges) on a dump
+  (`scripts\windows\Test-TruLinkObj.ps1 -Command 'puzzle 4837'`).
+
+### TO TEST 0.5.1 (live, with TruMenu 0.22.56)
+
+| # | TO TEST | expected |
+|---|---|---|
+| 1 | `ping`, `status` | `pong TruLink 0.5.1`; checks as 0.5 (118 rows, 0 bad) |
+| 2 | `mark.note 4837 figures here`, then look at the shadow pillars with TruMenu's object names on and off | a second label line `figures here`; with names off a small label `4837: figures here` |
+| 3 | `mark.note 4834 +names centre plate`, names off | not drawn; names on: drawn |
+| 4 | `mark.list` | both notes with flags 1 / 0 |
+| 5 | `mark.refs 4834` | `ok mark.refs ...: 6 reference(s) ...`; notes `<- 4834 m1` / `m2` / `m3` on the plates and wall switches |
+| 6 | `mark.note 4835 +keep door`, reload the level (Kapitel) | the other notes are gone, `door` stays (ids of placed objects stay the same) |
+| 7 | `mark.clear all` | `n note(s) removed`; labels without notes |
+| 8 | TruMenu 0.22.55 installed instead | `err needs TruMenu 0.22.56 ...` |
+| 9 | 0.5 rows 2 - 11 (`obj.place`, `joint.drive ... hold-until-off`, `uber.send ... cmd`) | unchanged behaviour (the code moved only) |
+
 ## 0.5: physics objects, base classes, object checks, hold until off (2026-11-16)
 
 Built 2026-11-16 into `work\asi\trulink05` (0 warnings, imports `KERNEL32` / `WS2_32` as before; sha256
@@ -29,7 +69,7 @@ rows (14 groups, 37 new) match the Steam `tru.exe` and the images of all three f
 | `obj.refs <id>` | every loaded instance whose script members (own + base classes) hold an instanceref to `<id>` | ✅ dump |
 | motor velocity unit | `obj.info` / `joint.get` print the motor velocity per second **and** raw per physics tick (1/30 s); `joint.drive` speeds are deg/s / units/s and are written per tick (0.4 wrote them 30x too fast) | ✅ static; matches the measured 3.5 deg/s of the chapel door |
 | `joint.drive ... hold-until-off`, `joint.hold off` | keeps the target without the 10 s limit until `joint.hold off` / `joint.drive stop`; pushes off the target are driven back; old motor settings restored at stop; stops on unit change / instance gone / leaving the limits | ⬜ live |
-| `mark.note` (labels) | interface only, **needs TruMenu** - see [mark.note](#marknote-needs-trumenu) | - |
+| `mark.note` (labels) | interface only, **needs TruMenu** - see [mark.note](#marknote-needs-trumenu); 0.5.1 + TruMenu 0.22.56: implemented | ⬜ live |
 
 ### TO TEST 0.5 (live, `l3_chapel`)
 
@@ -136,6 +176,7 @@ Numbers (`len`, `value`, `msg`, `data`, `mode`): `0x...` hex, otherwise decimal 
 | `diff <name> [update]` | block: every changed dword since the snapshot `+offset address old new f:old f:new i:old i:new` (at most 400 lines); `update` makes the current bytes the new baseline | server |
 | `obj.near`, `obj.info`, `obj.set`, `obj.journal`, `obj.undo`, `uber.events`, `uber.send`, `sticky.get`, `sticky.set`, `joint.get`, `joint.drive` | 0.4, see [Objects (0.4)](#objects-04) | game |
 | `obj.place`, `obj.refs`, `uber.events <id> all`, `joint.drive ... hold-until-off`, `joint.hold off` | 0.5, see [0.5 additions](#05-additions) | game |
+| `mark.note`, `mark.clear`, `mark.list` / `mark.refs` | 0.5.1, notes under TruMenu's labels (needs TruMenu 0.22.56), see [0.5.1](#051-mark-notes-under-trumenus-labels-shared-action-code-2026-11-16) | server / game |
 | `log <0-3>` | `ok log level n` (TruLink.log; not saved) | server |
 | `quit` / `exit` / `bye` | `ok bye`, connection closed | server |
 
@@ -384,6 +425,10 @@ extern "C" __declspec(dllexport) int TruMenuNoteList(char *out, int size);
 TruMenu draws the note as one more line under the instance's label (same colour rule as the label, `^` / distance as
 today), keyed by the intro id (runtime ids too). TruLink commands then: `mark.note <id> <text...>`, `mark.clear
 [<id>|all]`, `mark.list`, and `mark.refs <id>` = a note `<- <intro> <member>` on every instance `obj.refs <id>` finds.
+
+**Done in 0.5.1 / TruMenu 0.22.56** (see [0.5.1](#051-mark-notes-under-trumenus-labels-shared-action-code-2026-11-16)):
+the exports are `__cdecl` as the other TruMenu exports; `mark.note` takes an intro id (decimal) and the options
+`+keep` / `+names` before the text; `mark.refs` writes `<- <target id> <member>` on each referrer.
 
 ## Threading
 

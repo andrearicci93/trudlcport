@@ -2928,6 +2928,109 @@ Reihenfolge fest (Flacker-Test)".
   combos as set now (e.g. `LB + View = weiter . RB + View = 1 Bild . LB + RB + View = Foto`), built from the INI values,
   so it follows any change.
 
+## 0.22.56 - puzzle helpers, notes (TruLink mark.*), camera hints on a level change, chapter rows as a level start (2026-11-16)
+
+Build `work\asi\menu0256` (TruMenu.asi MD5 `a8609c5488595ae4b67f04f1ac1f4125`, sha256
+`c61fc98bd3c49f8fa4d727261b5649fa1de9dd828b70306680832b8e631631a5`; 0 warnings in TruMenu.cpp; quick / readability /
+format checks exit 0, ini check exit 1 only for the 5 known TruTrace rows), not installed; new exports
+`TruMenuNote` / `TruMenuNoteClear` / `TruMenuNoteList`; new header `TruPuzzleCore.h` (pure reads, run offline on the
+chapel dump by `TruLinkObjTest puzzle <id>`). Package P2b of the workspace `docs\Pakete-1611.md`; P1 = TruLink 0.5, P3 =
+the chapel load analysis, P4 = the switch rules, P5 = the chapel / villa scripts. Everything here is checked offline
+only (byte checks, build, the four TruMenu checks); "(unproven)" marks what only the live test can show.
+
+- **Notes (exports `TruMenuNote` / `TruMenuNoteClear` / `TruMenuNoteList`)** - the interface of the TruLink README
+  section "mark.note (needs TruMenu)": up to 64 notes keyed by intro id (runtime ids too), printable ASCII up to 95
+  characters, flags bit 0 = shown even when the object names are off, bit 1 = kept over a level load (else cleared when
+  the main state turns 2). The object-name layer adds the note as one more line of the name label (same colour); a
+  note with bit 0 that the name layer did not draw (layer off, instance filtered) is drawn right under another layer's
+  label of the instance, else as a small label `<intro>: <text>` at the instance (a multibody part at its model).
+  Thread safe (SRW lock). TruLink 0.5.1 `mark.note` / `mark.clear` / `mark.list` / `mark.refs` use them.
+- **P3 fix 1 - stale camera hints** (crash 2026-11-15 22:27, ENGINE section 22): every level change TruMenu requests
+  (`level.load` and everything that uses it, the in-level level start, the mission start) arms a flag; while it is
+  armed and the main state `[0xe7ed60]` is 2, the game-thread hooks (Present - the game's own Present call, it runs on
+  the loading screen - and PadHook) log the old values and write 0 to `[0xe804f0+0x110]` (object hint) and
+  `[0xe804f0+0x10c]` (volume hint count), exactly the words the game's reset 0x5edf50 clears; the game's own reset
+  0x5f2440 still follows at 0x72249c. No game function is called. The flag ends when the main state leaves 2 (one log
+  line with the number of clears) or after 30 s without a state 2 (log line, nothing written). 6 byte checks
+  (`kChChecks`: the two writes of 0x5edf50, the getters 0x5e8490 / 0x5e84a0 / 0x5e84c0, the player-init order
+  0x722497 / 0x72249c); info item `camera.hints`.
+- **P3 fix 2 - chapter rows in a level** (the loading screen held over the level after `level.load` into a room whose
+  intro was played, 15.11. 20:40): the chapter rows of page Kapitel and `Aktuelles Kapitel neu laden` now run, in a
+  level, the in-level level start of 0.22.51 for **every** unit: `save.backup kapitel;level.start <unit> 0` =
+  uigamedata f27 0x77e170(unit, 0, 0, 1) (the new-game block 0x556940(0) = new game data: costume words, the played
+  marks (unproven word by word)), the UI stack's top screen vf+0x148 only while the game holds the pause bit, then
+  stdscreenmgr f7 0x4be580 and f19 0x4be5e0 - with fix 1 armed. Preconditions as in 0.22.51 (main state 1, a player,
+  no cutscene, no pending change, the case-8 byte rows) plus the outfit-rule rows and the camera-hint rows; otherwise the
+  row is refused with the reason. DLC starts as before (TU rule). **`Kapitel (Stand behalten)` / `Chapter (keep
+  state)`** (choice row, left = the chapter, first choice `aktuelles Kapitel`, right twice) = `chapter.keep
+  <unit>|current`: backup, then `level.load` as up to 0.22.55, with the warning "Stand bleibt: Intro evtl. nicht,
+  Ladebild kann haengen".
+- **Kapitel -> `Raetsel in der Naehe` rebuilt** from TruLink 0.5's decoders (`src\asi\TruLink\TruLinkObj.h`, the same
+  118 byte check rows, log `0.22.56 puzzles: TruLink 0.5 byte checks ...`) and TruLink's own action code
+  (`TruLinkAct.h`, moved out of TruLink.cpp unchanged), within 2 x `[Debug] UberRadius` of Lara, every 300 ms while open:
+  - *Schalter*: an instance whose class chain holds the switch base (P5 base 3637, recognised by its shape: member 0 a
+    `modifiable` at +4, ints at +8 .. +32): `aus, bereit` (+32 = +16), `an` (+32 = +20; `an - bereits benutzt` when its
+    target is one-shot), `gesperrt` (+32 = +24) - `gesperrt: Platte <p> nicht gedrueckt` when a plate it names is up
+    (P5: the chapel wall switches are enabled only while the centre plate is down); the target (first multibody / uber
+    instance it names) with its kind from the graph (P4 rules: einmalig / Ring n / Umschalter / wiederholbar / umkehrbar
+    / setzt sich nach n s zurueck).
+  - *Druckplatten* (name holds `plate`): `unten` / `oben` from the plate base's stickybool (P5 +92), the rail value,
+    `Gewicht <w>` / `Lara` on it (physics positions within 200 units across, -100 .. +350 high), and what it names
+    (`oeffnet / steuert Tor <g>, Feuer <f>`).
+  - *Ziele* (multibody anchors and uber objects that something names): kind and node, `braucht Gewicht auf Platte <p>`
+    for every plate naming it that is up.
+  - *Figuren* (a multibody with an object check, condition 9): the check with the most entries (chapel: all four ring
+    pillars on `position_a`), per checked link `Figur n: <now>, Ziel <target>` with the steps left along its trigger
+    edges - `Schalter <s> noch n x` once TruMenu has learned which switch steps that link (a link moved while Lara stood
+    within 2 m of a switch naming the object, log `puzzle: learned ...`), else `Befehl c noch n x`; the fire from the
+    plate that names the igniter that names the object (`Feuer an (Platte p unten)` / `Feuer aus: Schloesser erst bei
+    Feuer`, P5: the pillar check acts only while the fire burns). Row **`Figuren auf Ziel setzen`** = `puzzle.figures
+    <intro>`: the command entries with one event record to that link through X vf+4 0x4d77a0 (as the switches), one
+    command per idle link (no transition, events not dropped), at most every 250 ms, 64 commands / 60 s; the game's
+    object check and the pillar script do the rest - **no lock, door or node is set**, and without the fire the locks
+    open only at the next lighting (the row says so).
+  - *Tuer*: a hinge with its motor on and a velocity != 0 (motor-closed; chapel: hinge 1 of the great shadow door
+    4835 = the turning pedestal / Kreiselschalter that holds the door open): `offen 148 Grad,
+    zu in ~42 s` = (value - the limit the motor drives to) / motor speed (rad per 1/30 s tick x 57.3 x 30), also on the
+    uber label of the part the hinge moves (`... | Tuer offen 148 Grad, zu in ~42 s`). Row **`Tuer offen halten`** =
+    `puzzle.hold <intro> <joint>`: TruLink's joint drive with hold-until-off (30 deg/s, force 20000, limits kept) to 1
+    degree inside the open limit; only when the door is open (> 5 degrees from closed); right again / left =
+    `puzzle.hold off`: the saved motor velocity / force / enable go back, the door closes by itself.
+  - *Gewichte / Stangen* (body + class `portablebase`): `liegt` / `auf Platte p` / `Lara traegt es`; **`Gewicht zu
+    mir`** / **`Stange zu mir`** = `puzzle.bring <intro>`: TruLink's `obj.place near-lara 1.5` path
+    (INSTANCE_SetPosition 0x5b4100 + body <- instance 0x497740, velocity 0, woken), refused while Lara carries it;
+    `zurueck an den alten Platz` = `puzzle.bring <intro> back` (the first old place, same path). **No "Stange in Loch y"
+    row**: the placement only moves the body - inserting is the game's interaction with Lara holding the pole (insert
+    check 0x6d5b38), which the placement path does not run; the pole would lie under the hole. Lara inserts it herself.
+  - the 0.22.31 joint-range rows stay as a list (`Gelenk-Bereiche (nur Anzeige)`); their **"solve" (joint.set to the
+    middle of a range) is gone** - it drove the great shadow door's rail while both locks were closed.
+  - Log: one line `puzzle: <object> <intro> '<node>' -> '<node>'` per node change / transition start of an uber state
+    near Lara (every 250 ms in a level, 400 per level).
+
+### TO TEST 0.22.56
+
+Install TruMenu 0.22.56 **and** TruLink 0.5.1 (game closed). Chapel = `l3_chapel`, villa = `l3_main_bedroom` /
+`l3_chamberrockhall`, DLC 1 gate = `dlc_caverns_hall`.
+
+| # | Where | Do | Expected |
+|---|---|---|---|
+| 1 | start | read `TruMenu.log` | `0.22.56 camera hints: 6 byte checks ok`, `0.22.56 puzzles: TruLink 0.5 byte checks 0 of 118 rows bad` |
+| 2 | `l3_stairhall` (or any base unit) | Kapitel -> the chapter row that starts in `l3_chapel` / `3 Croft Manor`, right 2x | footer backup + start; log `camera hints: armed ...`, `main state 2 ... -> 0` (or `already 0`), `loading screen over ... flag off`; the intro plays with textures, no hang, **no crash after the load** |
+| 3 | a room whose intro was played (villa `l3_main_bedroom`) | the Prolog row, right 2x | the intro plays again (new game data), the loading screen goes away |
+| 4 | same | `Kapitel (Stand behalten)`, left to `Prolog`, right 2x | footer with the warning; `level.load` as 0.22.55 (the hold may come back - the known behaviour) |
+| 5 | chapel, plates up | Kapitel -> Raetsel in der Naehe | the four wall switches `gesperrt: Platte 4834 nicht gedrueckt`, target `ma_uo_shadow_pillars 4837: Ring 4`; plates `oben, frei`; `Figur 1..4` rows with target `position_a` |
+| 6 | chapel | weights on the centre plate (carry, or `Gewicht zu mir` first) | plate `unten: Gewicht ...`, switches `aus, bereit`, check row `Feuer an (Platte 4834 unten)` |
+| 7 | chapel, fire lit | pull a wall switch once | log `puzzle: learned - switch ... steps link n of 4837`; that figure row now says `Schalter ... noch n x` |
+| 8 | chapel, fire lit | `Figuren auf Ziel setzen`, right 2x | log `puzzle.figures ... cmd c ... sent` per step, then `every figure on its target`; the check goes `unsolved -> ... -> solved`, the pillar script opens both locks of the great shadow door (the game's own sequence); the door row lists the two lock parts as `nur Anzeige (das Spiel)` |
+| 9 | chapel, fire out (centre plate up), fresh load | repeat 8 | row / footer `Schloesser erst bei Feuer`; figures move, locks stay - light the fire: they open then (P5: stored picture) |
+| 10 | chapel, great shadow door opened with the turning pedestal and closing again | read the door row (target 4835) and the uber label of the pedestal | `offen 1xx Grad, zu in ~nn s`, counting down at ~3.5 degrees per second |
+| 11 | chapel, door open | `Tuer offen halten`, right 2x, wait 60 s, then right (or left) | the pedestal turns fully open and stays (`HAELT`), the door stays open; after off it closes by itself; log `puzzle.hold ... settings put back` |
+| 12 | chapel | `Gewicht zu mir` on a weight, then `zurueck an den alten Platz` | the weight drops ~1.5 m from Lara (in front if the yaw guess is right - note where), physics calm; then back at its old place |
+| 13 | villa `l3_chamberrockhall` | switch 4617 before / after pulling | before `aus, bereit`; after: note the state text (`an` / `an - bereits benutzt`) and the target kind of the secret door (`umkehrbar` expected) |
+| 14 | villa `l3_main_bedroom` | switch 4525 | its state; the house door has no graph (target kind `?`) |
+| 15 | DLC 1 `dlc_caverns_hall` | pull a gate switch, read the gate row and its uber label | target kind `setzt sich nach 27 s zurueck`; the uber label still counts `noch 25 s` |
+| 16 | TruLink | `mark.note 4837 test`, `mark.list`, names layer on / off, `mark.refs 4835`, `mark.clear all` | the note line under the label (also with names off), a refs note `<- 4835 m0` on 4837; a level load clears notes without `+keep` |
+
 ## 0.22.55 - Aktuelles Kapitel neu laden, flight off after a load, doppelganger_casual guard, level not found, 290 units per metre, multibody part labels, poles without a hole (2026-11-16)
 
 Build `work\asi\menu0278`, not installed (package P2a of the workspace `docs\Pakete-1611.md`; owner notes of the

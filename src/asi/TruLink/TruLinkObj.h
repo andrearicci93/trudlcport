@@ -1055,21 +1055,19 @@ inline void Info(DWORD inst) {
 }
 
 // 0.5 obj.refs: every loaded instance whose script members (own type and every base class) hold an instanceref to the
-// intro id of target; runtime parts that share their anchor's script object are counted once (the anchor)
-inline void Refs(DWORD target) {
-    const DWORD intro = D(target + 0x58);
-    char tn[64];
-    InstName(target, tn, sizeof(tn));
-    TlAdd("ok+ obj.refs %lu %s: instanceref members (own and base classes) that point to it\n", intro, tn);
+// intro id of target; runtime parts that share their anchor's script object are counted once (the anchor).
+// 0.5.1: the walk as RefsEach(intro, fn(owner, index, depth, k, member, root)) - shared by obj.refs, TruLink mark.refs
+// and TruMenu 0.22.56's puzzle hints; returns the instances walked, *scripts the script objects read
+template <typename F> int RefsEach(DWORD intro, F fn, int *scripts = nullptr) {
     static DWORD seen[2048];
-    int nSeen = 0, hits = 0, scripts = 0;
+    int nSeen = 0, nScripts = 0;
     const int walked = ForInstances([&](DWORD inst, int index) {
         const DWORD so = ScriptObj(inst);
         if (!so) return true;
         for (int i = 0; i < nSeen; ++i)
             if (seen[i] == so) return true;
         if (nSeen < 2048) seen[nSeen++] = so;
-        ++scripts;
+        ++nScripts;
         const DWORD data = D(so + 0xc), owner = ScriptOwner(inst);
         DWORD roots[16];
         const int depth = ClassChain(so, roots, 16);
@@ -1077,20 +1075,36 @@ inline void Refs(DWORD target) {
             for (int k = 0; k < MemberCount(roots[d]); ++k) {
                 Member m;
                 if (!MemberAt(roots[d], k, &m) || strcmp(m.type, "instanceref") || D(data + m.offset) != intro) continue;
-                char name[64];
-                InstName(owner, name, sizeof(name));
-                char cl[64];
-                ClassLabel(roots[d], cl, sizeof(cl));
-                char at[24];
-                if (d) _snprintf_s(at, sizeof(at), _TRUNCATE, "b%d.m%d", d, k);
-                else _snprintf_s(at, sizeof(at), _TRUNCATE, "m%d", k);
-                TlAdd("#%d 0x%08lx intro %lu %s: %s +%u (name sym %u, %s)\n", owner == inst ? index : ListIndex(owner),
-                      owner, D(owner + 0x58), name, at, m.offset, m.name, cl);
-                ++hits;
+                fn(owner, owner == inst ? index : ListIndex(owner), d, k, m, roots[d]);
             }
         }
         return true;
     });
+    if (scripts) *scripts = nScripts;
+    return walked;
+}
+// "m<k>" (own class) / "b<d>.m<k>" (base class d) - the member names of obj.info
+inline void MemberTag(int d, int k, char *out, size_t n) {
+    if (d) _snprintf_s(out, n, _TRUNCATE, "b%d.m%d", d, k);
+    else _snprintf_s(out, n, _TRUNCATE, "m%d", k);
+}
+inline void Refs(DWORD target) {
+    const DWORD intro = D(target + 0x58);
+    char tn[64];
+    InstName(target, tn, sizeof(tn));
+    TlAdd("ok+ obj.refs %lu %s: instanceref members (own and base classes) that point to it\n", intro, tn);
+    int hits = 0, scripts = 0;
+    const int walked = RefsEach(intro, [&](DWORD owner, int index, int d, int k, const Member &m, DWORD root) {
+        char name[64];
+        InstName(owner, name, sizeof(name));
+        char cl[64];
+        ClassLabel(root, cl, sizeof(cl));
+        char at[24];
+        MemberTag(d, k, at, sizeof(at));
+        TlAdd("#%d 0x%08lx intro %lu %s: %s +%u (name sym %u, %s)\n", index, owner, D(owner + 0x58), name, at, m.offset,
+              m.name, cl);
+        ++hits;
+    }, &scripts);
     TlAdd("%d reference(s) in %d script object(s) of %d instances (arrays of instancerefs are not read)\n.\n", hits,
           scripts, walked);
 }

@@ -4,7 +4,8 @@
 //   TruLinkObjTest.exe --dump tru.exe.N.dmp <command> [args]    decoders on the dump's memory
 //   TruLinkObjTest.exe --exe tru.exe checks                      byte check rows against the exe file
 // Commands: checks | near [metres] [filter] [max n] | info <id> | events <id> [all] | refs <id> | body <id> |
-// joint <id> <index> | sticky <owner> <key>
+// joint <id> <index> | sticky <owner> <key> | puzzle <id> (TruMenu 0.22.56 TruPuzzleCore.h: switch base, plate flag,
+// portable, graph kinds, the best object check with steps / commands, hinges)
 // (<id> as in TruLink: intro id, 0x<instance>, #<list index>, player). Joint values need the engine's getter: "n/a".
 // Exit code 0 = ok, 1 = a check failed / error, 2 = usage.
 #define WIN32_LEAN_AND_MEAN
@@ -14,6 +15,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "../TruLinkObj.h"
+#include "../../TruMenu/TruPuzzleCore.h"        // TruMenu 0.22.56 puzzle analysis (command 'puzzle <id>')
 
 namespace {
 
@@ -229,6 +231,62 @@ int main(int argc, char **argv) {
         return 0;
     }
     if (!strcmp(cmd, "refs") && argc > 4) { const DWORD i = Inst(argv[4]); if (!i) return 1; tlobj::Refs(i); return 0; }
+    if (!strcmp(cmd, "puzzle") && argc > 4) {                  // TruMenu 0.22.56 TruPuzzleCore.h on the dump
+        const DWORD i = Inst(argv[4]);
+        if (!i) return 1;
+        char name[64], kt[64];
+        tlobj::InstName(i, name, sizeof(name));
+        printf("puzzle %lu %s\n", tlobj::D(i + 0x58), name);
+        pzcore::PzSw sw;
+        if (pzcore::PzSwitchOf(i, &sw))
+            printf("  switch base: +32 cur %ld, +16 off %ld, +20 on %ld, +24 disabled %ld -> state %d (0 off, 1 on, 2 "
+                   "disabled, 3 other)\n", sw.cur, sw.off, sw.on, sw.dis, pzcore::PzSwState(sw));
+        else printf("  switch base: none\n");
+        int flag = -1;
+        printf("  plate flag: %s %d\n", pzcore::PzPlateFlagRead(i, &flag) ? "read" : "none", flag);
+        printf("  portable: %d, body 0x%08lx\n", pzcore::PzIsPortable(i) ? 1 : 0, tlobj::BodyOf(i));
+        const pzcore::PzKind k = pzcore::PzTargetKind(i);
+        pzcore::PzKindText(k, false, kt, sizeof(kt));
+        printf("  target kind: %d (%s) n %d secs %.1f\n", k.kind, kt, k.n, static_cast<double>(k.secs));
+        const DWORD x = tlobj::Multi(i);
+        for (int l = 0; x && l < tlobj::Links(x); ++l) {
+            const DWORD lb = tlobj::Uber(tlobj::LinkInst(x, l));
+            if (!lb) continue;
+            const pzcore::PzKind lk = pzcore::PzClassify(lb, x, l);
+            pzcore::PzKindText(lk, false, kt, sizeof(kt));
+            char node[48];
+            tlobj::NodeName(lb, static_cast<LONG>(tlobj::D(lb + 0x84)), node, sizeof(node));
+            printf("  link %d: node '%s', kind %s, steps-cmd %d\n", l, node, kt, pzcore::PzLinkCmd(x, l));
+        }
+        pzcore::PzCheck chk;
+        if (x && pzcore::PzBestCheck(x, &chk)) {
+            printf("  best object check: holder link %d, %d entries\n", chk.holder, chk.n);
+            for (int q = 0; q < chk.n; ++q) {
+                const DWORD lb = tlobj::Uber(tlobj::LinkInst(x, chk.link[q]));
+                char now[48] = "-", want[48] = "-";
+                if (lb) {
+                    tlobj::NodeName(lb, static_cast<LONG>(tlobj::D(lb + 0x84)), now, sizeof(now));
+                    tlobj::NodeName(lb, chk.want[q], want, sizeof(want));
+                }
+                printf("    link %d: now '%s' want '%s' steps %d via cmd %d\n", chk.link[q], now, want,
+                       lb ? pzcore::PzSteps(lb, chk.want[q]) : -1, pzcore::PzLinkCmd(x, chk.link[q]));
+            }
+        }
+        for (int j = 0; x && j < tlobj::JointCount(x); ++j) {
+            DWORD jrec = 0, jt = 0, flags = 0;
+            float vel = 0.0f, lim[2] = {0, 0};
+            if (!tlobj::JointAt(x, j, &jrec, &jt) || tlobj::JointType(jt) != 1) continue;
+            tlobj::R32(jt + 0x174, &flags);
+            tlobj::RF(jt + 0x108, &vel);
+            tlobj::RF(jt + 0xd8, &lim[0]);
+            tlobj::RF(jt + 0xdc, &lim[1]);
+            printf("  hinge %d: motor %s, limit %s [%.1f, %.1f] deg, motor %.3f deg/s (value: engine getter, n/a offline)\n", j,
+                   (flags & 0x10) ? "on" : "off", (flags & 2) ? "on" : "off", static_cast<double>(lim[0] * tlobj::kRadToDeg),
+                   static_cast<double>(lim[1] * tlobj::kRadToDeg),
+                   static_cast<double>(vel * tlobj::kRadToDeg * tlobj::kTicksPerSecond));
+        }
+        return 0;
+    }
     if (!strcmp(cmd, "body") && argc > 4) {
         const DWORD i = Inst(argv[4]);
         if (!i) return 1;

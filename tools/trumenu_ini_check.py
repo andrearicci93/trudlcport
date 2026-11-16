@@ -4909,7 +4909,9 @@ def check_02240(ini_path, switches_path):
     if '"menu.attracticon", "", kQbBool' in src: problems.append('TruMenu.cpp: the bool bar row menu.attracticon must be gone')
     # 0.22.51: kQvSoFade / kQvSoArea follow kQvAtStyle (was: kQvAtStyle closed the enum)
     # 0.22.52: kQvSoTint after kQvSoArea; 0.22.53: kQvHear after kQvSoTint
-    if not re.search(r'kQvAtStyle,[^\n]*\n\s*kQvSoFade, kQvSoArea(,[^\n]*\n\s*kQvSoTint(,[^\n]*\n\s*kQvHear)?)? \};', src):
+    # 0.22.56: kQvChapKeep after kQvHear
+    if not re.search(r'kQvAtStyle,[^\n]*\n\s*kQvSoFade, kQvSoArea(,[^\n]*\n\s*kQvSoTint(,[^\n]*\n\s*kQvHear'
+                     r'(,[^\n]*\n\s*kQvChapKeep)?)?)? \};', src):
         problems.append('TruMenu.cpp: kQvAtStyle must be in the QbVal enum (0.22.51: before kQvSoFade, kQvSoArea)')
     if ': val == kQvAtStyle ? kAtStyleN ' not in fn_body(src, 'int QbValueCount('):
         problems.append('TruMenu.cpp: QbValueCount must give kAtStyleN for kQvAtStyle')
@@ -5126,7 +5128,8 @@ def check_02242(ini_path, switches_path):
     if 'W3LabFrame();' not in dv or 'g_dvRectN = 0' in dv:
         problems.append('TruMenu.cpp: DrawDebugView must start the frame with W3LabFrame (and not reset g_dvRectN itself)')
     render = fn_body(src, 'void Render(')
-    if not (0 <= render.find('if (DvAnyOn()) DrawDebugView();') < render.find('if (g_ubOn) DrawUberLabels();')):
+    # 0.22.56: the condition also holds for notes with flag bit 0 ("if (DvAnyOn() || g_ntAlways) DrawDebugView();")
+    if not (0 <= render.find(') DrawDebugView();') < render.find('if (g_ubOn) DrawUberLabels();')):
         problems.append('TruMenu.cpp: Render must draw the uber labels after the debug view')
     ub = fn_body(src, 'void DrawUberLabels(')
     for need in ('W3LabFrame();', 'dx * dx + dy * dy + dz * dz <= 2500.0f', 'W3UberDraw(dl, at, line1, line2,',
@@ -6737,9 +6740,11 @@ def check_02251(switches_path):
     if 'if (state == 1 && InLevel()) return LevelStartInGame(name, given, o, n);' not in fn_body(src, 'bool RunLevelStart('):
         problems.append('TruMenu.cpp: RunLevelStart must hand a level (main state 1) to LevelStartInGame')
     lg = fn_body(src, 'bool LevelStartInGame(')
+    # 0.22.56 (P3 fix 2): any unit in a level - the DLC-only refusal became the dlcStart flag + the camera-hint checks
     for want in ('reinterpret_cast<MissionStartFn>(kUgdF27)(args, select, 0, 1);', 'reinterpret_cast<VoidFn>(kScrF7)();',
                  'reinterpret_cast<VoidFn>(kScrF19)();', '&& !g_menuPaused && !g_radPaused;',
-                 '_stricmp(name, "dlc_level1_start") && _stricmp(name, "dlc_level2_start")', 'if (CinematicNow())'):
+                 'const bool dlcStart = !_stricmp(name, "dlc_level1_start") || !_stricmp(name, "dlc_level2_start");',
+                 'if (!dlcStart && !ChOk())', 'if (CinematicNow())'):
         if want not in lg: problems.append('TruMenu.cpp: LevelStartInGame lacks %s' % want)
     if 'kUgdF22' in lg: problems.append('TruMenu.cpp: LevelStartInGame must not call uigamedata f22 (case 8 does not)')
     if not 0 <= lg.find('(kUgdF27)') < lg.find('(kScrF7)') < lg.find('(kScrF19)'):
@@ -6917,9 +6922,12 @@ def check_02252(switches_path):
         problems.append('switches: TintOthers must be int:0..2')
     # ---- (5) (j) joint rows
     pz = fn_body(src, 'void PzRefresh(')
+    # 0.22.56: the joint rows are a list only (no "solve" arg, so no "usable" any more)
     for want in ('const bool motion = type == 1 && limOk && !limOn && (loOpen || hiOpen);', 'if (a < lr0) a = lr0;',
-                 'if (z > lr1) z = lr1;', 'const bool usable = !motion && a < z && !(loOpen && hiOpen);'):
+                 'if (z > lr1) z = lr1;'):
         if want not in pz: problems.append('TruMenu.cpp: PzRefresh lacks %s' % want)
+    if 'right 2x = solve' in pz or 'Out(r->arg' in pz:
+        problems.append('TruMenu.cpp: PzRefresh must not offer a joint "solve" row any more (0.22.56)')
     jt = fn_body(src, 'void JtTick(')
     if 'JtStop(line, ours);' not in jt or 'lim[0] == t && lim[1] == t' not in jt:
         problems.append('TruMenu.cpp: JtTick must take our lock back after a node change when it still stands')
@@ -7198,7 +7206,8 @@ def check_02254(switches_path):
     js = fn_body(src, 'bool RunJointSet(')
     for want in ('d.limits = d.saveLimit && lim[0] < lim[1];', 'clamped to the limit', 'd.lock = cur;'):
         if want not in js: problems.append('TruMenu.cpp: RunJointSet lacks %s' % want)
-    if '&& usable && !tried)' not in src or '"range not armed here (tried)"' not in src:
+    # 0.22.56: no joint "solve" rows at all; the "tried" text stays on the list rows
+    if '"range not armed here (tried)"' not in src or 'right 2x = solve' in src:
         problems.append('TruMenu.cpp: a puzzle row tried without a node change must not offer "solve" again')
     readme = open(os.path.join(ROOT, 'src', 'asi', 'TruMenu', 'README.md'), encoding='utf-8-sig').read()
     if '## 0.22.54' not in readme or 'TO TEST 0.22.54' not in readme:
@@ -7222,7 +7231,7 @@ def check_02255():
     src = read_cpp()
     code = re.sub(r'//[^\n]*', '', src)
     ver = src[:src.find('\n', src.find('kVersion = '))]
-    if '"TruMenu 0.22.55 (chapter page + display fixes' not in ver:
+    if '"TruMenu 0.22.55 (chapter page + display fixes' not in ver and '" - 0.22.55 (chapter page + display fixes' not in ver:
         problems.append('TruMenu.cpp: kVersion must start with "TruMenu 0.22.55 (chapter page + display fixes ..."')
     # ---- (2) chapter.reload
     ch = [r for r in qb_rows(src) if r[0] == 'kQbChapters']
@@ -7321,6 +7330,83 @@ def check_02255():
         problems.append('README.md: section "## 0.22.55" with "TO TEST 0.22.55" missing')
     return problems, ('chapter.reload, FlightKeepOnLoad + cp.jump without flight, doppelganger_casual guard, level not found, '
                       '290 units / m, multibody part labels (%d byte checks), pole scan' % n_mb)
+
+
+def check_02256():
+    """0.22.56 (package P2b): (1) kVersion starts with 0.22.56; (2) the note exports TruMenuNote / TruMenuNoteClear /
+    TruMenuNoteList as in src/asi/TruLink/README.md (64 notes, 95 characters, flags 1 / 2), drawn in DvDrawNames and by
+    NtDrawLoose, cleared at main state 2; (3) P3 fix 1: kChChecks (6 rows = ENGINE section 22), ChArm at the three level
+    requests (LoadUnit, LevelStartInGame, the mission start), ChTick in Render and PadHook, the two words written only
+    while the main state is 2, no call of 0x5f2440; (4) P3 fix 2: ChapSteps in a level = "level.start <unit> 0" for every
+    other unit, chapter.keep row (choice kQvChapKeep, level.load); (5) the puzzle section from TruLinkObj.h /
+    TruLinkAct.h - no joint limit setter, no set-node message, the three items, PzGameTick in the PadHook frame block;
+    no game ids in the puzzle code; (6) README"""
+    problems = []
+    src = read_cpp()
+    code = re.sub(r'//[^\n]*', '', src)
+    ver = src[:src.find('\n', src.find('kVersion = '))]
+    if '"TruMenu 0.22.56 (puzzle helpers' not in ver:
+        problems.append('TruMenu.cpp: kVersion must start with "TruMenu 0.22.56 (puzzle helpers ..."')
+    for want in ('#include "../TruLink/TruLinkObj.h"', '#include "../TruLink/TruLinkAct.h"'):
+        if want not in src: problems.append('TruMenu.cpp: %s missing' % want)
+    # ---- (2) notes
+    for want in ('extern "C" __declspec(dllexport) int __cdecl TruMenuNote(unsigned intro, const char *text, unsigned flags)',
+                 'extern "C" __declspec(dllexport) int __cdecl TruMenuNoteClear(unsigned intro)',
+                 'extern "C" __declspec(dllexport) int __cdecl TruMenuNoteList(char *out, int size)',
+                 'const int kNtMax = 64;', 'if (!len || len > 95) return -1;', 'if (!intro || intro == 0xffffffffu || !text || (flags & ~3u)) return -1;'):
+        if want not in src: problems.append('TruMenu.cpp: notes: %s missing' % want)
+    if 'NtGet(static_cast<unsigned>(intro), noteText' not in fn_body(src, 'void DvDrawNames('):
+        problems.append('TruMenu.cpp: DvDrawNames must append the note line')
+    if 'NtDrawLoose(dl, c,' not in fn_body(src, 'void DrawDebugView('):
+        problems.append('TruMenu.cpp: DrawDebugView must draw the loose notes (flag bit 0)')
+    if 'if (g_ntNotes[i].flags & 2)' not in fn_body(src, 'void NtLevelLoad('):
+        problems.append('TruMenu.cpp: NtLevelLoad must keep the notes with flag bit 1')
+    # ---- (3) camera hints
+    rows = re.findall(r'\{0x([0-9a-f]{8}), "([0-9a-f ]+)"\}', src[src.find('const ChCheck kChChecks[] = {'):
+                                                            src.find('const DWORD kChMgr = ')])
+    want_rows = {'005edf61': '898e0c010000', '005edf79': '898e10010000', '005e8490': '8b810c010000c3',
+                 '005e84c0': '8b8110010000c3', '00722497': 'e8a47becffe89fffecff'}
+    got = {a: h.replace(' ', '') for a, h in rows}
+    if len(rows) != 6 or any(got.get(a) != h for a, h in want_rows.items()):
+        problems.append('TruMenu.cpp: kChChecks must hold the 6 rows of ENGINE section 22 (got %d)' % len(rows))
+    for fn, want in (('bool LoadUnit(', 'ChArm("level.load");'), ('bool LevelStartInGame(', 'ChArm("the in-level level start");'),
+                     ('bool RunLevelStart(', 'ChArm("the mission start");'), ('void Render(', 'ChTick();'),
+                     ('DWORD WINAPI PadHook(', 'ChTick();')):
+        if want not in fn_body(src, fn): problems.append('TruMenu.cpp: %s lacks %s' % (fn, want))
+    ct = fn_body(src, 'void ChTick(')
+    if not 0 <= ct.find('if (state == 2) {') < ct.find('*reinterpret_cast<volatile DWORD *>(kChMgr + 0x110) = 0;'):
+        problems.append('TruMenu.cpp: ChTick must write the hint words only in main state 2')
+    if '0x5f2440' in re.sub(r'//[^\n]*|"[^"\n]*"', '', ct) or 'GetTickCount() - g_chArmTick > 30000' not in ct:
+        problems.append('TruMenu.cpp: ChTick: no call of 0x5f2440, 30 s timeout')
+    # ---- (4) chapters
+    cs = fn_body(src, 'bool ChapSteps(')
+    if 'Out(steps, n, "save.backup kapitel;level.start %s 0", unit);' not in cs or '!ChOk()' not in cs:
+        problems.append('TruMenu.cpp: ChapSteps: other units in a level = level.start <unit> 0 (camera-hint checks)')
+    if '{"Kapitel (Stand behalten)", "Chapter (keep state)", "chapter.keep", "", kQbChoice, -1, kQcNone, kQvChapKeep,' not in src:
+        problems.append('TruMenu.cpp: kQbChapters: choice row "Kapitel (Stand behalten)" (chapter.keep) missing')
+    if 'Out(steps, sizeof(steps), "save.backup kapitel;level.load %s", unit);' not in fn_body(src, 'bool RunChapKeep('):
+        problems.append('TruMenu.cpp: RunChapKeep must load with level.load after the backup')
+    # ---- (5) puzzles
+    pz = src[src.find('// ---- 0.22.56 puzzles nearby'):src.find('// ---- end of 0.22.56 puzzles nearby')]
+    pzc = re.sub(r'//[^\n]*', '', pz)
+    if not pz: problems.append('TruMenu.cpp: section "0.22.56 puzzles nearby" missing')
+    for bad in ('kJtSetLimits', 'JtLimitsFn', 'kUberMsg', '0x4d7680', 'kJtLimitOn'):
+        if bad in pzc: problems.append('TruMenu.cpp: the puzzle section must not use %s (no limits, no set node)' % bad)
+    for want in ('tlact::CmdExec(x, g_pzFig.cmd[q])', 'tlact::DriveBegin(g_pzHold, d);', 'tlact::PlaceBody(inst, target, nullptr)',
+                 'd.holdOff = true;', 'tlobj::RunChecks(g_tlGrp'):
+        if want not in pzc: problems.append('TruMenu.cpp: puzzle section lacks %s' % want)
+    if re.search(r'\b(48[0-9]{2}|45[0-9]{2}|46[0-9]{2})\b', pzc):
+        problems.append('TruMenu.cpp: no intro ids in the puzzle code (hints come from the loaded instances)')
+    for item in ('puzzle.figures', 'puzzle.hold', 'puzzle.bring', 'chapter.keep'):
+        if '{"%s", "action",' % item not in src: problems.append('TruMenu.cpp: item %s missing' % item)
+    if 'PzGameTick();' not in fn_body(src, 'DWORD WINAPI PadHook('):
+        problems.append('TruMenu.cpp: PadHook must run PzGameTick once per game frame')
+    if '"joint.set", q.arg' in fn_body(src, 'void QbPzAct('):
+        problems.append('TruMenu.cpp: QbPzAct must not run the old joint.set solve')
+    readme = open(os.path.join(ROOT, 'src', 'asi', 'TruMenu', 'README.md'), encoding='utf-8-sig').read()
+    if '## 0.22.56' not in readme or 'TO TEST 0.22.56' not in readme:
+        problems.append('README.md: section "## 0.22.56" with "TO TEST 0.22.56" missing')
+    return problems, 'notes (3 exports), camera hints (6 byte checks), chapter rows in a level, chapter.keep, puzzle section'
 
 
 def check_02227(ini_path, switches_path):
@@ -7970,6 +8056,10 @@ def main(argv):
     for p in cproblems55: print('Q02255 %s' % p)
     if not cproblems55: print('ok: 0.22.55 %s' % csummary55)
     problems += cproblems55
+    cproblems56, csummary56 = check_02256()   # 0.22.56 (puzzle helpers, notes, P3 fixes, package P2b)
+    for p in cproblems56: print('Q02256 %s' % p)
+    if not cproblems56: print('ok: 0.22.56 %s' % csummary56)
+    problems += cproblems56
     cproblems27, csummary27 = check_02227(ini_path, opt.get('--switches', SWITCHES))   # 0.22.27
     for p in cproblems27: print('Q02227 %s' % p)
     if not cproblems27: print('ok: 0.22.27 %s' % csummary27)

@@ -91,7 +91,7 @@ The menu window holds collapsible pages. The id in brackets is the item that the
 | Outfits (next level load) | the same costume facts, then one button per **player record of the game's type table** (index, name, object id; `[chosen]` / `[current]` marked), "Reset chosen costume", checkbox "reload the current unit after choosing" | `costume.records`, `costume.current`, `costume.choose <index\|name> [20c\|210]`, `costume.choosereload <index\|name>`, `costume.choosereset`; the 0.2 ids `costume.setreload` / `costume.reset` still work. **0.3 changed** `costume.list` (now the live cycle list; the 0.2 list = `costume.records`) and `costume.set` (now the live switch; the 0.2 meaning = `costume.choose`) |
 | Overlay: Lara's position | checkbox for a small top-left overlay with Lara's position and heading; position / rotation in the page | `overlay.position`, `player.position` |
 | Free camera | known facts; experimental `CAMERA_SetMode(mode)` with a mode slider (TRLAU enters its free camera with mode 11; TruLink notes that retail switches only for 6, 11, 12) and "Restore game camera". **TODO** own free camera (moving the camera transform with the sticks) | `camera.current`, `camera.mode <n>`, `camera.restore`, `camera.free` (todo) |
-| Cheat / flight | `GameTracker.cheatMode` + player message 12 (TRLAU "skew" cheat); while on and the menu is closed **RT lifts, LT lowers** Lara (`[Cheat] FlightSpeed` per 30 fps frame); 0.21.6: a key line bottom right while flying (`[Cheat] FlightHint`) | `cheat.flight [0/1]`, `cheat.speed <v>` |
+| Cheat / flight | `GameTracker.cheatMode` + player message 12 (TRLAU "skew" cheat); while on and the menu is closed **RT lifts, LT lowers** Lara (`[Cheat] FlightSpeed` per 30 fps frame); 0.21.6: a key line bottom right while flying (`[Cheat] FlightHint`); 0.22.55: a TruMenu level load ends the flight unless `[Cheat] FlightKeepOnLoad=1` | `cheat.flight [0/1]`, `cheat.speed <v>`, `flight.keep [0/1]` |
 | Markup / collision draw | 0.3: experimental markup drawing (boxes / poly lines of the MarkupManager projected with the game's view matrix into ImGui's background draw list), "ledges only", projected-space size. `draw.debugflag` was **removed** (debugFlags2 0x100 is the TR7 / TRAE path, catalog section 7) | `draw.markup [0/1]`, `draw.ledges [0/1]`, `draw.scale <w> <h>` |
 | Quick access / Favourites | 0.3, **first page, open when the menu opens** (Status is now collapsed): one widget per favourite id (bool = checkbox, info = value, other = button that runs the item with its default argument); **Y** on an item pins / unpins it (on this page, in "Add an item" and on the Developer menu rows - other pages: use "Add an item" or TruLink); saved in `[Favorites] Ids`; default list (empty `Ids`): `player.invincible, player.health, time.scale, time.pause, level.reload, overlay.position, log.overlay, costume.next` (`camera.free` is skipped while it is a todo) | `fav.list`, `fav.add <id>`, `fav.del <id>` |
 | Developer menu (original) | 0.3: Crystal's own debug menu, read at load from the tables in `.data` and drawn row by row: page links switch pages, flags / bools as checkboxes, ints as sliders / inputs with the table's limits, actions as buttons; the table's callbacks / functions run on the game thread. Every row shows its static facts (who reads the target in retail, empty functions) in blue; "All pages" lists every page, also those the retail root no longer links | `dev.list`, `dev.<label slug>` (42 ids, list below) |
@@ -2927,6 +2927,79 @@ Reihenfolge fest (Flacker-Test)".
   cannot arm the pause for the next cutscene), step only while held. The pause badge shows a second line with the keys /
   combos as set now (e.g. `LB + View = weiter . RB + View = 1 Bild . LB + RB + View = Foto`), built from the INI values,
   so it follows any change.
+
+## 0.22.55 - Aktuelles Kapitel neu laden, flight off after a load, doppelganger_casual guard, level not found, 290 units per metre, multibody part labels, poles without a hole (2026-11-16)
+
+Build `work\asi\menu0278`, not installed (package P2a of the workspace `docs\Pakete-1611.md`; owner notes of the
+chapel / villa evening 2026-11-15). "(unproven)" marks a reason that is not proven by code / logs.
+
+- **Kapitel: `Aktuelles Kapitel neu laden` / `Reload current chapter`** (first row, `chapter.reload`, right / X twice):
+  the start of Lara's current chapter. The chapter comes from page Kapitel's own table (`kChapOrder`): Lara's unit
+  (stream entry, else GameTracker+0x38), its first row (a unit with a return visit counts as its way in), then back to
+  the nearest row of the same group whose heading is a chapter start (`Kapitel ...` / `Prolog ...`), else the group's
+  first row - in DLC 1 / DLC 2 that is `dlc_level1_start` / `dlc_level2_start`. The unit then runs through `ChapSteps`,
+  the one path of the chapter rows: `save.backup kapitel`, then in a level the pause menu's DLC start (`level.start
+  dlc1|dlc2`, the new-game block: the unit's own costume, DLC 2's doppelganger) or, for a base-game chapter,
+  `level.load` (debug, no story values - the only in-level path verified for those units). `Unit neu laden` stays the
+  unit reload. Greyed without a level. Long menu: Level select, button `Reload current chapter`.
+- **Fliegen nach Kapitel-Laden beibehalten** (`flight.keep`, `[Cheat] FlightKeepOnLoad`, default **0**, row under
+  Fliegen / Flug-Tempo on page Figur, checkbox on the long menu's Cheat page): the game keeps GameTracker.cheatMode over
+  a level change (15.11. 20:25: flight from a checkpoint row stayed on over the next `level.load`). With 0 every level
+  load TruMenu starts ends the flight first, as `cheat.flight 0` does (cheatMode 0, message 12 (0) to the player):
+  `level.load` / `level.reload` / the chapter and unit rows / `unit.go`'s load (LoadUnit), the mission start from the
+  main menu and the in-level DLC start (after their refusals). Log `0.22.55 flight off before ...`. 1 = flight stays.
+- **Checkpoint rows never turn flight on:** `cp.jump` ends with `player.goto <intro>` (base game: `... force`) instead
+  of `dbg.cpgo` / `cheat.flight 1;player.goto`; `unit.go`'s portal path still flies Lara to the portal, so a row that
+  started without flight ends with `cheat.flight 0`. A checkpoint is the game's own respawn place, on the floor
+  (unproven for every checkpoint - live test 7).
+- **Kostuem `doppelganger_casual` (857) gesperrt** (15.11. 22:11, `costume.set 857` in `dlc_caverns` froze the game:
+  wait loop 0x5551d9 -> 0x6f5cxx, the handle resolver 0x5b39d0 always 0 - an instance that never comes; which one is
+  unproven, likely the shadow weapons of message 35): the live switch to it (`costume.set`, `costume.next` when it is
+  next, the page Kostueme rows / choice row) is refused unless the doppelganger flag `[[0xfadb58]+0x1244]` is set
+  (DoppelgangerInit, i.e. TruDlc2Player set her up in this level). The row says `gesperrt (friert ein)` / `nur DLC 2`.
+  The next-load choice (`costume.choose`) is unchanged (no freeze seen there).
+- **Level not found:** `level.load` / `level.reload` / `level.start` / the chapter rows refuse a name that is neither in
+  the level list (`kUnits`, PC unitlist.txt) nor a `mods\<unit>.drm` - before the backup step, with a log line
+  `0.22.55 level not found`. The engine has no exists test (`Can't open file` + exit, or an endless loading screen).
+- **Markup scale:** every metre text of the debug labels (`[Debug] DistMetres`: distance, `^` height, `v` depth) and the
+  debug-view log lines (RoomOnly / RoomNear / OcclNear) use `kUnitsPerMetre` = 290 game units per metre - the constant
+  of TruLink and ENGINE 4.3 (280 .. 310, not proven exactly). Was 100 units = 1 m: hole 4824 said `10.3m`, TruLink
+  about 3.5 m. The 50-unit height threshold and the `[Debug]` distances in game units are unchanged.
+- **Labels of multi-part objects** (15.11. ~23:50: the turning pedestal of `ma_rb_shadow_door_b` had no label): every
+  link of a multibody object has its +0x20 at the anchor's reference point, so the six parts were drawn on one spot and
+  the uber labels merged them into one `x 6`. A part (uber state b, b+0x7c = X, the instance in X's link table +0x6c /
+  count +0x70 with a valid stamp) is now labelled at its model: bone 0 `[[inst+0x90]+0x30]` (the matrix the engine
+  transforms object markup with, 0.22.43 W5) and named `<object> (middle dot) Teil n/N (<node>)` (n = the link index,
+  TruLink's `link n`) - object names, uber labels and the Kapitel puzzle list. A bone 0 farther than 20000 units from
+  +0x20 is not used. 5 byte checks (`kMbChecks`, log `0.22.55 multibody part labels ...`). Whether bone 0 sits at the
+  visible part of every part model is unproven (live test 11).
+- **Poles without a hole:** a `ma_pt_pole_a` whose stream unit (+0xe0) has no `ma_pt_pole_hole` and to which no
+  `instanceref` member of any loaded instance points is marked `kein Loch (Original-Daten)` / `no hole (original data)`,
+  on its name label and as a list row in Kapitel / Raetsel in der Naehe (within UberRadius). Not "unused": the static
+  Xbox / PC cross-check of package P6 found pole 4686 listed in the manor units' shared `modifiable` script (with
+  neighbour objects) - it is referenced by a script, it only has no hole / holder. Decided at run time (object names +
+  script members as TruLink 0.4 reads them, at most every 2 s); no id list in the source; units that are not loaded are
+  not seen. One log line per pole and verdict `0.22.55 pole ma_pt_pole_a <intro> ...`.
+- Small items: `trumenu_quick_check` `menupages` wants 29 page keys (the page Erfolge of 0.22.34 had made it fail since);
+  "Filter folgt Stumm": default 1 in kOpts / TruMenu.ini / switches row checked - nothing to change.
+
+### TO TEST 0.22.55
+
+| # | Where | Do | Expected |
+|---|---|---|---|
+| 1 | start | read `TruMenu.log` | `0.22.55 multibody part labels at bone 0 + unused poles: checks ok (5 rows)` |
+| 2 | DLC 1, a unit after the start (e.g. `dlc_caverns`) | Kapitel -> `Aktuelles Kapitel neu laden`, right 2x | footer `DLC 1 Unter der Asche: dlc_level1_start - Sicherung, dann Start wie das Spiel`; backup `kapitel`; DLC 1 starts as from the pause menu (outfit / weapon screen) |
+| 3 | DLC 2, e.g. `dlc2_ceremony_room` | same | DLC 2 start (no selection), doppelganger set up |
+| 4 | base game, e.g. `l3_chapel` | same | footer names the chapter heading (`Kapitel 3.1 ...` / `Prolog`), `level.load` of its first unit |
+| 5 | Figur | `Fliegen` on, then a chapter / unit row (right 2x) | after the load Lara does not fly; log `0.22.55 flight off before level.load ...` |
+| 6 | Figur | `Fliegen nach Kapitel-Laden beibehalten` on, repeat 5 | flight stays on; TruMenu.ini `FlightKeepOnLoad=1`; switch it off again |
+| 7 | Kapitel, a unit's `CP` row (flight off before) | right 2x | Lara at the checkpoint, on the floor, flight off afterwards (shortcut log ends with `cheat.flight 0`) |
+| 8 | DLC 1, page Kostueme | `Alle Kostueme` -> `doppelganger_casual` | grey `gesperrt (friert ein)` / `nur DLC 2`, right = the reason in the footer, **no freeze**; the choice row skips it |
+| 9 | DLC 2 start (doppelganger) | same row | not greyed (flag set), the switch works as before |
+| 10 | command line | `level.load xyz_nichtda` | `refused: level not found ...`, nothing loads |
+| 11 | l3_chapel, Debug view names + uber labels | look at the shadow door | one label per part; the pedestal labelled `ma_rb_shadow_door_b ... Teil 2/6 (start / turn)` at the pedestal |
+| 12 | l3_chapel, hole 4824 / pole 4823 | read the label metres | about 3.5 m / 2.5 m (was 10.3 m / 7.1 m) |
+| 13 | l3_secretchamber, pole 4686 | names layer / Kapitel -> Raetsel | `kein Loch (Original-Daten)`; log `0.22.55 pole ma_pt_pole_a 4686 ... NO HOLE`; the chapel pole 4823 is NOT marked |
 
 ## 0.22.54 - two crash fixes (sub-group mute, sonar close after extra loads), sound switches reset at start, Menue-Musik (2026-11-15 evening)
 

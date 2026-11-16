@@ -277,8 +277,8 @@ TruMenu | Debug | TriggerNearest | int:0..64:1 | Trigger: nur mit Lara + n näch
 TruMenu | Debug | TriggerCornerId | bool | Trigger-Nummer an der Kastenecke | Trigger id at a box corner | restart | 1 | Intro-Id an einer Ecke, blass wie die Kanten // Intro id at one corner, faded like the edges | TruMenu 0.22.38
 # 2026-11-14 (W3): TruMenu 0.22.42 - room rule, near labels, de-clutter, empty jars; read at the start (dbg.roomnear /
 # dbg.occlnear / dbg.emptypots switch the first three at once)
-TruMenu | Debug | RoomNear | int:0..20000:500 | Nur Raum: auch Objekte im Umkreis (0 = nur Unit) | Room only: also objects nearby (0 = unit only) | restart | 3000 | Spieleinheiten, 100 = 1 m; Grund im Log // Game units, 100 = 1 m; reason in the log | TruMenu 0.22.42
-TruMenu | Debug | OcclNear | int:0..5000:100 | Nie blass im Umkreis um Lara | Never faded near Lara | restart | 600 | Spieleinheiten, 100 = 1 m (0 = aus) // Game units, 100 = 1 m (0 = off) | TruMenu 0.22.42
+TruMenu | Debug | RoomNear | int:0..20000:500 | Nur Raum: auch Objekte im Umkreis (0 = nur Unit) | Room only: also objects nearby (0 = unit only) | restart | 3000 | Spieleinheiten, ~290 = 1 m; Grund im Log // Game units, ~290 = 1 m; reason in the log | TruMenu 0.22.42
+TruMenu | Debug | OcclNear | int:0..5000:100 | Nie blass im Umkreis um Lara | Never faded near Lara | restart | 600 | Spieleinheiten, ~290 = 1 m (0 = aus) // Game units, ~290 = 1 m (0 = off) | TruMenu 0.22.42
 TruMenu | Debug | HideEmptyPots | bool | Leere Krüge ausblenden | Hide empty jars | restart | 1 | Nur Krüge mit Belohnung (noch nicht geholt) // Only jars with a reward (not collected yet) | TruMenu 0.22.42
 TruMenu | Debug | LabelStack | int:0..8:1 | Etiketten stapeln (Stufen) | Stack labels (steps) | restart | 3 | Verdecktes Etikett rückt so oft nach oben // A covered label moves up this often | TruMenu 0.22.42
 TruMenu | Debug | LabelCellMax | int:0..40:1 | Etiketten je Bildfeld (0 = alle) | Labels per screen cell (0 = all) | restart | 5 | Raster 8 x 6 über dem Bild // Grid of 8 x 6 over the picture | TruMenu 0.22.42

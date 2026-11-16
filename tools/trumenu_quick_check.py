@@ -4002,7 +4002,9 @@ def mp_load(keys, value, default='totest,quick'):   # MpLoad: (list, logged)
 def check_menupages():
     _, keys = qb_page_names()
     cases = []
-    cases.append(('28 page keys, unique, defaults totest / quick among them', len(keys) == 28 and len(set(keys)) == 28
+    # 0.22.55 (A10): 29 since the page Erfolge / achievements (0.22.34, Q20) - the check had failed since then
+    # (work/menu55_1611/page_count.py lists the keys)
+    cases.append(('29 page keys, unique, defaults totest / quick among them', len(keys) == 29 and len(set(keys)) == 29
                   and 'totest' in keys and 'quick' in keys))
     cases.append(('default list -> TO TEST + Quick access open', mp_load(keys, 'totest,quick') == ('totest,quick', False)))
     cases.append(('unknown key dropped (logged), the rest kept in page order',

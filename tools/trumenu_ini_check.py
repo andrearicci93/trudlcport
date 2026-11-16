@@ -5473,11 +5473,13 @@ def check_02244(switches_path):
     header, opt_rows = table(src)
     # 0.22.44 added none, 0.22.45 the three [Sound] wave log keys, 0.22.47 the seven sound monitor / sonar keys, 0.22.48
     # the three [Sonar] keys, 0.22.49 [Sonar] AllFloors + TriangleCap, 0.22.50 the 11 [Sound] keys of W8_KEYS_02250,
-    # 0.22.51 the three keys of S5_KEYS_02251, 0.22.53 the six keys of W11_KEYS_02253, 0.22.54 [Sound] ResetAtStart
+    # 0.22.51 the three keys of S5_KEYS_02251, 0.22.53 the six keys of W11_KEYS_02253, 0.22.54 [Sound] ResetAtStart,
+    # 0.22.55 [Cheat] FlightKeepOnLoad
     if len(opt_rows) != 283 + len(W6_KEYS_02245) + len(W7_KEYS_02247) + len(SO_KEYS_02248) + 2 + len(W8_KEYS_02250) + \
-            len(S5_KEYS_02251) + len(W11_KEYS_02253) + 1:
+            len(S5_KEYS_02251) + len(W11_KEYS_02253) + 1 + 1:
         problems.append('TruMenu.cpp: kOpts has %d keys - 0.22.44 adds no INI key (283), 0.22.45 adds %d, 0.22.47 adds %d, '
-                        '0.22.48 adds %d, 0.22.49 adds 2, 0.22.50 adds %d, 0.22.51 adds %d, 0.22.53 adds %d, 0.22.54 adds 1' % (
+                        '0.22.48 adds %d, 0.22.49 adds 2, 0.22.50 adds %d, 0.22.51 adds %d, 0.22.53 adds %d, 0.22.54 adds 1, '
+                        '0.22.55 adds 1' % (
                             len(opt_rows), len(W6_KEYS_02245), len(W7_KEYS_02247), len(SO_KEYS_02248), len(W8_KEYS_02250),
                             len(S5_KEYS_02251), len(W11_KEYS_02253)))
     readme = open(os.path.join(ROOT, 'src', 'asi', 'TruMenu', 'README.md'), encoding='utf-8').read()
@@ -7103,8 +7105,8 @@ def check_02254(switches_path):
     src = read_cpp()
     code = re.sub(r'//[^\n]*', '', src)
     ver = src[:src.find('\n', src.find('kVersion = '))]
-    if '"TruMenu 0.22.54 (two crash fixes + sound switches reset at start' not in ver:
-        problems.append('TruMenu.cpp: kVersion must start with "TruMenu 0.22.54 (two crash fixes ..."')
+    if '0.22.54 (two crash fixes + sound switches reset at start' not in ver:   # 0.22.55: a later part
+        problems.append('TruMenu.cpp: kVersion must hold the 0.22.54 part "0.22.54 (two crash fixes ..."')
     # ---- (2) kHow + format annotations
     if not re.search(r'kW6Sub,[^\n]*\n\s*kW6Kinds \};', src):
         problems.append('TruMenu.cpp: the rule kinds must end with kW6Sub, kW6Kinds')
@@ -7203,6 +7205,122 @@ def check_02254(switches_path):
         problems.append('README.md: section "## 0.22.54" with "TO TEST 0.22.54" missing')
     return problems, 'kHow per kind + format annotations, S7FreshEntry (%d byte checks), ResetAtStart, mu_menu, no heading' % \
         len(sv_rows(src, 'kS7Checks'))
+
+
+def check_02255():
+    """0.22.55 (package P2a, docs/Pakete-1611.md; owner live notes 2026-11-15): (1) kVersion starts with 0.22.55; (2) page
+    Kapitel row chapter.reload first (kQfConfirm), Lara's chapter start from kChapOrder ("Kapitel " / "Prolog" headings)
+    through ChapSteps + ShortcutStart; (3) [Cheat] FlightKeepOnLoad default 0, item flight.keep (bool) right after
+    Flug-Tempo, FlightOffForLoad before the request in LoadUnit / after the refusals in LevelStartInGame / before
+    MissionCall, cp.jump without cheat.flight 1 / dbg.cpgo and with the trailing cheat.flight 0; (4) doppelganger_casual
+    refused for the live switch without the doppelganger flag (CosBlocked in SwitchCostume before 0x6f0a90, in the
+    costume rows); (5) UnitNotFound in LoadUnit / RunLevelStart / ChapSteps; (6) kUnitsPerMetre 290 in DvDistText; (7)
+    kMbChecks (5 rows), MbPartOf (link table +0x6c / +0x70, stamp +0x44, bone 0 +0x90 / +0x30) before the same-place merge
+    of the uber labels and before DvVisible of the names; (8) the pole scan by object name + instanceref members, no id
+    list; (9) README"""
+    problems = []
+    src = read_cpp()
+    code = re.sub(r'//[^\n]*', '', src)
+    ver = src[:src.find('\n', src.find('kVersion = '))]
+    if '"TruMenu 0.22.55 (chapter page + display fixes' not in ver:
+        problems.append('TruMenu.cpp: kVersion must start with "TruMenu 0.22.55 (chapter page + display fixes ..."')
+    # ---- (2) chapter.reload
+    ch = [r for r in qb_rows(src) if r[0] == 'kQbChapters']
+    if not ch or (ch[0][2], ch[0][3], ch[0][4]) != ('chapter.reload', '', 'kQbAction'):
+        problems.append('TruMenu.cpp: kQbChapters must start with the row chapter.reload (action)')
+    if item_types(src).get('chapter.reload') != 'action': problems.append('TruMenu.cpp: item chapter.reload (action) missing')
+    rc = re.sub(r'//[^\n]*', '', fn_body(src, 'bool RunChapReload('))
+    seq = [rc.find('ChapReloadPlan('), rc.find('ChapSteps(unit, steps, sizeof(steps), &menu, why, sizeof(why))'),
+           rc.find('ShortcutStart(steps, title,')]
+    if any(x < 0 for x in seq) or seq != sorted(seq):
+        problems.append('TruMenu.cpp: RunChapReload must plan, then ChapSteps, then ShortcutStart (%s)' % seq)
+    cs = fn_body(src, 'const ChapOrder *ChapStartOf(')
+    for want in ('!strncmp(h, "Kapitel ", 8)', '!strncmp(h, "Prolog", 6)', 'strcmp(kChapOrder[i].group, group)'):
+        if want not in cs: problems.append('TruMenu.cpp: ChapStartOf lacks %s' % want)
+    # ---- (3) flight
+    header, opt_rows = table(src)
+    if {(s, k): d for s, k, d, _ in opt_rows}.get(('Cheat', 'FlightKeepOnLoad')) != '0':
+        problems.append('TruMenu.cpp: kOpts [Cheat] FlightKeepOnLoad=0 missing')
+    if item_types(src).get('flight.keep') != 'bool': problems.append('TruMenu.cpp: item flight.keep (bool) missing')
+    lara = [(r[2], r[3], r[4]) for r in qb_rows(src) if r[0] == 'kQbLara']
+    k = lara.index(('cheat.speed', '', 'kQbValue')) if ('cheat.speed', '', 'kQbValue') in lara else -1
+    if k < 0 or lara[k + 1:k + 2] != [('flight.keep', '', 'kQbBool')]:
+        problems.append('TruMenu.cpp: page Figur needs the row flight.keep right after Flug-Tempo')
+    if 'InterlockedExchange(&g_flightKeep, OptInt(ini, "Cheat", "FlightKeepOnLoad") != 0 ? 1 : 0);' not in \
+            fn_body(src, 'void ReadOptions('):
+        problems.append('TruMenu.cpp: ReadOptions must read [Cheat] FlightKeepOnLoad')
+    fo = fn_body(src, 'void FlightOffForLoad(')
+    for want in ('if (g_flightKeep) return;', '(kCheatMode) = 0;', '(reinterpret_cast<void *>(player), 12, 0)', 'g_flight = false;'):
+        if want not in fo: problems.append('TruMenu.cpp: FlightOffForLoad lacks %s' % want)
+    lu = re.sub(r'//[^\n]*', '', fn_body(src, 'bool LoadUnit('))
+    seq = [lu.find('UnitNotFound(unit, o, n)'), lu.find('FlightOffForLoad("level.load");'),
+           lu.find('reinterpret_cast<LevelChangeFn>(kLevelChange)')]
+    if any(x < 0 for x in seq) or seq != sorted(seq):
+        problems.append('TruMenu.cpp: LoadUnit must check the unit, end the flight, then request (%s)' % seq)
+    lg = re.sub(r'//[^\n]*', '', fn_body(src, 'bool LevelStartInGame('))
+    seq = [lg.find('if (CinematicNow())'), lg.find('FlightOffForLoad('), lg.find('reinterpret_cast<MissionStartFn>(kUgdF27)')]
+    if any(x < 0 for x in seq) or seq != sorted(seq):
+        problems.append('TruMenu.cpp: LevelStartInGame must end the flight after its refusals, before f27 (%s)' % seq)
+    ls = re.sub(r'//[^\n]*', '', fn_body(src, 'bool RunLevelStart('))
+    seq = [ls.find('UnitNotFound(name, o, n)'), ls.find('FlightOffForLoad("the mission start");'), ls.find('MissionCall(args, select)')]
+    if any(x < 0 for x in seq) or seq != sorted(seq):
+        problems.append('TruMenu.cpp: RunLevelStart must check the unit and end the flight before MissionCall (%s)' % seq)
+    cj = re.sub(r'//[^\n]*', '', fn_body(src, 'bool RunCpJump('))
+    if 'cheat.flight 1' in cj or 'dbg.cpgo %ld' in cj: problems.append('TruMenu.cpp: cp.jump must not turn flight on')
+    if 'const char *off = flying ? "" : ";cheat.flight 0";' not in cj:
+        problems.append('TruMenu.cpp: cp.jump must end with cheat.flight 0 when flight was off')
+    # ---- (4) costume 857
+    cb = fn_body(src, 'bool CosBlocked(')
+    for want in ('"doppelganger_casual"', 'ReadDword(0x00fadb58, &tracker)', 'ReadByte(tracker + 0x1244, &dg) && dg) return false;'):
+        if want not in cb: problems.append('TruMenu.cpp: CosBlocked lacks %s' % want)
+    sc = re.sub(r'//[^\n]*', '', fn_body(src, 'bool SwitchCostume('))
+    if not 0 <= sc.find('CosBlocked(target,') < sc.find('reinterpret_cast<VoidFn>(kCostumeSwitch)()'):
+        problems.append('TruMenu.cpp: SwitchCostume must refuse a blocked costume before 0x6f0a90')
+    if 'CosBlocked(g_cos.ids[i], de, block, sizeof(block))' not in fn_body(src, 'int QbCosRows('):
+        problems.append('TruMenu.cpp: QbCosRows must grey a blocked costume')
+    if 'CosBlocked(static_cast<int>(q.intro), de, block, sizeof(block))' not in fn_body(src, 'void QbCosAct('):
+        problems.append('TruMenu.cpp: QbCosAct must refuse a blocked costume row')
+    # ---- (5) level not found
+    nf = fn_body(src, 'bool UnitNotFound(')
+    if 'UnitIndexOf(unit) >= 0 || UnitNameInNoArchive(unit) || !UnitModsDrmMissing(unit)) return false;' not in nf:
+        problems.append('TruMenu.cpp: UnitNotFound must pass the level list, the Q105 names and an existing mods drm')
+    if 'if (UnitNotFound(unit, o, on)) return false;' not in fn_body(src, 'bool ChapSteps('):
+        problems.append('TruMenu.cpp: ChapSteps must refuse a missing unit before the backup step')
+    # ---- (6) metres
+    if 'const float kUnitsPerMetre = 290.0f;' not in src: problems.append('TruMenu.cpp: kUnitsPerMetre 290 missing')
+    dd = re.sub(r'//[^\n]*', '', fn_body(src, 'void DvDistText('))
+    if '/ 100.0f' in dd or dd.count('/ kUnitsPerMetre') != 2:
+        problems.append('TruMenu.cpp: DvDistText must divide distance and height by kUnitsPerMetre')
+    # ---- (7) multibody parts
+    mb = src[src.find('const NavCheckBytes kMbChecks[] = {'):]
+    n_mb = len(re.findall(r'\{0x[0-9a-fA-F]{8},', mb[:mb.find('\n};')]))
+    if n_mb != 5: problems.append('TruMenu.cpp: kMbChecks must hold 5 rows (%d)' % n_mb)
+    mp = fn_body(src, 'bool MbPartOf(')
+    for want in ('ReadDword(x + 0x70, &count)', 'ReadDword(x + 0x6c, &table)', 'ReadDword(inst + 0x44, &now) || now != stamp',
+                 'ReadDword(inst + 0x90, &mats)', 'ReadFloats(mats + 0x30, p, 3)', 'fabsf(p[c] - o[c]) < kMbFar'):
+        if want not in mp: problems.append('TruMenu.cpp: MbPartOf lacks %s' % want)
+    ul = re.sub(r'//[^\n]*', '', fn_body(src, 'void DrawUberLabels('))
+    if not 0 <= ul.find('MbPartOf(g_ubCand[i].inst, &parts[i])') < ul.find('int dupOf[33], dupN[33];'):
+        problems.append('TruMenu.cpp: DrawUberLabels must move the parts before the same-place merge')
+    dn = re.sub(r'//[^\n]*', '', fn_body(src, 'void DvDrawNames('))
+    if not 0 <= dn.find('MbPartOf(inst, &part) && part.posOk') < dn.find('DvVisible(c, p, 100.0f, &d2)'):
+        problems.append('TruMenu.cpp: DvDrawNames must take the part position before DvVisible')
+    if 'MbCheck();' not in re.sub(r'//[^\n]*', '', fn_body(src, 'void Start(')):
+        problems.append('TruMenu.cpp: Start must run MbCheck')
+    # ---- (8) poles: by name at run time, no id list
+    ps = fn_body(src, 'void PlScan(')
+    for want in ('ObjectId("ma_pt_pole_a")', 'ObjectId("ma_pt_pole_hole")', 'ReadDword(inst + 0xe0, &unit)', 'PlIsInstRef('):
+        if want not in ps: problems.append('TruMenu.cpp: PlScan lacks %s' % want)
+    if '"instanceref"' not in fn_body(src, 'bool PlIsInstRef('): problems.append('TruMenu.cpp: PlIsInstRef must test the type name')
+    if re.search(r'const (?:LONG|DWORD|int|WORD) kPl[A-Za-z]*\[\]', code):
+        problems.append('TruMenu.cpp: no pole id table in the source (game data) - the scan decides at run time')
+    if 'PlVerdict(d.inst) == 1' not in fn_body(src, 'void DvDrawNames(') or 'PlScan();' not in fn_body(src, 'void PzRefresh('):
+        problems.append('TruMenu.cpp: the names layer and the puzzle list must show the pole verdict')
+    readme = open(os.path.join(ROOT, 'src', 'asi', 'TruMenu', 'README.md'), encoding='utf-8-sig').read()
+    if '## 0.22.55' not in readme or 'TO TEST 0.22.55' not in readme:
+        problems.append('README.md: section "## 0.22.55" with "TO TEST 0.22.55" missing')
+    return problems, ('chapter.reload, FlightKeepOnLoad + cp.jump without flight, doppelganger_casual guard, level not found, '
+                      '290 units / m, multibody part labels (%d byte checks), pole scan' % n_mb)
 
 
 def check_02227(ini_path, switches_path):
@@ -7848,6 +7966,10 @@ def main(argv):
     for p in cproblems54: print('Q02254 %s' % p)
     if not cproblems54: print('ok: 0.22.54 %s' % csummary54)
     problems += cproblems54
+    cproblems55, csummary55 = check_02255()   # 0.22.55 (chapter page + display fixes, package P2a)
+    for p in cproblems55: print('Q02255 %s' % p)
+    if not cproblems55: print('ok: 0.22.55 %s' % csummary55)
+    problems += cproblems55
     cproblems27, csummary27 = check_02227(ini_path, opt.get('--switches', SWITCHES))   # 0.22.27
     for p in cproblems27: print('Q02227 %s' % p)
     if not cproblems27: print('ok: 0.22.27 %s' % csummary27)

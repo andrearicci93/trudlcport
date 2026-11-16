@@ -63,7 +63,7 @@ extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg
 
 namespace {
 
-const char *const kVersion = "TruMenu 0.22.54 (two crash fixes + sound switches reset at start, owner 2026-11-15 evening: (1) snd.mute of a sub-group (snd.hear <sub> stumm, 0.22.53) read kHow[7] past the end of its 7 texts - the %s of the log line took the bytes 'ever' as a pointer (TruMenu+0x13aec6 strnlen, main menu music); one text per rule kind now (static_assert) and the index checked; every format string of Log / Out / LabelAdd / TextAdd / IniPut / Text / ShotNote / LxAppend / SndNote / ClkNote / QbResult and the ImGui text calls checked by MSVC /analyze (_Printf_format_string_, work\\fmt_1511\\Test-TruMenuFormats.ps1): 2 sign mismatches fixed; (2) the sonar extra loads (S7): the find 0x6e2a60 appends a new list entry whose constructor 0x6dd820 leaves the load handle +0x88 unset - S7Extend took that heap garbage for 'requested already' (no load, the recursion stopped after one step) and the close 0x6dff20 -> 0x6dd780 passed it to 0x54f050 (tru+0x14f05d, 1.0f as a handle); a new entry gets +0x88 / +0xb2 / +0xb4 = 0 at once (S7FreshEntry), 6 more byte checks (23); (3) [Sound] ResetAtStart (default 1, row 'Ton-Schalter beim Start zuruecksetzen'): MuteMusic / MuteAmbient / ReverbOff back to 0 at every start, also in TruMenu.ini; the log filters, ReverbFollowsMute and SonarMute stay; (4) sub-group mu_menu 'Menue-Musik' = group 1 (the main theme stream), mu_music = g2-3, g10-12; (5) the heading row Schnell-Hoeren removed; the start line names LogFollowMute; (6) joint.set (owner 20:28, a door rail moved far the wrong way, out of its limits): target clamped into the joint's own limits, the lock point ramps from the value towards the target with a short lead, the drive stops at once when the value leaves the limits / moves away / overshoots, one log line per tick (value, velocity, lock), a row whose drive stood at the target without a node change says 'range not armed here (tried)')" " - 0.22.53 (sound log trees + kind Waffen + sonar extra loads + markups in the sonar view, owner wishes 2026-11-14 night (docs\\Status-2026-11-14.md W-53 / LT-2310): Spiel-Einstellungen / Ton / Ton-Log in the owner's layout - the settings rows, [+] Filter (Zeigen) (log display only: kind rows snd.logcat, sub-group rows snd.logsub, [Sound] LogHideSubs, 'Filter folgt Stumm' snd.logfollow [Sound] LogFollowMute default 1), the plain heading Schnell-Hoeren, [+] Stumm / Solo (sound only: Alles zurueck, Neuester Ton solo, Hall folgt Stumm, Hall aus, then per kind / sub-group one value row snd.hear normal / stumm / solo = snd.mute / snd.solo cat: / sub:); both trees kind -> named sub-groups of the game's sound groups (38, kW8Sub), nesting levels 2 / 3 (kQfLv2 / kQfLv3); a new kind Waffen (groups 51 / 52 / 58 / 59 / 61 / 62 / 63 - 'Stumm: Lara' no longer mutes the weapons), Lara's voice 68 / 69 and the DLC 2 player groups 77 / 78 are Lara's; a group-14 'world default' sound whose source is Lara or her gear (+0x54 = the player) = Waffen for a wp_* owner or a weapon-only wave of the data (optional TruMenu.weaponwaves.txt from weapon_waves.py - game data, not in the source), else Lara / Ausruestung; the monitor's voices under kind -> sub-group headings, the box lines and history rows name kind / sub-group; [Sonar] LoadNeighbourFloors / LoadAllConnected (default 0, with FullMap): R1 0x6e4e3f call 0x6e2e60 -> S7LoadStub (the game's neighbour rule first, then more units through the game's 0x6e2a60 / 0x6e4e80 inside the load callback, only in mode 1 with the pause byte 6 and no PDA map heap; caps LoadMaxUnits 24 and TriangleCap; released by the game's close 0x6dff20; 17 byte checks, one log line per open); the markup layer projects with the camera matrix 0xe804a0 while the sonar is open, like the trigger layer)" " - 0.22.52 (reverb mark + DSP graph + sonar shader fade + area colours + joint row fix, owner wishes 2026-11-14 late evening:the whole FMOD DSP graph walked (live 22:02: 189 units - one SFX Reverb, two ParamEQ inserts of groups 58 / 59, stream codecs, 162 group heads; static: createDSPByType only 0x586fda / 0x5839f3 (oscillator, played as its own channel) / 0x5876df (group / node effects = ChannelGroup::addDSP inserts behind the mute), DSP::addInput only 0x58223b / 0x584188) - the reverb send is the only path past FMOD's mute; a reverb mark per line in box and monitor (arcs = reverb audible, struck = muted by ReverbFollowsMute / ReverbOff, dot = no send), monitor rows for the graph and every effect, a muted voice's send zeroed at once (W10Sweep, 50 ms) and the voice update rate counted; [Sonar] FadeFar drives the real dimming = the face shader lib 192 of materials 3348 / 3349 (1/d falloff floor c110.x 0.5, fade to black c108.w .. c109.w 200 .. 600 m; 6 byte checks), fog off for every value != 0; [Sonar] TintOthers 2 = a muted colour per area with a legend in the sonar view state; page Kapitel Raetsel: no drive for an open-ended range on a free hinge (motion detector), the range cut to the joint's limits, our lock taken back after a node change) - 0.22.51 (sonar view + base PDA + X default + DLC start from a level + reverb follows mute, owner wishes 2026-11-14 evening: the game's SFX reverb (holder [0xccde98]) gets a send from every pool voice that FMOD's mute never reaches - 'Hall folgt Stumm' [Sound] ReverbFollowsMute = call redirects 0x591591 / 0x5841bf -> W9SendStub (a muted voice sends 0), 'Hall aus' [Sound] ReverbOff = reverb -> master setMix 0 (old level back on off), audible = not paused and (dry > 0 or send > 0 with the reverb out > 0) in box / monitor, a reverb row, 11 more byte checks; 'Sonar: Abblenden Ferne' [Sonar] FadeFar = the sonar view's fog (0 game: near = far = 65536, n m = fog n/2 .. n, -1 aus; call redirects 0x6e4d94 / 0x6e4bf9 -> S5FogStub); 'Bereich anzeigen' = one unit of the sonar's own list drawn (0x6e42ac -> S5UnitStub, no load, no camera move); 'andere Bereiche einfaerben' [Sonar] TintOthers = units but Lara's drawn with an amber draw colour [0xee03bc] for their call; sonar.why + the open line log the view centre / axis and per unit the cut plane of 0x6dfa60 ((v0 - centre) . axis < -4000); 'Shadow-PDA durch Basis-PDA ersetzen' [PDA] ShadowPdaAsBasePda = g_pda script 3347 f1 word 04000001 -> 04000000 (ScriptSection hash map 0x8a6ed0, only the DLC g_pda, only while the PDA is closed); X on a value row = its default, footer 'X: Standard'; Kapitel DLC rows in a level = the pause menu's DLC start (RegisterAcceptChanges case 8 as the title update: f27(unit, rule, 0, 1), f7, f19); command line: level.start suggests every unit, level.load in the main menu suggests level.start; 22 byte checks) - 0.22.50 (sound log readable + FMOD channels + source hooks, chapters from the main menu, owner wishes 2026-11-14: the bottom-right sound box per line with an on / off box from FMOD's own mute bit (ChannelI +0x74 bit 3), the group as text, the source, a loop mark (FMOD mode 0x2 / 0x4), repetitions collapsed (same wave + source = one line xn, newest on top), a 'laeuft gerade' block of the looping channels; filters per kind (Lara, enemies, world, objects, PDA / UI, speech, music), only audible, collapse, max distance ([Sound] Log*, live); quick hearing per kind mute / solo (snd.catmute / snd.catsolo = snd.mute / snd.solo cat:<kind>: whole groups + per channel + the FMOD channels outside the pool), newest sound solo, everything back; two code redirects V1 0x591351 (the wave node's Play call: voice -> emitter of the node) and E1 0x5b99fc (6 bytes after the untouched create call of the anim event, TruTrace keys on it: emitter -> instance), [Sound] SourceHooks; the owner list walk at most once a second and only while shown, W6EmitterOwner gone; the monitor counts every used FMOD channel (SystemI +0x150), shows FMOD's mute / pause, 'Fremdkanal (DSP)' rows and the music slots; ONE 'Ambient aus' (media.muteambient = snd.ambmute: groups 15 .. 24 + the '_amb_' beds, kept) and ONE 'Musik aus'; page Kapitel from the main menu = the game's mission start (level.start, DLC starts as the DLC menu), the DLC start rows refused in a level (level.load keeps Lara's costume), cp.jump from the main menu; 27 byte checks) - 0.22.49 (sonar all floors + map info, adrenaline options, owner wishes 2026-11-14:[Sonar] AllFloors with FullMap = the frame 0x6e4130 also draws the map units of other floors the sonar loaded itself (0x6e429b je -> nop nop; the game's open path loads the floor's units and their direct portal neighbours - no load added), item sonar.allfloors 'Alle verbundenen Bereiche'; info row sonar.unitmap 'Karte dieser Unit' (real N faces / placeholder only / no file, read from the sonar's unit list while it is open) and one log line per sonar open (floor, radius, view distance, every map unit with mask / state / faces); [Sonar] TriangleCap with FullMap (default 300000; the imm32 of 0x6dfa69 = the per-frame budget 93572 - only a counter: the triangles are flushed in batches of 2000 into the device's growing vertex pool); 3 more byte checks (16); adren.keep renamed 'Nach Einsatz auffuellen' (it refills only outside the mode), adren.stayfull 'Adrenalin bleibt voll' = TruShadowCombat [Adrenaline] DrainPercent / DrainModePercent 0 (old values kept in TruMenu.ini, back when off); ModeWithoutTarget / StrikeWithoutButton options (no '(Test)'), AssistPointer 'Zielhilfe Kreis', a DLC 2 note; snd.sonar log line printed the wave list's address as SonarMute) - 0.22.48 (adrenaline at Lara + sonar full map, owner wishes 2026-11-14: page Figur group Adrenalin (Lara) owns adren.meter / adren.fill / adren.keep and the TruShadowCombat [Adrenaline] switches (FillPercent, DrainPercent, DrainModePercent, StrikeWithoutFullMeter, AssistPointer, ModeWithoutTarget, StrikeWithoutButton, Log), page Tests keeps copies; the switches rows ModeWithoutTarget / StrikeWithoutButton live (TruShadowCombat M15ReadSwitches, once a second); teaser display default 12 (small circle + count badge); page Kapitel without '(debug)', the unused slots named readable; Sonar komplett [Sonar] FullMap = every vertex counts as revealed in the draw 0x6e3a00 (0x6e3b25 / 0x6e3b59 / 0x6e3ba2, display only, no save data), HidePlaceholder = call stub at 0x6e3ab0 skips the 100-face / 56-vertex MAP mesh, FloorMarkers = 0x6e40c6, all live, the game's bytes when off, one line when the triangle cap [0xee03ec] is hit; 12 byte checks kSoChecks) - 0.22.47 (sound monitor, owner wishes 2026-11-14: the wave id of a voice from the wave entry +4 (0x591348 - 0.20.1 .. 0.22.46 read every voice as 'Stream') and the emitter through the node's params object +0x74 (0x5906e0); bar group Ton-Monitor (live) and Paket B: every voice playing / paused with name, wave / section, group name, volume, 2D / 3D, distance, state and source (object #intro / UI / music / stream), the last [Sound] HistoryMax starts, the active rules, right = mute w<id> / e<hex>; snd.monitor / snd.history to the log; the bottom-right box as a log ([Sound] OverlayStyle 1: newest on top, colour + ImGui-drawn icon per kind, fading); Sonar-Ton aus [Sound] SonarMute 1 = waves 914 / 915 / 916 of g_pda.drm per channel (2 = the whole group 57 incl. Lara's hints in child group 70), kept in TruMenu.ini; the list / switches also run from the Present hook while the game polls no pad (main menu); 6 byte checks) - 0.22.46 (arena from the main menu,owner live 2026-11-14 12:07 'arena.go 1a refused: level change pending (GameTracker+0xb9 = 1)': in the front end +0xb9 = 1 is a request nobody serves - only main state 1 serves one (0x5e0050 -> 0x5dab40), the next level start clears it (0x5de864), here TruMenu's own level.load of the unit.go step; LevelChangePending ignores it in main state 10, level.load is refused in the front end (main state 6 / 10), arena.go from the main menu starts the unit through the game's mission start (level.start <unit> 0 = uigamedata f22, f27(unit, 0, 0, 1), stdscreenmgr f19 + f7; new game data, fresh player tracker = main-game mode), waits for it, places Lara, cheat.onehitkill 0, arena.mode <spot> with unit + one-hit kill byte; refused outside the main menu itself (front-end state 0xfae8da != 3), during a one-shot movie or a cutscene, without a level; level.start [0|1] = f27's selection argument; 'level up' log line of the shortcut runner; 10 byte checks kFeChecks) - 0.22.45 (W6 sound switches,owner live notes 2026-11-13: snd.mute <target> [1|0] - single waves / SoundPlex sections / emitters per channel through FMOD's own ChannelI::setMute 0x7c92b5 behind the game's handle validate 0x7c7e5a, sound groups and ambience (group 15 + the '_amb_' srmusic beds) through ChannelGroupI::setMute, music tracks by name through the game's srmusic stop; snd.solo, snd.mutes, snd.ambmute, snd.now (voices with emitter + SoundPlex section), music.stop / music.next / music.mute; one 'snd.wave <id> START' log line per start of a watched wave ([Sound] WaveLog / WaveIds 10 / WaveLogMax) with unit, emitter (params - 0x14, vtable 0x851240), SoundPlex section and the object whose sound list [inst+0x248] holds it; 15 byte checks) - 0.22.44 (W2 order, owner live notes 2026-11-13: page Tests by the test guide packages A - F of 14.11. (group tg_1411, sub-groups tg_a .. tg_f with the items each package needs, checks tg<A-F>.<name>), the 11.11. Q90 packages, test spots, light / depth diagnosis and hall02 rows in the closed group Archiv / Alt (nothing deleted); Barrierefreiheit: no leading spaces, Arachnophobie in its own sub-group, the planned rows (no item) in the closed group Geplant; planned rows without the 3-space prefix; an INI without [Menu] Load (written before 0.22.18) reads Enabled the old way = Load, the big window stays off; row DeviceGlyphs on page Spiel-Einstellungen / Steuerung; kQbViewMax 256) - 0.22.43 (W5 markup, owner live notes 2026-11-13:draw.markup puts object markup (box +0xc owner) through the owner's bone matrix like the engine (0x5be360 / 0x49ba20, only with owner +0x2d8) - before every object ledge was drawn around the world origin (the dungeon 'coil' 21:53 = dlc1_uo_pillar_of_doom ledges); boxes the engine's markup query skips (record +0x32, disabled bit 31, owner flags, stream unit +5) are not drawn; label 'type #id' (DE / EN) within 15 m of Lara, nearest 24, one colour per type; dbg.roomonly and the occlusion fading apply to markup too; bar rows Markup / Nur Kanten first in their group; 6 byte checks) - 0.22.42 (W3 debug view, owner live notes 2026-11-13: RoomOnly keeps an object of another unit when its own stream unit +0xe0 is Lara's or it is within [Debug] RoomNear 3000 (dlc_level1_start holds copies of the dlc_caverns bridge objects), each drop / keep logged once; DistMetres default 1; labels within [Debug] OcclNear 600 and Lara's own never fade, test point 1 m above the origin; labels de-cluttered - one label per instance and frame (uber labels join it with their state line), same object x n, LabelStack 3, LabelCellMax 5 per screen cell; [Debug] HideEmptyPots 1 - no labels at plain / empty jars; teaser icon only in the main menu (front-end state 3, no one-shot Bink movie - not in the credits)) - 0.22.41 (Q126c compact attract styles, owner 2026-11-14 after trying 0.22.40: [Menu] AttractIcon 8 .. 16 appended, all without a box - 8 / 9 small circle without / with the red strike, 10 / 11 / 12 small circle + only the counter beside / below / as a badge on its edge, 13 terse 12s . 3, 14 terse 12/40 . x3, 15 / 16 only the counter as a word / with a skip arrow; no time next to a circle; blink at the limit for all; 0 .. 7 unchanged, default 7) - 0.22.40 (Q126b attract display styles, owner 2026-11-13: one cycle switch [Menu] AttractIcon 0 .. 7 (menu.attracticon, bar row Teaser-Anzeige with the style name) instead of AttractIcon 0 / 1 + AttractIconText - 0 off, 1 text only, 2 circle, 3 circle + red strike, 4 text inside the circle, 5 text below, 6 = 4 + strike, 7 the 0.22.39 look (default); a 0.22.39 INI is mapped once (1 + 1 -> 7, 1 + 0 -> 3) and AttractIconText removed; blink at the limit for all) - 0.22.39 (Q126 attract icon,owner idea 2026-11-13: [Menu] AttractIcon default 1 (menu.attracticon): top right in the main menu a circle that fills with the game's AttractTimer clock toward its limit (elapsed +0x10 / alarm +0x14 of the captured clock, NoAttract holding: the shadow count modulo the alarm), a play icon in the middle (crossed out while NoAttract holds), [Menu] AttractIconText seconds + counter skipped / teaser started, 3 orange blinks at each limit; read only through the 0.22.20 update slot, live re-read of both keys) - 0.22.38 (PD, owner decisions 2026-11-13: [Input] DeviceGlyphs default 1 (pad / keyboard prompts by the last used device); the co_ / fx_ filter also takes dlc_ / dlc1_ / dlc2_ in front (dlc_fx_*, dlc1_fx_*; exceptions co_rock*, *_grab_prompt kept); trigger edges with occlusion on are drawn whole and faded instead of cut by the depth test (one occlusion query pair per edge / circle, Occlusion 2 drops hidden edges), [Debug] TriggerNearest (dbg.trignear: only triggers with Lara + the n nearest) and TriggerCornerId (dbg.trigcorner: the intro id at one box corner)) - 0.22.37 (debug view P5, Paket R / Q119:labels as name / symbol / both per layer ([Debug] Style*, dbg.labelstyle; ImGui symbols + legend), room always + readable (kRoomNames, LabelRoom) and metres (DistMetres), key items layer dbg.keyitems (parts, switches, doors, grapple points, P1 part -> target lines, state from link parent +0x228 / uber node), the game's reward bit +0x3ed90 as 'collected' (LabelCollected semantics), DrawDistance + TruMenu.debugview.txt per unit, labels behind walls faded / hidden by D3D9 occlusion queries in the depth pass (Occlusion), co_ / fx_ hidden (HideCo / HideFx), live wishes: uber labels + key items of Lara's room only (RoomOnly, dbg.roomonly; then every _uo_ / _ei_ / _pt_ object of the room, readable name + node 'Kanaltor, verschlossen'), uber labels fade behind walls, readable names (kP5Readable: 'Wandschalter (einmalig)'), grey 'versteckt' for hidden non-collectibles, kChapOrder after Paket R (CP 76 return visit, 160 / 42, going_in / going_out, 7 return rows), arena.load references released at a level change; 6 byte checks) - 0.22.36 (label filter, live 2026-11-12: the name labels dbg.labels / dbg.names ask the 0.21 collected / hidden check LfNotDrawn as the collectibles layer - [Debug] LabelCollected 0 none / 1 grey 'eingesammelt'; Lara's own gear by game data (parent +0x54 = player from BirthObject, weapon-manager slots + gear list) - [Debug] LabelLaraGear 0 none / 1 shown; both live, items dbg.labelcollected / dbg.labelgear, 11 byte checks) - 0.22.35 (level chain, Q113: base-game checkpoints of the Kapitel page in walking order, loop directions + l4_temple side trip as headings) - 0.22.34 (achievements, photo.pose, group M; Q20 / I-2: [Achievements] Enabled=1 (default, read at the start) bends the 16 push immediates of the achievement binder 0x7abb80 (script 66, all bound to the empty 0x796620) to TruMenu's stubs before the generalbank binds them - 'achievement <id> <name> unlocked' once per profile (= the save folder) in TruMenu.log and TruMenu.achievements.txt, names / gamerscore of the Xbox ids f0 1 .. f15 18 (f12 - f15 unsure), repeats counted; ach.list / ach.status, page Figur group Erfolge, big window page Achievements; F2: photo.pose 1..7|next|off = Lara's screen_capture_0n (anim table 1605 - n, section checked, resident) through the game's anim request 0x444ba0 mode 0 (the uber / script play-anim path) - photo mode only; off / photo.off = the slot noted from processor +0x44 again in mode 1; J-5: chapter 1.2 heading before l1_kraken_entrance (title card from intro 696); K follow-up: ai.spawn warns when a resident kind's children are not loaded; 36 byte checks); " "0.22.33 (photo mode, arena.load, glyphs.status, group K; F1 / Q78: photo.on = the game's own FreeCamera (camera manager mode 5 through its switch 0x5edd70(mgr, 5, 0) - CAMERA_SetMode knows only 6 / 11 / 12; its own stick / mouse input and generalbank DTP 16 values) + the world pause bit 0x1000 (the camera update still runs) + the UI byte 0xcdc9a0 (the game's screenshot task hides the HUD the same way); photo.off / leaving by itself on a level change, a new player / unit, main state != 1, a cutscene, the game's pause menu or a camera the game took = mode, Lara's control, pause bit and HUD as before; refused in cutscenes / loading / pause / flight / cine.pause / another camera layer; photo.shot = shot.save clean photo_<n>; Q83: arena.load <kind> requests one of the 26 enemy kinds with the game's object request with reference 0x5c1760 (checks tracker 204 / anim pool 3000 / 3D navgraph / DRMs, at most 2 kinds), ready = object + children at status 2 and anim slots resolved (log line), ai.spawn refuses it before; arena.unload <kind>|all = STREAM_DumpObject 0x5c1790 once for its own requests; arena.enemies lists the states; Q95: glyphs.status = DeviceGlyphs, device now (pad / keyboard / mouse), last switch time, prompt counters; 37 byte checks, no new INI key); " "0.22.32 (arena, group A; Q86: ai.spawn names the LP each spawned enemy got from the game's enemy init (brain+0x2c64; tune health record by the EnemyHP step [[0xc59264]+0x3ef98]), the EnemyHP step and warns while one-hit kill [0xe91ffd] is on - the 2026-11-11 21:02 thrall 'LP 0' was that cheat, its AI ran; no name / an inexact or unloaded name = the list of the loaded AI enemy kinds with the reason; Q100: arena.mode [spot] = player object, doppelganger byte [[0xfadb58]+0x1244] and TruDlc2Player flag, fits / WARNING per spot, logged; arena.go reads the mode first - a main-game spot with the flag set loads with level.load (new game tracker clears it), a DLC 2 spot without it warns - and ends with arena.mode <spot>; Q98: spots 1d l5_valgrind CP 7329, 1e l2_puzzleroom CP 2074, 1f l4_traprooms CP 5722 - the largest open navmesh floors with a resident enemy kind; read only, no new INI key, no hook); " "0.22.31 (level navigation + puzzles, group B; Q105: the 15 unit names in no PC archive (q105_units.tsv: three base units of the level list, six container / costume / cine names, the six known DLC slots) grey and refused by level.load / level.start / unit.go / cp.jump unless a mods\\<unit>.drm exists, one 'units:' log line; page Kapitel base game in play order from the stream portals with chapter headings (callers of generalbank script 72 SetChapterUIData) and the checkpoint intros per unit - right 2x = backup + load, a checkpoint row = cp.jump <unit> <cp> force (new optional third word: cheat.flight 1;player.goto <cp> force); Q106: uber.dump prints every joint-range transition (condition 14 / 15) with the joint's live value (the engine's getter 0x4e1ef0 / 0x4e1ea0), joint.set <intro> <joint> <value>|stop drives a hinge / rail joint with the engine's limit setters 0x4d9fc0 / 0x4d9f50 / 0x4da0c0 + wake 0x4d8fd0 until the uber leaves its node or 6 s (game thread, a cheat), page Kapitel group 'Raetsel in der Naehe' lists the uber objects with their current node and joint targets, 'solve' rows run joint.set; 27 byte checks); " "0.22.30 (log dates, device glyphs, drawn guards; Q107: every TruMenu.log line starts with 'YYYY-MM-DD HH:MM:SS.mmm' and the first line of a process is the session header '=== <date time> TruMenu <version> session start (pid n) ===' (src/asi/TruLog.h, shared with the other plugins); the log page / overlay take a stamp with or without the date and show the time; Q95: [Input] DeviceGlyphs=1 (default 0) - the last used device (pad: a button, a trigger or a stick past its dead zone in the game's poll; keyboard / mouse: a key, a click, the wheel, a mouse move away from the client centre) decides the button prompts of UIText: 23 bytes of 0x5a7c20 at 0x5a7d75 call GlName - pad = the symbol of the first XInput binding (Start / Back U+1810 / U+1811 too), keyboard / mouse = the name of the first other binding, else the game's own name; 12 byte checks, 'glyphs:' log lines; Q103 rest: the quick bar's presses and every widget of the big menu (ImGuiItemFlags_Disabled) act only after 3 drawn frames since the open, else 'quick: buttons 0x.... ignored - not drawn (n frames)' / 'menu: input ignored - not drawn (n frames)'); " "0.22.29 (radial lock, Q103:[Radial] Enabled=0 also closes a ring that is still open (settings.reset) and drops its pending release / open / close requests; a release, confirm, A / click or R3 runs a ring entry only when DrawRadial drew the ring in at least 3 frames since the open, else 'radial: <what> ignored - not drawn (n frames)'; the close line names the drawn frames; no new INI key); " "0.22.28 (test packages, Q90: page Tests group 'Testpakete 11.11. (Q90)' with one closed sub-group per package A, 1 .. 9 of docs\\Testpakete-1111.md - a hint line, jump / load rows of existing items (level.start, level.load, arena.go), the existing switch rows of TruMenu.switches.txt the package toggles (kQbSwitch = the page Fixes row: TruShadowPower ShakeTuTimeStep / [Player] TuTimeStep / DoppelgangerSettings / CameraTuTimeStep, TruQoL [FrameLimit] Enabled / MaxFps, TruRockVein JumpTarget / LedgeProbe, TruMenu [Log] Save), probe rows (save.inv / save.find 5240 / 5695 / save.pending / save.waiting, adren.meter / adren.fill, phys.status, log.script / log.scriptfile) and TO TEST checks (kQbCheck tp<package>.<name>: right ok, left fail, X skip, again = open; added with test.add at the first mark, TruMenu.log 'tests: test.mark <id> <state>'); every row flagged kQfTp (test-package content: a real row of its page or deleted after the tests); no new INI key, no hook); " "0.22.27 (save probe, Q79:save.pending / save.inv / save.waiting / save.find read the save arenas - live [0xc59258] and checkpoint snapshot [0xc5925c], the restore buffer 0xc57258 with the reason a block waits (unit / object / link parent, as 0x555640 / 0x5bb160 / 0x5bb640), the inventory area +0x34c of both game blocks (15 + 8 intro ids, 6 counts), the 64-slot waiting table 0xc592a8, dead bits; read only, 32 byte checks (TruSaveProbe.h); [Log] Save=1 (default 0, live) = two TruMenu.log lines per SAVE_SaveGame / SAVE_RestoreGame through their memcpy calls 0x557127 / 0x5571a3, 5 more byte checks); " "0.22.26 (test arena, Q76:page Tests group 'Arena 1 - Kampf (Q76)' - three flat floors with resident AI enemy kinds, arena.go 1a|1b|1c = one shortcut as cp.jump (backup, unit.go, wait.unit, flight, player.goto <intro> force; 1a l7_helheim03 generator 8785, 1b l7_yggdrasil_hall02 generator 8762, 1c dlc_yggdrasil_hall02 checkpoint 10644), arena.list (one list of arenas / spots: arena 2 Museum later), flight / god mode, the ai.spawn rows, ai.remove spawned (only the instances ai.spawn made, by address + allocation stamp +0x44), fight diagnosis rows; adrenaline meter: adren.meter (CM+0x3c / max [[0xfad764]+0x2d0], CM+0x1fc bits 22 / 27, doppelganger byte [[0xfadb58]+0x1244]; read only), adren.fill (the game's meter-full 0x6e6630, body of the script native 0x777a50; cheat), adren.keep 1|0 (refill once per game frame while below the maximum and bits 22 / 27 clear; not kept); 6 byte checks); " "0.22.25 (settings.reset writes the whole TruMenu.ini: the default text is measured and built in a buffer of its size - 0.10 .. 0.22.24 kept it in a static 16384-byte buffer and wrote only the first 16383 of the 42 KB, a truncated INI; text built before the backup, write and close checked, the answer names bytes and keys; other table texts: TruMenu.log lines up to 2047 characters (was 511, light.cut lines were cut), [Quick] Closed 1023 characters (was 383, too short for every group) and like [Debug] CheckpointHide only whole keys / ids, settings.show ends with the count of the keys it could not hold); " "0.22.24 (fall watch + fall net, Q19 hall02 fall out of the world: TruMenu.log lines at LogLevel 1 for Lara's chart records 742 / 743 / 1068 / 1080 and states 1008 / 1015 with position, a watchdog line every second while in the fall record 1068, safe-ground ring additions, rate-limited; [Rescue] FallNet=1 (default 0, live) puts Lara back on the newest safe-ground sample when she is more than 3 s in 1068 and more than 3000 units below it - player.unstuck's teleport, at most 3 per fall, never in menus / cinematics; 2 byte checks); " "0.22.23 (switches file limit:TruMenu.switches.txt holds up to 512 switch lines (was 160; 24 groups as before), file format unchanged; switch lines past 512 and group lines past 24 are not shown and named in one TruMenu.log line each with the count and the first line number, sw.reload / the bar head say so; the quick bar page Fixes (128 rows) names the rows of an open group it cannot hold instead of cutting them silently - the long menu section Fixes shows every row); " "0.22.22 (teaser timer line, live 2026-11-10: the line follows the bar language [Quick] Language as every overlay; it shows the game clock (the dt the clock got since its (re)start) next to TruMenu's wall clock since that (re)start, and 'Pause-Bit aktiv (halbe Zeit)' / 'Pause bit set (half time)' while the frame time [0xe7f188] is the fixed 0.5 of the pause bit [0xe7f0b4] & 0x10000000 - read only, 4 byte checks); " "0.22.21 (teaser timer: menu.attracttimer 1|0 / [Menu] AttractTimerShow, bar row 'Teaser-Uhr anzeigen' in Spiel-Einstellungen / Hauptmen\303\274 - while in the front end (main state 6 / 10) a line in a screen corner ([Menu] AttractTimerPosition, default tr) shows the AttractTimer clock: elapsed / alarm, or while menu.noattract holds it a shadow count (the dt the game hands the clock update while the clock runs, back to 0 when the game restarts the clock) that flashes 1 s and writes one TruMenu.log line each time it passes the alarm (40 s, then every 40 s with repeat) - the moment the teaser would have started; with menu.noattract off it flashes when the real clock fires; read only through the same update slot 0x84584c, no behaviour change, no new byte checks); " "0.22.20 (main menu attract video off: menu.noattract 1|0 / [Menu] NoAttract, bar row 'Hauptmen\303\274-Video aus' in Spiel-Einstellungen / Hauptmen\303\274 - the clock f11 native 0x795cc0 (called only by the AttractTimer script 60) hands TruMenu the AttractTimer clock, the clock update slot 0x84584c holds its elapsed time at 0 in the front end (main state 6 / 10), so the alarm never fires: no stopTitleMusic, no StopMovie, no teaser; every other clock and the menu background stay the game's; 13 byte checks); " "0.22.19 (pages remembered:the quick bar opens on the page it showed last ([Quick] LastPage, written 1 s after a page change or at the close; a name that is no page any more = page 1, logged) and the big window with the pages that were open ([Menu] OpenPages, written when a page is opened / closed), also after a restart, RememberPage=0 = off; power.infinite 1|0 = TruShadowPower 0.23 [Meter] Infinite written into TruShadowPower.ini (only that line, a missing key added), bar row 'Kraft unendlich' in Rettung / Cheats, greyed with the reason while TruShadowPower.asi 0.23+ is not loaded or its INI is missing); " "0.22.18 (volumes / mouse saved through the game's own write 0x4796b0 (0x478010 only refreshes their mirrors); every bar section a collapsible group, sub-groups, rows indented per level with a guide line, the long menu's groups collapsible; frame stepping: View held = step mode (each RB tap one frame), RB + View held 0.4 s = [Settings] StepRate frames per s; subtitles top / free height and left / right with a margin (origin x of 0x477180 moved per line); voice.lang = speech language only (MultiFS mask 0x472d80 while 0x472be0 is free), voice.full = speech now + registry Language; media list fallback, media.music.inlevels, music volume 0 warning row; goo drip candidate columns (bone 0, old position, physics body); light.demote = a 4th shadow caster takes a free plain place (hooks 0x504e06 / 0x504341); bar settings written back to TruMenu.ini (quick.lang, camera, mute, light switches); defaults: big menu window and ring off, quick bar on, bar language English; TruShadowPower [Meter] Infinite row); " "0.22.17 (subtitle fallback: a cutscene subtitle record without the wanted language id goes to the reader 0x4538d0 with its English entry (id 0) as that id - only while no record of the same stream (cinematic handler, new on a handler change or when the stream time [s+0x384] goes back) carried the wanted id, so the DLC cinematics (ids 0 1 2 3 4 11) get English lines in Russian (9) and the base cutscenes with their own per-language cue times never mix; [Settings] SubtitleFallback=1, 0 = the game's; sub.lang rewrite and TruMenu's parse use the same rule; SbName(9)); " "0.22.16 (bar page Spiel-Einstellungen: the game's own options live - volumes, inversion, vibration, combat mode, mouse through the option setter 0x5d5100 and the settings save 0x478010 2 s after the last change; subtitle look (show, size, bar, bar opacity, colour, height) through the draw parameters of 0x583e20, kept in TruMenu.ini [Settings]; live graphics (fullscreen effects, depth of field, shadows, water, reflections, volumetric, filter, aspect) through ApplySettings 0x522a10 on a copy of the active block, PadHook only; gfx.save; gfx.next = registry values for the next start; D3D-reset settings as greyed rows; sub.lang cycles -1 / 0..4 / 11 (Nederlands) and a rewritten line is found again (U3); bar reorganised - Rettung / Cheats, Figur with the doppelganger switch groups, Gegner (KI), Render, Zeit / Ablauf, Licht (Diagnose) group; 29 byte checks); " "0.22.15 (aim.trace 1|0: the lock-on path per change into TruAim.log - aim input RT action 33 / LT action 35 held (+0x630 / +0x690 bit 2 of the action records; LT = pad code 4, RT = 5), tuning bytes [0xfad764]+0x294 / +0x27c (the LT / RT aim timer values), game gates 0x8ab4e6 / 0xe7f144 / 0xe7f143, weapon slot [[P+0x500]+0x134], aim timers P+0x588 / +0x58c / +0x798 / +0x788, CM+0x1fc bits 9 / 10 / 11 / 18 / 19 / 20 / 21, Lara's chart records, targeter 0 flags / target / candidates per filter group or rejected with distance and camera angle, the nearest enemy and a why code; aim.why info item: the first blocking step for the nearest enemy in plain words; read only, 25 byte checks);" "0.22.14 (sub.lang switches the subtitle lines on screen at once, also in a cutscene held by cine.pause: the call 0x4574ec of the cinematic handler update copies each subtitle record (every language, '<id>\\r<text>\\r...') into TruMenu's ring of the last 2 records before the reader 0x4538d0 runs, the call 0x453a17 notes the lines the reader hands to the box; sub.lang <v> then picks the new language from the stored records as the reader does and rewrites the box lines 0xccdec0 +0 / +0x100 - clock and floats stay, a line of no stored record (Bink movie) stays and is logged); " "0.22.13 (cutscene pad combos: LB + View / RB + View fire on release and only when no third combo button joined while they were held, the photo combo LB + RB + View at once; cine.pause also holds the subtitle line clock [0xccdec0+0x208] - the subtitle draw 0x583e20 counts it down by the scaled frame time 0xe7f188, its disp32 at 0x583f24 points to TruMenu's own value while a cutscene is held; sub.lang calls the game's settings save 0x478010 (the registry write of the shutdown path 0x5df930) so the language survives a restart; ring.bits info item, an enemy panel line and fight.trace columns for the combat reticle request (CM+0x1fc bits 9 / 10 / 11 / 21, HUD group 12 of 0xfae924, style 0xfae8ac, reticle +0x40); fight.trace goo drip columns (sources 10706 / 10707: uber node / time; copies 929 / 942: count, nearest position / dz / iflags / node) and Lara's LP drop per sample; enemy panel 'Kampf-Spur: an (n Zeilen)'); 0.22.12 (fight.trace also writes a Lara-only line (enemy columns -) when Lara's chart record of machine 1 or 2 or her machine-1 state ids change - before only machine 1's record counted; quick bar: bool rows whose value starts with the id (fight.trace, combo.trace) show an / aus again instead of always aus, action rows of value items show the value (sub.lang: subtitle language now)); 0.22.11 (Xbox comparison, PC side: fight.trace 1|0 writes TruFight.log in TruXenia's TSV column layout plus PC columns - enemies within 6000 units on change (LP, stamina, states, requested state, target, distance, attack slot, MeleeAttack record, last hit), Lara LP / chart records / state ids / position, shadow meter, power mode, world / player time scale, the meter's 7 time-scale request slots and the selector's choice, the last time-ramp native call (gamebase 23 / 24 = 0x776030 / 0x776090, pass-through counter, one TruMenu.log line per call), camera object / mode / offset to Lara / FOV; enemy.panel 1|0 = Gegneranzeige at the right edge for the nearest enemy); 0.22.10 (light cut of the set builder 0x504cc0: light.cutlabels shows the sets / cut sets of the last frame and a label at every dropped light, light.cut [frames] [all] writes the sets with the offered list (+ kept, - dropped) to TruMenu.log; light.stablecut / [Light] StableCut orders each object's lights before the cut - sun, shadow map, caster, plain, then address - the per-object alternative to light.stable); 0.22.9 (enemy diagnosis: a third enemy label line with target, attack-slot requests / grants (coordinator 0x67d780, pass-through counter), gate bits, requested state, layer 1, stamina, last hit reaction; ai.why [id] writes the full set to TruMenu.log; combo.trace 1|0 logs Lara's chart record path and the enemy's reaction per hit; sub.lang -1|0..4|7|9..12 sets the subtitle language live through the game's option setter 0x5d5100); 0.22.8 (cutscene pad combos on by default - PausePad 0x0120 View + LB, StepPad 0x0220 View + RB, ShotPad 0x0320 View + LB + RB; pause acts only while a cutscene plays or is held, step only while held; the pause badge shows a second line with the keys / combos as set now); 0.22.7 (cutscene keys: [Cine] PauseKey / StepKey / ShotKey keyboard keys and PausePad / StepPad / ShotPad XInput combos for cine.pause, cine.step 1 and claude.mark - map extra pad buttons (8BitDo R4 / L4) to a combo; all 0 = off by default; help texts within 60 characters again); 0.22.6 (Present re-entry guard against the Steam overlay loop of 2026-11-08: a nested Present / SwapChain Present call draws nothing and goes to d3d9 directly through a hot-patch trampoline behind the overlay's jmp, or returns D3D_OK; one log line; German texts with umlauts - tools/trumenu_umlauts.py wrote 251 words of a fixed list as octal UTF-8 escapes inside the string literals, the INI option table stays ASCII); 0.22.5 (light.stable on by default: [Light] Stable=1 in TruMenu.ini, read at the start, a missing key counts as 1 - better a steady light set than the end-cutscene flicker until the real fix; 0 = the game's own order); 0.22.4 (light.stable now sorts the light pass's own collected list +0x250 / +0x258 by address right after the collection loop - 6 bytes at 0x56d69a -> jmp LsStub, put back when off; the 0.22.3 visible-list sort never changed anything); 0.22.3 (light.stable 1|0: the scene lights (visible-entity list +0x9c entries with +0x1e0 == 10) sorted by address in their own slots before the light pass 0x56d5c0 (call 0x5723cb) - test / fix for the rotating shadow slots of the throne flicker); 0.22.2 (light.frame [n]: the per-frame light lists of the scene - instances scene+0x20 / +0x1020, light bytes when changed, resources scene+0x1024 / +0x11a4 - captured at the frame end call 0x5098ca of the reset 0x504c50 into TruMenu.lightframe.txt, summary per light with BLINK?; for the throne flicker); 0.22.1 (cutscene pause, live wishes of 2026-11-08: the sound is held with the picture - master channel group paused through the game's ChannelGroup_SetPaused 0x7b9490, only by TruMenu and only given back by it, cine.step runs it muted; badge '|| Szene angehalten  <s> s' top centre; cine.mark / cine.pauseat <seconds> hold the next cutscene at a remembered time (armed over loads); cine.pause without an argument only reports); 0.22 (cine.pause / cine.step / cine.status: hold a playing cutscene - the stream walk calls 0x5904e3 / 0x5954f8 of the stream update 0x5901a0 point to a gate that skips the playing cutscene stream ([obj+0x77c] handler, state 4) while the world, particles and lights run on; off by itself at a load; bar page Tests); 0.21.11 (light.list: the scene's PCRenderLights with the shadow gate fields (+0xc5 bit 2, resource +0x1878 / +0x1879, frame flags +0x64 / +0x65, position, NEW since the last list); light.shadow <n> 0|1 = SetCastShadows vf+0x4c on the game thread); 0.21.10 (page Kapitel: group of the unused DLC slots dlc_level3..6_start + dlc_level1_left / _right, grey 'ungenutzt - keine Daten (17p/17s)' with the engine's reaction to a load (Can't open file pc-w\\<unit>.drm: error box, the game exits); level list, command line values, level.load, level.start and the start-up scan mark and refuse dlc_level3..6_start like left / right); 0.21.9 (page Tests: test spots of 17i (cp.jump <unit> <checkpoint> = backup, unit.go, wait.unit, dbg.cpgo; end scene 020_ghoul, floor 25057, ceremony room 030_pod); DLC 1 / DLC 2 units without a .drm in mods grey and refused by level.load; page Kapitel: DLC 1 / DLC 2 units in play order (ring marked Rundweg) with their checkpoints as jump rows (left opens them); goo drip uber label (mode, next drop, hard without exit, goo_off commands); navmesh labels / legend with meaning (bit 26 custom, bit 27 blocked by an obstacle, penalty multipliers, violet = dbg.enemycoll?); TO TEST INI toggles name the switch's when column; F11 shot key in the bar footer / help); 0.21.8 (quick command line: suggestions under the input (the menu bar's list), the menu's on-screen keyboard with Y (one keyboard, target = the line; Start kept from the game while it is open), the picked history line shown before A runs it, kCmdDanger lines (cheats, god mode, level / unit / save loads, save writes, costume resets, sw.set ...) ask for a second A within 3 s; favourites with an argument ([Favorites] Ids \"<id>|<argument>\": Fixes switches, costume rows, chapter units, rows with an argument) and a star on pinned rows; story values story.values (hall02 population / deaths / tutorial / wall, Croft Manor flags; read only); sound group sliders snd.group / snd.vol.* ([SoundGroups], the FMOD channel groups of the eight proposed sliders); ai.kill check 0x6203e9 (TruShadowCombat 0.6.5 owns the call 0x6203e4); SweepAndPrune checks accept the TruRockVein 0.10 limits (3000 / 500)); 0.21.7 (bar footer: Y: - on rows that refuse Y, L3 = command line, a help line for rows that are not self-explanatory (kQbHelp; page Fixes from the hint column DE // EN), pad NOT held warning; TruMenu.switches.txt UTF-8 with umlauts; costume rows the game refuses (0x5c54e0, checked on the game thread) grey and skipped; page Kapitel: the units per chapter / DLC (level.load, DLC 2 note); uber labels dbg.uber / uber.dump (gate / platform node + time left, [Debug] UberRadius 8000); shader labels shader.labels / shader.dump / shader.reload (TruMenu.shaderlabel.txt, file vs live shader libs); navmesh labels nav.labels (layer.graph #area, unit, flag bits, colour legend); SweepAndPrune read-out sap.status / sap.reset (markup collision boxes / pair links / proxies, peaks, [Debug] SapWatch); front-end pad diagnosis lines); 0.21.6 (bar page Kost\303\274me: costume row left / right through the outfit cycle list, switched once the choice stood 0.5 s (X = now), list of all costumes, next costume, choose for the next load + reload; flight key line bottom right while flying ([Cheat] FlightHint); quick command line in the bar (L3, the command bar's path); Render-Details pass / Navmesh rows show an / aus (orange + reason when a Navmesh switch cannot draw)); 0.21.5 (bar page Fixes + menu section Fixes: the plugin INI switches of TruMenu.switches.txt, sw.set / sw.list / sw.reload; the ring is frozen - its ring-only entries are bar rows (new page Render-Details) and the menu section Quick bar pages shows every bar row); 0.21.4 (hall02 counter rescue for saves whose checkpoint 11258 already holds tutorial thralls: fix.hall02 sets dispatcher 11270 population = 0 (tutorial 2) when no tutorial thrall lives; thrall.scriptval shows the thrall-script int +8 (restored 0 / generator-born 2)); 0.21.3 (quick bar: Y pins / unpins the row as a favourite, X runs it (confirmation rows: X twice), X / Y kept from the game while the bar is open; the sound list is as wide as its rows of this frame); 0.21.2 (queued items run in the Present hook while another pad hook sits outside PadHook - an item's pad poll no longer makes TruLink cut the pad chain); 0.21.1 (ai.kill nearest / others / all / <intro> the game's own kill (death state: scripts count it), ai.remove warns about story enemies; sticky.get / sticky.set; room check for player.goto (parked templates, unloaded / far units, force) and pos.go, unit.go (thrall-fight Prepare), label 'geparkt', pot label from the drawn instance; phys.status / phys.dump (physics bodies of the ChunkDoll crash); ai.spawn of the loaded enemy kinds; bar: page 0 Favoriten / Zuletzt, page Tests (Prepare, teleports, TO TEST), collapsible groups ([Quick] Closed), the KI page in three groups; export TruMenuPadBlock; "
+const char *const kVersion = "TruMenu 0.22.55 (chapter page + display fixes, package P2a 2026-11-16: (1) page Kapitel row 'Aktuelles Kapitel neu laden' (chapter.reload) = Lara's chapter start from kChapOrder through ChapSteps - backup, the pause menu's DLC start / level.load / the mission start; (2) [Cheat] FlightKeepOnLoad (flight.keep, row under Fliegen, default 0): every TruMenu level load turns flight off first; cp.jump never turns flight on (player.goto alone, cheat.flight 0 after unit.go's portal flight); (3) doppelganger_casual (DLC 1 freeze 15.11. 22:11) refused for the live switch unless the doppelganger flag [[0xfadb58]+0x1244] is set; (4) 'level not found': a unit outside the level list without mods\\<unit>.drm is never requested; (5) every metre text of the debug labels / log lines with kUnitsPerMetre 290 (was 100); (6) multibody parts labelled at their model (bone 0 [[inst+0x90]+0x30]) as '<object> - Teil n/N (<node>)', not merged at the shared +0x20; (7) ma_pt_pole_a without a hole in its unit and without an instanceref marked 'kein Loch (Original-Daten)' / 'no hole (original data)' in the labels and the puzzle list, detected at run time)" " - 0.22.54 (two crash fixes + sound switches reset at start, owner 2026-11-15 evening: (1) snd.mute of a sub-group (snd.hear <sub> stumm, 0.22.53) read kHow[7] past the end of its 7 texts - the %s of the log line took the bytes 'ever' as a pointer (TruMenu+0x13aec6 strnlen, main menu music); one text per rule kind now (static_assert) and the index checked; every format string of Log / Out / LabelAdd / TextAdd / IniPut / Text / ShotNote / LxAppend / SndNote / ClkNote / QbResult and the ImGui text calls checked by MSVC /analyze (_Printf_format_string_, work\\fmt_1511\\Test-TruMenuFormats.ps1): 2 sign mismatches fixed; (2) the sonar extra loads (S7): the find 0x6e2a60 appends a new list entry whose constructor 0x6dd820 leaves the load handle +0x88 unset - S7Extend took that heap garbage for 'requested already' (no load, the recursion stopped after one step) and the close 0x6dff20 -> 0x6dd780 passed it to 0x54f050 (tru+0x14f05d, 1.0f as a handle); a new entry gets +0x88 / +0xb2 / +0xb4 = 0 at once (S7FreshEntry), 6 more byte checks (23); (3) [Sound] ResetAtStart (default 1, row 'Ton-Schalter beim Start zuruecksetzen'): MuteMusic / MuteAmbient / ReverbOff back to 0 at every start, also in TruMenu.ini; the log filters, ReverbFollowsMute and SonarMute stay; (4) sub-group mu_menu 'Menue-Musik' = group 1 (the main theme stream), mu_music = g2-3, g10-12; (5) the heading row Schnell-Hoeren removed; the start line names LogFollowMute; (6) joint.set (owner 20:28, a door rail moved far the wrong way, out of its limits): target clamped into the joint's own limits, the lock point ramps from the value towards the target with a short lead, the drive stops at once when the value leaves the limits / moves away / overshoots, one log line per tick (value, velocity, lock), a row whose drive stood at the target without a node change says 'range not armed here (tried)')" " - 0.22.53 (sound log trees + kind Waffen + sonar extra loads + markups in the sonar view, owner wishes 2026-11-14 night (docs\\Status-2026-11-14.md W-53 / LT-2310): Spiel-Einstellungen / Ton / Ton-Log in the owner's layout - the settings rows, [+] Filter (Zeigen) (log display only: kind rows snd.logcat, sub-group rows snd.logsub, [Sound] LogHideSubs, 'Filter folgt Stumm' snd.logfollow [Sound] LogFollowMute default 1), the plain heading Schnell-Hoeren, [+] Stumm / Solo (sound only: Alles zurueck, Neuester Ton solo, Hall folgt Stumm, Hall aus, then per kind / sub-group one value row snd.hear normal / stumm / solo = snd.mute / snd.solo cat: / sub:); both trees kind -> named sub-groups of the game's sound groups (38, kW8Sub), nesting levels 2 / 3 (kQfLv2 / kQfLv3); a new kind Waffen (groups 51 / 52 / 58 / 59 / 61 / 62 / 63 - 'Stumm: Lara' no longer mutes the weapons), Lara's voice 68 / 69 and the DLC 2 player groups 77 / 78 are Lara's; a group-14 'world default' sound whose source is Lara or her gear (+0x54 = the player) = Waffen for a wp_* owner or a weapon-only wave of the data (optional TruMenu.weaponwaves.txt from weapon_waves.py - game data, not in the source), else Lara / Ausruestung; the monitor's voices under kind -> sub-group headings, the box lines and history rows name kind / sub-group; [Sonar] LoadNeighbourFloors / LoadAllConnected (default 0, with FullMap): R1 0x6e4e3f call 0x6e2e60 -> S7LoadStub (the game's neighbour rule first, then more units through the game's 0x6e2a60 / 0x6e4e80 inside the load callback, only in mode 1 with the pause byte 6 and no PDA map heap; caps LoadMaxUnits 24 and TriangleCap; released by the game's close 0x6dff20; 17 byte checks, one log line per open); the markup layer projects with the camera matrix 0xe804a0 while the sonar is open, like the trigger layer)" " - 0.22.52 (reverb mark + DSP graph + sonar shader fade + area colours + joint row fix, owner wishes 2026-11-14 late evening:the whole FMOD DSP graph walked (live 22:02: 189 units - one SFX Reverb, two ParamEQ inserts of groups 58 / 59, stream codecs, 162 group heads; static: createDSPByType only 0x586fda / 0x5839f3 (oscillator, played as its own channel) / 0x5876df (group / node effects = ChannelGroup::addDSP inserts behind the mute), DSP::addInput only 0x58223b / 0x584188) - the reverb send is the only path past FMOD's mute; a reverb mark per line in box and monitor (arcs = reverb audible, struck = muted by ReverbFollowsMute / ReverbOff, dot = no send), monitor rows for the graph and every effect, a muted voice's send zeroed at once (W10Sweep, 50 ms) and the voice update rate counted; [Sonar] FadeFar drives the real dimming = the face shader lib 192 of materials 3348 / 3349 (1/d falloff floor c110.x 0.5, fade to black c108.w .. c109.w 200 .. 600 m; 6 byte checks), fog off for every value != 0; [Sonar] TintOthers 2 = a muted colour per area with a legend in the sonar view state; page Kapitel Raetsel: no drive for an open-ended range on a free hinge (motion detector), the range cut to the joint's limits, our lock taken back after a node change) - 0.22.51 (sonar view + base PDA + X default + DLC start from a level + reverb follows mute, owner wishes 2026-11-14 evening: the game's SFX reverb (holder [0xccde98]) gets a send from every pool voice that FMOD's mute never reaches - 'Hall folgt Stumm' [Sound] ReverbFollowsMute = call redirects 0x591591 / 0x5841bf -> W9SendStub (a muted voice sends 0), 'Hall aus' [Sound] ReverbOff = reverb -> master setMix 0 (old level back on off), audible = not paused and (dry > 0 or send > 0 with the reverb out > 0) in box / monitor, a reverb row, 11 more byte checks; 'Sonar: Abblenden Ferne' [Sonar] FadeFar = the sonar view's fog (0 game: near = far = 65536, n m = fog n/2 .. n, -1 aus; call redirects 0x6e4d94 / 0x6e4bf9 -> S5FogStub); 'Bereich anzeigen' = one unit of the sonar's own list drawn (0x6e42ac -> S5UnitStub, no load, no camera move); 'andere Bereiche einfaerben' [Sonar] TintOthers = units but Lara's drawn with an amber draw colour [0xee03bc] for their call; sonar.why + the open line log the view centre / axis and per unit the cut plane of 0x6dfa60 ((v0 - centre) . axis < -4000); 'Shadow-PDA durch Basis-PDA ersetzen' [PDA] ShadowPdaAsBasePda = g_pda script 3347 f1 word 04000001 -> 04000000 (ScriptSection hash map 0x8a6ed0, only the DLC g_pda, only while the PDA is closed); X on a value row = its default, footer 'X: Standard'; Kapitel DLC rows in a level = the pause menu's DLC start (RegisterAcceptChanges case 8 as the title update: f27(unit, rule, 0, 1), f7, f19); command line: level.start suggests every unit, level.load in the main menu suggests level.start; 22 byte checks) - 0.22.50 (sound log readable + FMOD channels + source hooks, chapters from the main menu, owner wishes 2026-11-14: the bottom-right sound box per line with an on / off box from FMOD's own mute bit (ChannelI +0x74 bit 3), the group as text, the source, a loop mark (FMOD mode 0x2 / 0x4), repetitions collapsed (same wave + source = one line xn, newest on top), a 'laeuft gerade' block of the looping channels; filters per kind (Lara, enemies, world, objects, PDA / UI, speech, music), only audible, collapse, max distance ([Sound] Log*, live); quick hearing per kind mute / solo (snd.catmute / snd.catsolo = snd.mute / snd.solo cat:<kind>: whole groups + per channel + the FMOD channels outside the pool), newest sound solo, everything back; two code redirects V1 0x591351 (the wave node's Play call: voice -> emitter of the node) and E1 0x5b99fc (6 bytes after the untouched create call of the anim event, TruTrace keys on it: emitter -> instance), [Sound] SourceHooks; the owner list walk at most once a second and only while shown, W6EmitterOwner gone; the monitor counts every used FMOD channel (SystemI +0x150), shows FMOD's mute / pause, 'Fremdkanal (DSP)' rows and the music slots; ONE 'Ambient aus' (media.muteambient = snd.ambmute: groups 15 .. 24 + the '_amb_' beds, kept) and ONE 'Musik aus'; page Kapitel from the main menu = the game's mission start (level.start, DLC starts as the DLC menu), the DLC start rows refused in a level (level.load keeps Lara's costume), cp.jump from the main menu; 27 byte checks) - 0.22.49 (sonar all floors + map info, adrenaline options, owner wishes 2026-11-14:[Sonar] AllFloors with FullMap = the frame 0x6e4130 also draws the map units of other floors the sonar loaded itself (0x6e429b je -> nop nop; the game's open path loads the floor's units and their direct portal neighbours - no load added), item sonar.allfloors 'Alle verbundenen Bereiche'; info row sonar.unitmap 'Karte dieser Unit' (real N faces / placeholder only / no file, read from the sonar's unit list while it is open) and one log line per sonar open (floor, radius, view distance, every map unit with mask / state / faces); [Sonar] TriangleCap with FullMap (default 300000; the imm32 of 0x6dfa69 = the per-frame budget 93572 - only a counter: the triangles are flushed in batches of 2000 into the device's growing vertex pool); 3 more byte checks (16); adren.keep renamed 'Nach Einsatz auffuellen' (it refills only outside the mode), adren.stayfull 'Adrenalin bleibt voll' = TruShadowCombat [Adrenaline] DrainPercent / DrainModePercent 0 (old values kept in TruMenu.ini, back when off); ModeWithoutTarget / StrikeWithoutButton options (no '(Test)'), AssistPointer 'Zielhilfe Kreis', a DLC 2 note; snd.sonar log line printed the wave list's address as SonarMute) - 0.22.48 (adrenaline at Lara + sonar full map, owner wishes 2026-11-14: page Figur group Adrenalin (Lara) owns adren.meter / adren.fill / adren.keep and the TruShadowCombat [Adrenaline] switches (FillPercent, DrainPercent, DrainModePercent, StrikeWithoutFullMeter, AssistPointer, ModeWithoutTarget, StrikeWithoutButton, Log), page Tests keeps copies; the switches rows ModeWithoutTarget / StrikeWithoutButton live (TruShadowCombat M15ReadSwitches, once a second); teaser display default 12 (small circle + count badge); page Kapitel without '(debug)', the unused slots named readable; Sonar komplett [Sonar] FullMap = every vertex counts as revealed in the draw 0x6e3a00 (0x6e3b25 / 0x6e3b59 / 0x6e3ba2, display only, no save data), HidePlaceholder = call stub at 0x6e3ab0 skips the 100-face / 56-vertex MAP mesh, FloorMarkers = 0x6e40c6, all live, the game's bytes when off, one line when the triangle cap [0xee03ec] is hit; 12 byte checks kSoChecks) - 0.22.47 (sound monitor, owner wishes 2026-11-14: the wave id of a voice from the wave entry +4 (0x591348 - 0.20.1 .. 0.22.46 read every voice as 'Stream') and the emitter through the node's params object +0x74 (0x5906e0); bar group Ton-Monitor (live) and Paket B: every voice playing / paused with name, wave / section, group name, volume, 2D / 3D, distance, state and source (object #intro / UI / music / stream), the last [Sound] HistoryMax starts, the active rules, right = mute w<id> / e<hex>; snd.monitor / snd.history to the log; the bottom-right box as a log ([Sound] OverlayStyle 1: newest on top, colour + ImGui-drawn icon per kind, fading); Sonar-Ton aus [Sound] SonarMute 1 = waves 914 / 915 / 916 of g_pda.drm per channel (2 = the whole group 57 incl. Lara's hints in child group 70), kept in TruMenu.ini; the list / switches also run from the Present hook while the game polls no pad (main menu); 6 byte checks) - 0.22.46 (arena from the main menu,owner live 2026-11-14 12:07 'arena.go 1a refused: level change pending (GameTracker+0xb9 = 1)': in the front end +0xb9 = 1 is a request nobody serves - only main state 1 serves one (0x5e0050 -> 0x5dab40), the next level start clears it (0x5de864), here TruMenu's own level.load of the unit.go step; LevelChangePending ignores it in main state 10, level.load is refused in the front end (main state 6 / 10), arena.go from the main menu starts the unit through the game's mission start (level.start <unit> 0 = uigamedata f22, f27(unit, 0, 0, 1), stdscreenmgr f19 + f7; new game data, fresh player tracker = main-game mode), waits for it, places Lara, cheat.onehitkill 0, arena.mode <spot> with unit + one-hit kill byte; refused outside the main menu itself (front-end state 0xfae8da != 3), during a one-shot movie or a cutscene, without a level; level.start [0|1] = f27's selection argument; 'level up' log line of the shortcut runner; 10 byte checks kFeChecks) - 0.22.45 (W6 sound switches,owner live notes 2026-11-13: snd.mute <target> [1|0] - single waves / SoundPlex sections / emitters per channel through FMOD's own ChannelI::setMute 0x7c92b5 behind the game's handle validate 0x7c7e5a, sound groups and ambience (group 15 + the '_amb_' srmusic beds) through ChannelGroupI::setMute, music tracks by name through the game's srmusic stop; snd.solo, snd.mutes, snd.ambmute, snd.now (voices with emitter + SoundPlex section), music.stop / music.next / music.mute; one 'snd.wave <id> START' log line per start of a watched wave ([Sound] WaveLog / WaveIds 10 / WaveLogMax) with unit, emitter (params - 0x14, vtable 0x851240), SoundPlex section and the object whose sound list [inst+0x248] holds it; 15 byte checks) - 0.22.44 (W2 order, owner live notes 2026-11-13: page Tests by the test guide packages A - F of 14.11. (group tg_1411, sub-groups tg_a .. tg_f with the items each package needs, checks tg<A-F>.<name>), the 11.11. Q90 packages, test spots, light / depth diagnosis and hall02 rows in the closed group Archiv / Alt (nothing deleted); Barrierefreiheit: no leading spaces, Arachnophobie in its own sub-group, the planned rows (no item) in the closed group Geplant; planned rows without the 3-space prefix; an INI without [Menu] Load (written before 0.22.18) reads Enabled the old way = Load, the big window stays off; row DeviceGlyphs on page Spiel-Einstellungen / Steuerung; kQbViewMax 256) - 0.22.43 (W5 markup, owner live notes 2026-11-13:draw.markup puts object markup (box +0xc owner) through the owner's bone matrix like the engine (0x5be360 / 0x49ba20, only with owner +0x2d8) - before every object ledge was drawn around the world origin (the dungeon 'coil' 21:53 = dlc1_uo_pillar_of_doom ledges); boxes the engine's markup query skips (record +0x32, disabled bit 31, owner flags, stream unit +5) are not drawn; label 'type #id' (DE / EN) within 15 m of Lara, nearest 24, one colour per type; dbg.roomonly and the occlusion fading apply to markup too; bar rows Markup / Nur Kanten first in their group; 6 byte checks) - 0.22.42 (W3 debug view, owner live notes 2026-11-13: RoomOnly keeps an object of another unit when its own stream unit +0xe0 is Lara's or it is within [Debug] RoomNear 3000 (dlc_level1_start holds copies of the dlc_caverns bridge objects), each drop / keep logged once; DistMetres default 1; labels within [Debug] OcclNear 600 and Lara's own never fade, test point 1 m above the origin; labels de-cluttered - one label per instance and frame (uber labels join it with their state line), same object x n, LabelStack 3, LabelCellMax 5 per screen cell; [Debug] HideEmptyPots 1 - no labels at plain / empty jars; teaser icon only in the main menu (front-end state 3, no one-shot Bink movie - not in the credits)) - 0.22.41 (Q126c compact attract styles, owner 2026-11-14 after trying 0.22.40: [Menu] AttractIcon 8 .. 16 appended, all without a box - 8 / 9 small circle without / with the red strike, 10 / 11 / 12 small circle + only the counter beside / below / as a badge on its edge, 13 terse 12s . 3, 14 terse 12/40 . x3, 15 / 16 only the counter as a word / with a skip arrow; no time next to a circle; blink at the limit for all; 0 .. 7 unchanged, default 7) - 0.22.40 (Q126b attract display styles, owner 2026-11-13: one cycle switch [Menu] AttractIcon 0 .. 7 (menu.attracticon, bar row Teaser-Anzeige with the style name) instead of AttractIcon 0 / 1 + AttractIconText - 0 off, 1 text only, 2 circle, 3 circle + red strike, 4 text inside the circle, 5 text below, 6 = 4 + strike, 7 the 0.22.39 look (default); a 0.22.39 INI is mapped once (1 + 1 -> 7, 1 + 0 -> 3) and AttractIconText removed; blink at the limit for all) - 0.22.39 (Q126 attract icon,owner idea 2026-11-13: [Menu] AttractIcon default 1 (menu.attracticon): top right in the main menu a circle that fills with the game's AttractTimer clock toward its limit (elapsed +0x10 / alarm +0x14 of the captured clock, NoAttract holding: the shadow count modulo the alarm), a play icon in the middle (crossed out while NoAttract holds), [Menu] AttractIconText seconds + counter skipped / teaser started, 3 orange blinks at each limit; read only through the 0.22.20 update slot, live re-read of both keys) - 0.22.38 (PD, owner decisions 2026-11-13: [Input] DeviceGlyphs default 1 (pad / keyboard prompts by the last used device); the co_ / fx_ filter also takes dlc_ / dlc1_ / dlc2_ in front (dlc_fx_*, dlc1_fx_*; exceptions co_rock*, *_grab_prompt kept); trigger edges with occlusion on are drawn whole and faded instead of cut by the depth test (one occlusion query pair per edge / circle, Occlusion 2 drops hidden edges), [Debug] TriggerNearest (dbg.trignear: only triggers with Lara + the n nearest) and TriggerCornerId (dbg.trigcorner: the intro id at one box corner)) - 0.22.37 (debug view P5, Paket R / Q119:labels as name / symbol / both per layer ([Debug] Style*, dbg.labelstyle; ImGui symbols + legend), room always + readable (kRoomNames, LabelRoom) and metres (DistMetres), key items layer dbg.keyitems (parts, switches, doors, grapple points, P1 part -> target lines, state from link parent +0x228 / uber node), the game's reward bit +0x3ed90 as 'collected' (LabelCollected semantics), DrawDistance + TruMenu.debugview.txt per unit, labels behind walls faded / hidden by D3D9 occlusion queries in the depth pass (Occlusion), co_ / fx_ hidden (HideCo / HideFx), live wishes: uber labels + key items of Lara's room only (RoomOnly, dbg.roomonly; then every _uo_ / _ei_ / _pt_ object of the room, readable name + node 'Kanaltor, verschlossen'), uber labels fade behind walls, readable names (kP5Readable: 'Wandschalter (einmalig)'), grey 'versteckt' for hidden non-collectibles, kChapOrder after Paket R (CP 76 return visit, 160 / 42, going_in / going_out, 7 return rows), arena.load references released at a level change; 6 byte checks) - 0.22.36 (label filter, live 2026-11-12: the name labels dbg.labels / dbg.names ask the 0.21 collected / hidden check LfNotDrawn as the collectibles layer - [Debug] LabelCollected 0 none / 1 grey 'eingesammelt'; Lara's own gear by game data (parent +0x54 = player from BirthObject, weapon-manager slots + gear list) - [Debug] LabelLaraGear 0 none / 1 shown; both live, items dbg.labelcollected / dbg.labelgear, 11 byte checks) - 0.22.35 (level chain, Q113: base-game checkpoints of the Kapitel page in walking order, loop directions + l4_temple side trip as headings) - 0.22.34 (achievements, photo.pose, group M; Q20 / I-2: [Achievements] Enabled=1 (default, read at the start) bends the 16 push immediates of the achievement binder 0x7abb80 (script 66, all bound to the empty 0x796620) to TruMenu's stubs before the generalbank binds them - 'achievement <id> <name> unlocked' once per profile (= the save folder) in TruMenu.log and TruMenu.achievements.txt, names / gamerscore of the Xbox ids f0 1 .. f15 18 (f12 - f15 unsure), repeats counted; ach.list / ach.status, page Figur group Erfolge, big window page Achievements; F2: photo.pose 1..7|next|off = Lara's screen_capture_0n (anim table 1605 - n, section checked, resident) through the game's anim request 0x444ba0 mode 0 (the uber / script play-anim path) - photo mode only; off / photo.off = the slot noted from processor +0x44 again in mode 1; J-5: chapter 1.2 heading before l1_kraken_entrance (title card from intro 696); K follow-up: ai.spawn warns when a resident kind's children are not loaded; 36 byte checks); " "0.22.33 (photo mode, arena.load, glyphs.status, group K; F1 / Q78: photo.on = the game's own FreeCamera (camera manager mode 5 through its switch 0x5edd70(mgr, 5, 0) - CAMERA_SetMode knows only 6 / 11 / 12; its own stick / mouse input and generalbank DTP 16 values) + the world pause bit 0x1000 (the camera update still runs) + the UI byte 0xcdc9a0 (the game's screenshot task hides the HUD the same way); photo.off / leaving by itself on a level change, a new player / unit, main state != 1, a cutscene, the game's pause menu or a camera the game took = mode, Lara's control, pause bit and HUD as before; refused in cutscenes / loading / pause / flight / cine.pause / another camera layer; photo.shot = shot.save clean photo_<n>; Q83: arena.load <kind> requests one of the 26 enemy kinds with the game's object request with reference 0x5c1760 (checks tracker 204 / anim pool 3000 / 3D navgraph / DRMs, at most 2 kinds), ready = object + children at status 2 and anim slots resolved (log line), ai.spawn refuses it before; arena.unload <kind>|all = STREAM_DumpObject 0x5c1790 once for its own requests; arena.enemies lists the states; Q95: glyphs.status = DeviceGlyphs, device now (pad / keyboard / mouse), last switch time, prompt counters; 37 byte checks, no new INI key); " "0.22.32 (arena, group A; Q86: ai.spawn names the LP each spawned enemy got from the game's enemy init (brain+0x2c64; tune health record by the EnemyHP step [[0xc59264]+0x3ef98]), the EnemyHP step and warns while one-hit kill [0xe91ffd] is on - the 2026-11-11 21:02 thrall 'LP 0' was that cheat, its AI ran; no name / an inexact or unloaded name = the list of the loaded AI enemy kinds with the reason; Q100: arena.mode [spot] = player object, doppelganger byte [[0xfadb58]+0x1244] and TruDlc2Player flag, fits / WARNING per spot, logged; arena.go reads the mode first - a main-game spot with the flag set loads with level.load (new game tracker clears it), a DLC 2 spot without it warns - and ends with arena.mode <spot>; Q98: spots 1d l5_valgrind CP 7329, 1e l2_puzzleroom CP 2074, 1f l4_traprooms CP 5722 - the largest open navmesh floors with a resident enemy kind; read only, no new INI key, no hook); " "0.22.31 (level navigation + puzzles, group B; Q105: the 15 unit names in no PC archive (q105_units.tsv: three base units of the level list, six container / costume / cine names, the six known DLC slots) grey and refused by level.load / level.start / unit.go / cp.jump unless a mods\\<unit>.drm exists, one 'units:' log line; page Kapitel base game in play order from the stream portals with chapter headings (callers of generalbank script 72 SetChapterUIData) and the checkpoint intros per unit - right 2x = backup + load, a checkpoint row = cp.jump <unit> <cp> force (new optional third word: cheat.flight 1;player.goto <cp> force); Q106: uber.dump prints every joint-range transition (condition 14 / 15) with the joint's live value (the engine's getter 0x4e1ef0 / 0x4e1ea0), joint.set <intro> <joint> <value>|stop drives a hinge / rail joint with the engine's limit setters 0x4d9fc0 / 0x4d9f50 / 0x4da0c0 + wake 0x4d8fd0 until the uber leaves its node or 6 s (game thread, a cheat), page Kapitel group 'Raetsel in der Naehe' lists the uber objects with their current node and joint targets, 'solve' rows run joint.set; 27 byte checks); " "0.22.30 (log dates, device glyphs, drawn guards; Q107: every TruMenu.log line starts with 'YYYY-MM-DD HH:MM:SS.mmm' and the first line of a process is the session header '=== <date time> TruMenu <version> session start (pid n) ===' (src/asi/TruLog.h, shared with the other plugins); the log page / overlay take a stamp with or without the date and show the time; Q95: [Input] DeviceGlyphs=1 (default 0) - the last used device (pad: a button, a trigger or a stick past its dead zone in the game's poll; keyboard / mouse: a key, a click, the wheel, a mouse move away from the client centre) decides the button prompts of UIText: 23 bytes of 0x5a7c20 at 0x5a7d75 call GlName - pad = the symbol of the first XInput binding (Start / Back U+1810 / U+1811 too), keyboard / mouse = the name of the first other binding, else the game's own name; 12 byte checks, 'glyphs:' log lines; Q103 rest: the quick bar's presses and every widget of the big menu (ImGuiItemFlags_Disabled) act only after 3 drawn frames since the open, else 'quick: buttons 0x.... ignored - not drawn (n frames)' / 'menu: input ignored - not drawn (n frames)'); " "0.22.29 (radial lock, Q103:[Radial] Enabled=0 also closes a ring that is still open (settings.reset) and drops its pending release / open / close requests; a release, confirm, A / click or R3 runs a ring entry only when DrawRadial drew the ring in at least 3 frames since the open, else 'radial: <what> ignored - not drawn (n frames)'; the close line names the drawn frames; no new INI key); " "0.22.28 (test packages, Q90: page Tests group 'Testpakete 11.11. (Q90)' with one closed sub-group per package A, 1 .. 9 of docs\\Testpakete-1111.md - a hint line, jump / load rows of existing items (level.start, level.load, arena.go), the existing switch rows of TruMenu.switches.txt the package toggles (kQbSwitch = the page Fixes row: TruShadowPower ShakeTuTimeStep / [Player] TuTimeStep / DoppelgangerSettings / CameraTuTimeStep, TruQoL [FrameLimit] Enabled / MaxFps, TruRockVein JumpTarget / LedgeProbe, TruMenu [Log] Save), probe rows (save.inv / save.find 5240 / 5695 / save.pending / save.waiting, adren.meter / adren.fill, phys.status, log.script / log.scriptfile) and TO TEST checks (kQbCheck tp<package>.<name>: right ok, left fail, X skip, again = open; added with test.add at the first mark, TruMenu.log 'tests: test.mark <id> <state>'); every row flagged kQfTp (test-package content: a real row of its page or deleted after the tests); no new INI key, no hook); " "0.22.27 (save probe, Q79:save.pending / save.inv / save.waiting / save.find read the save arenas - live [0xc59258] and checkpoint snapshot [0xc5925c], the restore buffer 0xc57258 with the reason a block waits (unit / object / link parent, as 0x555640 / 0x5bb160 / 0x5bb640), the inventory area +0x34c of both game blocks (15 + 8 intro ids, 6 counts), the 64-slot waiting table 0xc592a8, dead bits; read only, 32 byte checks (TruSaveProbe.h); [Log] Save=1 (default 0, live) = two TruMenu.log lines per SAVE_SaveGame / SAVE_RestoreGame through their memcpy calls 0x557127 / 0x5571a3, 5 more byte checks); " "0.22.26 (test arena, Q76:page Tests group 'Arena 1 - Kampf (Q76)' - three flat floors with resident AI enemy kinds, arena.go 1a|1b|1c = one shortcut as cp.jump (backup, unit.go, wait.unit, flight, player.goto <intro> force; 1a l7_helheim03 generator 8785, 1b l7_yggdrasil_hall02 generator 8762, 1c dlc_yggdrasil_hall02 checkpoint 10644), arena.list (one list of arenas / spots: arena 2 Museum later), flight / god mode, the ai.spawn rows, ai.remove spawned (only the instances ai.spawn made, by address + allocation stamp +0x44), fight diagnosis rows; adrenaline meter: adren.meter (CM+0x3c / max [[0xfad764]+0x2d0], CM+0x1fc bits 22 / 27, doppelganger byte [[0xfadb58]+0x1244]; read only), adren.fill (the game's meter-full 0x6e6630, body of the script native 0x777a50; cheat), adren.keep 1|0 (refill once per game frame while below the maximum and bits 22 / 27 clear; not kept); 6 byte checks); " "0.22.25 (settings.reset writes the whole TruMenu.ini: the default text is measured and built in a buffer of its size - 0.10 .. 0.22.24 kept it in a static 16384-byte buffer and wrote only the first 16383 of the 42 KB, a truncated INI; text built before the backup, write and close checked, the answer names bytes and keys; other table texts: TruMenu.log lines up to 2047 characters (was 511, light.cut lines were cut), [Quick] Closed 1023 characters (was 383, too short for every group) and like [Debug] CheckpointHide only whole keys / ids, settings.show ends with the count of the keys it could not hold); " "0.22.24 (fall watch + fall net, Q19 hall02 fall out of the world: TruMenu.log lines at LogLevel 1 for Lara's chart records 742 / 743 / 1068 / 1080 and states 1008 / 1015 with position, a watchdog line every second while in the fall record 1068, safe-ground ring additions, rate-limited; [Rescue] FallNet=1 (default 0, live) puts Lara back on the newest safe-ground sample when she is more than 3 s in 1068 and more than 3000 units below it - player.unstuck's teleport, at most 3 per fall, never in menus / cinematics; 2 byte checks); " "0.22.23 (switches file limit:TruMenu.switches.txt holds up to 512 switch lines (was 160; 24 groups as before), file format unchanged; switch lines past 512 and group lines past 24 are not shown and named in one TruMenu.log line each with the count and the first line number, sw.reload / the bar head say so; the quick bar page Fixes (128 rows) names the rows of an open group it cannot hold instead of cutting them silently - the long menu section Fixes shows every row); " "0.22.22 (teaser timer line, live 2026-11-10: the line follows the bar language [Quick] Language as every overlay; it shows the game clock (the dt the clock got since its (re)start) next to TruMenu's wall clock since that (re)start, and 'Pause-Bit aktiv (halbe Zeit)' / 'Pause bit set (half time)' while the frame time [0xe7f188] is the fixed 0.5 of the pause bit [0xe7f0b4] & 0x10000000 - read only, 4 byte checks); " "0.22.21 (teaser timer: menu.attracttimer 1|0 / [Menu] AttractTimerShow, bar row 'Teaser-Uhr anzeigen' in Spiel-Einstellungen / Hauptmen\303\274 - while in the front end (main state 6 / 10) a line in a screen corner ([Menu] AttractTimerPosition, default tr) shows the AttractTimer clock: elapsed / alarm, or while menu.noattract holds it a shadow count (the dt the game hands the clock update while the clock runs, back to 0 when the game restarts the clock) that flashes 1 s and writes one TruMenu.log line each time it passes the alarm (40 s, then every 40 s with repeat) - the moment the teaser would have started; with menu.noattract off it flashes when the real clock fires; read only through the same update slot 0x84584c, no behaviour change, no new byte checks); " "0.22.20 (main menu attract video off: menu.noattract 1|0 / [Menu] NoAttract, bar row 'Hauptmen\303\274-Video aus' in Spiel-Einstellungen / Hauptmen\303\274 - the clock f11 native 0x795cc0 (called only by the AttractTimer script 60) hands TruMenu the AttractTimer clock, the clock update slot 0x84584c holds its elapsed time at 0 in the front end (main state 6 / 10), so the alarm never fires: no stopTitleMusic, no StopMovie, no teaser; every other clock and the menu background stay the game's; 13 byte checks); " "0.22.19 (pages remembered:the quick bar opens on the page it showed last ([Quick] LastPage, written 1 s after a page change or at the close; a name that is no page any more = page 1, logged) and the big window with the pages that were open ([Menu] OpenPages, written when a page is opened / closed), also after a restart, RememberPage=0 = off; power.infinite 1|0 = TruShadowPower 0.23 [Meter] Infinite written into TruShadowPower.ini (only that line, a missing key added), bar row 'Kraft unendlich' in Rettung / Cheats, greyed with the reason while TruShadowPower.asi 0.23+ is not loaded or its INI is missing); " "0.22.18 (volumes / mouse saved through the game's own write 0x4796b0 (0x478010 only refreshes their mirrors); every bar section a collapsible group, sub-groups, rows indented per level with a guide line, the long menu's groups collapsible; frame stepping: View held = step mode (each RB tap one frame), RB + View held 0.4 s = [Settings] StepRate frames per s; subtitles top / free height and left / right with a margin (origin x of 0x477180 moved per line); voice.lang = speech language only (MultiFS mask 0x472d80 while 0x472be0 is free), voice.full = speech now + registry Language; media list fallback, media.music.inlevels, music volume 0 warning row; goo drip candidate columns (bone 0, old position, physics body); light.demote = a 4th shadow caster takes a free plain place (hooks 0x504e06 / 0x504341); bar settings written back to TruMenu.ini (quick.lang, camera, mute, light switches); defaults: big menu window and ring off, quick bar on, bar language English; TruShadowPower [Meter] Infinite row); " "0.22.17 (subtitle fallback: a cutscene subtitle record without the wanted language id goes to the reader 0x4538d0 with its English entry (id 0) as that id - only while no record of the same stream (cinematic handler, new on a handler change or when the stream time [s+0x384] goes back) carried the wanted id, so the DLC cinematics (ids 0 1 2 3 4 11) get English lines in Russian (9) and the base cutscenes with their own per-language cue times never mix; [Settings] SubtitleFallback=1, 0 = the game's; sub.lang rewrite and TruMenu's parse use the same rule; SbName(9)); " "0.22.16 (bar page Spiel-Einstellungen: the game's own options live - volumes, inversion, vibration, combat mode, mouse through the option setter 0x5d5100 and the settings save 0x478010 2 s after the last change; subtitle look (show, size, bar, bar opacity, colour, height) through the draw parameters of 0x583e20, kept in TruMenu.ini [Settings]; live graphics (fullscreen effects, depth of field, shadows, water, reflections, volumetric, filter, aspect) through ApplySettings 0x522a10 on a copy of the active block, PadHook only; gfx.save; gfx.next = registry values for the next start; D3D-reset settings as greyed rows; sub.lang cycles -1 / 0..4 / 11 (Nederlands) and a rewritten line is found again (U3); bar reorganised - Rettung / Cheats, Figur with the doppelganger switch groups, Gegner (KI), Render, Zeit / Ablauf, Licht (Diagnose) group; 29 byte checks); " "0.22.15 (aim.trace 1|0: the lock-on path per change into TruAim.log - aim input RT action 33 / LT action 35 held (+0x630 / +0x690 bit 2 of the action records; LT = pad code 4, RT = 5), tuning bytes [0xfad764]+0x294 / +0x27c (the LT / RT aim timer values), game gates 0x8ab4e6 / 0xe7f144 / 0xe7f143, weapon slot [[P+0x500]+0x134], aim timers P+0x588 / +0x58c / +0x798 / +0x788, CM+0x1fc bits 9 / 10 / 11 / 18 / 19 / 20 / 21, Lara's chart records, targeter 0 flags / target / candidates per filter group or rejected with distance and camera angle, the nearest enemy and a why code; aim.why info item: the first blocking step for the nearest enemy in plain words; read only, 25 byte checks);" "0.22.14 (sub.lang switches the subtitle lines on screen at once, also in a cutscene held by cine.pause: the call 0x4574ec of the cinematic handler update copies each subtitle record (every language, '<id>\\r<text>\\r...') into TruMenu's ring of the last 2 records before the reader 0x4538d0 runs, the call 0x453a17 notes the lines the reader hands to the box; sub.lang <v> then picks the new language from the stored records as the reader does and rewrites the box lines 0xccdec0 +0 / +0x100 - clock and floats stay, a line of no stored record (Bink movie) stays and is logged); " "0.22.13 (cutscene pad combos: LB + View / RB + View fire on release and only when no third combo button joined while they were held, the photo combo LB + RB + View at once; cine.pause also holds the subtitle line clock [0xccdec0+0x208] - the subtitle draw 0x583e20 counts it down by the scaled frame time 0xe7f188, its disp32 at 0x583f24 points to TruMenu's own value while a cutscene is held; sub.lang calls the game's settings save 0x478010 (the registry write of the shutdown path 0x5df930) so the language survives a restart; ring.bits info item, an enemy panel line and fight.trace columns for the combat reticle request (CM+0x1fc bits 9 / 10 / 11 / 21, HUD group 12 of 0xfae924, style 0xfae8ac, reticle +0x40); fight.trace goo drip columns (sources 10706 / 10707: uber node / time; copies 929 / 942: count, nearest position / dz / iflags / node) and Lara's LP drop per sample; enemy panel 'Kampf-Spur: an (n Zeilen)'); 0.22.12 (fight.trace also writes a Lara-only line (enemy columns -) when Lara's chart record of machine 1 or 2 or her machine-1 state ids change - before only machine 1's record counted; quick bar: bool rows whose value starts with the id (fight.trace, combo.trace) show an / aus again instead of always aus, action rows of value items show the value (sub.lang: subtitle language now)); 0.22.11 (Xbox comparison, PC side: fight.trace 1|0 writes TruFight.log in TruXenia's TSV column layout plus PC columns - enemies within 6000 units on change (LP, stamina, states, requested state, target, distance, attack slot, MeleeAttack record, last hit), Lara LP / chart records / state ids / position, shadow meter, power mode, world / player time scale, the meter's 7 time-scale request slots and the selector's choice, the last time-ramp native call (gamebase 23 / 24 = 0x776030 / 0x776090, pass-through counter, one TruMenu.log line per call), camera object / mode / offset to Lara / FOV; enemy.panel 1|0 = Gegneranzeige at the right edge for the nearest enemy); 0.22.10 (light cut of the set builder 0x504cc0: light.cutlabels shows the sets / cut sets of the last frame and a label at every dropped light, light.cut [frames] [all] writes the sets with the offered list (+ kept, - dropped) to TruMenu.log; light.stablecut / [Light] StableCut orders each object's lights before the cut - sun, shadow map, caster, plain, then address - the per-object alternative to light.stable); 0.22.9 (enemy diagnosis: a third enemy label line with target, attack-slot requests / grants (coordinator 0x67d780, pass-through counter), gate bits, requested state, layer 1, stamina, last hit reaction; ai.why [id] writes the full set to TruMenu.log; combo.trace 1|0 logs Lara's chart record path and the enemy's reaction per hit; sub.lang -1|0..4|7|9..12 sets the subtitle language live through the game's option setter 0x5d5100); 0.22.8 (cutscene pad combos on by default - PausePad 0x0120 View + LB, StepPad 0x0220 View + RB, ShotPad 0x0320 View + LB + RB; pause acts only while a cutscene plays or is held, step only while held; the pause badge shows a second line with the keys / combos as set now); 0.22.7 (cutscene keys: [Cine] PauseKey / StepKey / ShotKey keyboard keys and PausePad / StepPad / ShotPad XInput combos for cine.pause, cine.step 1 and claude.mark - map extra pad buttons (8BitDo R4 / L4) to a combo; all 0 = off by default; help texts within 60 characters again); 0.22.6 (Present re-entry guard against the Steam overlay loop of 2026-11-08: a nested Present / SwapChain Present call draws nothing and goes to d3d9 directly through a hot-patch trampoline behind the overlay's jmp, or returns D3D_OK; one log line; German texts with umlauts - tools/trumenu_umlauts.py wrote 251 words of a fixed list as octal UTF-8 escapes inside the string literals, the INI option table stays ASCII); 0.22.5 (light.stable on by default: [Light] Stable=1 in TruMenu.ini, read at the start, a missing key counts as 1 - better a steady light set than the end-cutscene flicker until the real fix; 0 = the game's own order); 0.22.4 (light.stable now sorts the light pass's own collected list +0x250 / +0x258 by address right after the collection loop - 6 bytes at 0x56d69a -> jmp LsStub, put back when off; the 0.22.3 visible-list sort never changed anything); 0.22.3 (light.stable 1|0: the scene lights (visible-entity list +0x9c entries with +0x1e0 == 10) sorted by address in their own slots before the light pass 0x56d5c0 (call 0x5723cb) - test / fix for the rotating shadow slots of the throne flicker); 0.22.2 (light.frame [n]: the per-frame light lists of the scene - instances scene+0x20 / +0x1020, light bytes when changed, resources scene+0x1024 / +0x11a4 - captured at the frame end call 0x5098ca of the reset 0x504c50 into TruMenu.lightframe.txt, summary per light with BLINK?; for the throne flicker); 0.22.1 (cutscene pause, live wishes of 2026-11-08: the sound is held with the picture - master channel group paused through the game's ChannelGroup_SetPaused 0x7b9490, only by TruMenu and only given back by it, cine.step runs it muted; badge '|| Szene angehalten  <s> s' top centre; cine.mark / cine.pauseat <seconds> hold the next cutscene at a remembered time (armed over loads); cine.pause without an argument only reports); 0.22 (cine.pause / cine.step / cine.status: hold a playing cutscene - the stream walk calls 0x5904e3 / 0x5954f8 of the stream update 0x5901a0 point to a gate that skips the playing cutscene stream ([obj+0x77c] handler, state 4) while the world, particles and lights run on; off by itself at a load; bar page Tests); 0.21.11 (light.list: the scene's PCRenderLights with the shadow gate fields (+0xc5 bit 2, resource +0x1878 / +0x1879, frame flags +0x64 / +0x65, position, NEW since the last list); light.shadow <n> 0|1 = SetCastShadows vf+0x4c on the game thread); 0.21.10 (page Kapitel: group of the unused DLC slots dlc_level3..6_start + dlc_level1_left / _right, grey 'ungenutzt - keine Daten (17p/17s)' with the engine's reaction to a load (Can't open file pc-w\\<unit>.drm: error box, the game exits); level list, command line values, level.load, level.start and the start-up scan mark and refuse dlc_level3..6_start like left / right); 0.21.9 (page Tests: test spots of 17i (cp.jump <unit> <checkpoint> = backup, unit.go, wait.unit, dbg.cpgo; end scene 020_ghoul, floor 25057, ceremony room 030_pod); DLC 1 / DLC 2 units without a .drm in mods grey and refused by level.load; page Kapitel: DLC 1 / DLC 2 units in play order (ring marked Rundweg) with their checkpoints as jump rows (left opens them); goo drip uber label (mode, next drop, hard without exit, goo_off commands); navmesh labels / legend with meaning (bit 26 custom, bit 27 blocked by an obstacle, penalty multipliers, violet = dbg.enemycoll?); TO TEST INI toggles name the switch's when column; F11 shot key in the bar footer / help); 0.21.8 (quick command line: suggestions under the input (the menu bar's list), the menu's on-screen keyboard with Y (one keyboard, target = the line; Start kept from the game while it is open), the picked history line shown before A runs it, kCmdDanger lines (cheats, god mode, level / unit / save loads, save writes, costume resets, sw.set ...) ask for a second A within 3 s; favourites with an argument ([Favorites] Ids \"<id>|<argument>\": Fixes switches, costume rows, chapter units, rows with an argument) and a star on pinned rows; story values story.values (hall02 population / deaths / tutorial / wall, Croft Manor flags; read only); sound group sliders snd.group / snd.vol.* ([SoundGroups], the FMOD channel groups of the eight proposed sliders); ai.kill check 0x6203e9 (TruShadowCombat 0.6.5 owns the call 0x6203e4); SweepAndPrune checks accept the TruRockVein 0.10 limits (3000 / 500)); 0.21.7 (bar footer: Y: - on rows that refuse Y, L3 = command line, a help line for rows that are not self-explanatory (kQbHelp; page Fixes from the hint column DE // EN), pad NOT held warning; TruMenu.switches.txt UTF-8 with umlauts; costume rows the game refuses (0x5c54e0, checked on the game thread) grey and skipped; page Kapitel: the units per chapter / DLC (level.load, DLC 2 note); uber labels dbg.uber / uber.dump (gate / platform node + time left, [Debug] UberRadius 8000); shader labels shader.labels / shader.dump / shader.reload (TruMenu.shaderlabel.txt, file vs live shader libs); navmesh labels nav.labels (layer.graph #area, unit, flag bits, colour legend); SweepAndPrune read-out sap.status / sap.reset (markup collision boxes / pair links / proxies, peaks, [Debug] SapWatch); front-end pad diagnosis lines); 0.21.6 (bar page Kost\303\274me: costume row left / right through the outfit cycle list, switched once the choice stood 0.5 s (X = now), list of all costumes, next costume, choose for the next load + reload; flight key line bottom right while flying ([Cheat] FlightHint); quick command line in the bar (L3, the command bar's path); Render-Details pass / Navmesh rows show an / aus (orange + reason when a Navmesh switch cannot draw)); 0.21.5 (bar page Fixes + menu section Fixes: the plugin INI switches of TruMenu.switches.txt, sw.set / sw.list / sw.reload; the ring is frozen - its ring-only entries are bar rows (new page Render-Details) and the menu section Quick bar pages shows every bar row); 0.21.4 (hall02 counter rescue for saves whose checkpoint 11258 already holds tutorial thralls: fix.hall02 sets dispatcher 11270 population = 0 (tutorial 2) when no tutorial thrall lives; thrall.scriptval shows the thrall-script int +8 (restored 0 / generator-born 2)); 0.21.3 (quick bar: Y pins / unpins the row as a favourite, X runs it (confirmation rows: X twice), X / Y kept from the game while the bar is open; the sound list is as wide as its rows of this frame); 0.21.2 (queued items run in the Present hook while another pad hook sits outside PadHook - an item's pad poll no longer makes TruLink cut the pad chain); 0.21.1 (ai.kill nearest / others / all / <intro> the game's own kill (death state: scripts count it), ai.remove warns about story enemies; sticky.get / sticky.set; room check for player.goto (parked templates, unloaded / far units, force) and pos.go, unit.go (thrall-fight Prepare), label 'geparkt', pot label from the drawn instance; phys.status / phys.dump (physics bodies of the ChunkDoll crash); ai.spawn of the loaded enemy kinds; bar: page 0 Favoriten / Zuletzt, page Tests (Prepare, teleports, TO TEST), collapsible groups ([Quick] Closed), the KI page in three groups; export TruMenuPadBlock; "
                              "0.21 (Arachnophobie: arachno.on / .hide / .picture / .mute - spider model off "
                              "through the InstanceDrawable slot 7 (draw-group mask only during the spider's draw call), "
                              "a wobbling picture at its bones (TruMenu.arachno.png next to tru.exe or a built-in one), "
@@ -376,6 +376,9 @@ const OptDef kOpts[] = {
     {"Cheat", "FlightSpeed", "20", "flight: units per 30 fps frame at full trigger (RT up, LT down) while cheat mode is on"},
     {"Cheat", "FlightHint", "1", "0.21.6: 1 = while flight is on and the menu is closed, one line bottom right names the "
                                  "keys (RT up, LT down,\nstick moves, the speed); 0 = no line"},
+    {"Cheat", "FlightKeepOnLoad", "0", "0.22.55 (flight.keep, 'Fliegen nach Kapitel-Laden beibehalten'): 0 = every level "
+                                       "load TruMenu starts (chapter / unit\nrows, level.load, level.reload, level.start) "
+                                       "turns flight off first; 1 = flight stays on over the load"},
     {"Cheats", "Enabled", "1", "0.8: 1 = the Cheats page (god mode, one-hit kill, enemy health, infinite ammo, fill 'er up, "
                                "cheat codes) can switch;\n0 = the page only lists them (also needs [Cheat] "
                                "Experimental=1)"},
@@ -607,8 +610,8 @@ const OptDef kOpts[] = {
     {"Debug", "LabelRoom", "1", "0.22.37 (dbg.room): 1 = collectible, key-item and object-name labels name the room always, "
                                 "readable (Kraken-Raum /\nKraken room, bar language), else the unit name; 0 = the unit only "
                                 "when it is not Lara's (0.16)"},
-    {"Debug", "DistMetres", "1", "0.22.37 (dbg.metres): 1 = label distances / heights in metres (100 game units = 1 m); "
-                                 "0 = game units '5140u ^2540u'.\n0.22.42: default 1 (owner wish 13.11.)"},
+    {"Debug", "DistMetres", "1", "0.22.37 (dbg.metres): 1 = label distances / heights in metres (0.22.55: ~290 game units "
+                                 "= 1 m); 0 = game units\n'5140u ^2540u'. 0.22.42: default 1 (owner wish 13.11.)"},
     {"Debug", "DrawDistance", "0", "0.22.37 (dbg.drawdist): cap of the label / marker radii (triggers, collectibles, "
                                    "enemies, key items, names,\nThrall-Labels) in game units, 0 = off; per unit / area "
                                    "rows in TruMenu.debugview.txt next to tru.exe\n('<unit> <units>' or '<prefix>* "
@@ -1138,6 +1141,10 @@ void W3LabAdd(DWORD inst, const DvRect &r);
 bool W3LabPlace(DvRect *r, ImVec2 at, float step);   // free place: the box, then stacked up ([Debug] LabelStack), cell cap
 bool W3EmptyPot(DWORD inst);                 // [Debug] HideEmptyPots and a plain jar / a reward container without reward
 const float kW3OcclLift = 100.0f;            // occlusion test point: 1 m above the origin (not the floor point)
+// 0.22.55 (owner 2026-11-15 22:55, hole 4824 "10.3m" / pole 4823 "^7.1m" while TruLink said ~3.5 m / 2.5 m): one scale for
+// every metre text of the debug labels and the debug-view log lines - ENGINE 4.3 / TruLink kUnitsPerMetre: about 290
+// game units per metre (280 .. 310, Lara's real height; not proven exactly). Was 100 units = 1 m (0.22.37 DistMetres).
+const float kUnitsPerMetre = 290.0f;
 extern int g_w3EmptyPots;
 extern LONG g_w3Merged, g_w3Stacked, g_w3Capped, g_w3PotsHidden;
 void DvUnitsRead();                          // 0.16 owner units (section "0.14 debug view")
@@ -1272,6 +1279,7 @@ char g_reqId[64], g_reqArg[160], g_reqResult[1024];
 char g_lastAction[1024] = "none";
 volatile DWORD g_lastPadHookTick = 0;
 bool g_flight = false;                  // our view of GameTracker.cheatMode after our own toggle
+volatile LONG g_flightKeep = 0;         // 0.22.55 [Cheat] FlightKeepOnLoad (flight.keep): 0 = a TruMenu level load ends flight
 int g_cameraModeChoice = 11;
 char g_levelList[1024] = "";            // [Levels] List (comma separated unit names)
 char g_iniPath[MAX_PATH] = "";
@@ -3435,6 +3443,47 @@ bool RunCheat(const char *arg, char *o, size_t n) {
     Out(o, n, "cheat.flight %u (cheatMode 0x%08lx, message 12 to 0x%08lx)", value, kCheatMode, player);
     return true;
 }
+// 0.22.55 (owner 2026-11-15 20:25: the checkpoint row CP 4735 switched flight on - cheat.flight 1 - and it stayed on over the
+// next level.load; owner: a switch under Fliegen, default off). The game keeps GameTracker.cheatMode over a level change, so
+// with [Cheat] FlightKeepOnLoad=0 (flight.keep, default) every level load TruMenu requests (LoadUnit: level.load /
+// level.reload / the chapter and unit rows / unit.go's load; RunLevelStart: the mission start and the in-level DLC start)
+// first ends the flight the way cheat.flight 0 does: cheatMode 0, message 12 (0) to the player when there is one.
+// 1 = the 0.22.54 behaviour (flight stays). Game thread (the load items run there).
+bool ReadByte(DWORD address, BYTE *out);     // below
+extern volatile LONG g_ownExceptions;        // below
+void FlightOffForLoad(const char *what) {
+    if (g_flightKeep) return;
+    BYTE mode = 0;
+    ReadByte(kCheatMode, &mode);
+    if (!g_flight && !mode) return;
+    DWORD player = 0;
+    bool posted = false;
+    __try {
+        *reinterpret_cast<volatile BYTE *>(kCheatMode) = 0;
+        if (g_postOk && g_playerOk && ReadDword(kPlayerPtr, &player) && player) {
+            reinterpret_cast<InstancePostFn>(kInstancePost)(reinterpret_cast<void *>(player), 12, 0);   // as cheat.flight 0
+            posted = true;
+        }
+    } __except (EXCEPTION_EXECUTE_HANDLER) {
+        InterlockedIncrement(&g_ownExceptions);
+    }
+    g_flight = false;
+    Log(1, "0.22.55 flight off before %s ([Cheat] FlightKeepOnLoad=0): cheatMode was %u -> 0, message 12 (0) %s", what,
+        static_cast<unsigned>(mode), posted ? "posted to the player" : "not posted (no player)");
+}
+void ValFlightKeep(char *o, size_t n) { Out(o, n, "%ld", g_flightKeep); }
+void IniKeepInt(const char *section, const char *key, long value);   // above
+bool RunFlightKeep(const char *arg, char *o, size_t n) {
+    const bool on = BoolArg(arg, g_flightKeep != 0);
+    InterlockedExchange(&g_flightKeep, on ? 1 : 0);
+    IniKeepInt("Cheat", "FlightKeepOnLoad", on ? 1 : 0);
+    Log(1, "flight.keep %d: [Cheat] FlightKeepOnLoad=%d written - %s", on ? 1 : 0, on ? 1 : 0,
+        on ? "flight stays on over a TruMenu level load" : "a TruMenu level load ends the flight");
+    const bool de = g_qbLang == 0;
+    Out(o, n, "%s", on ? (de ? "Fliegen bleibt nach dem Kapitel-Laden an" : "flight stays on after a chapter load")
+                       : (de ? "Kapitel-Laden schaltet Fliegen aus" : "a chapter load turns flight off"));
+    return true;
+}
 bool RunSpeed(const char *arg, char *o, size_t n) {
     float v = arg && arg[0] ? static_cast<float>(atof(arg)) : 0.0f;
     if (!(v > 0.0f && v < 1000.0f)) { Out(o, n, "usage: cheat.speed <0..1000>"); return false; }
@@ -3446,6 +3495,7 @@ bool LevelChangePending(char *why, size_t n);   // 0.7.2, in the level.start sec
 bool FeInFrontEnd(DWORD *state);             // 0.22.46: main state 6 / 10 with kFeChecks ok, same section
 bool UnitNameNoDrm(const char *unit);        // 0.21.9, section "0.21.9 units without a DRM"
 void UnitRefusal(const char *unit, char *o, size_t n);   // 0.21.10, same section
+bool UnitNotFound(const char *unit, char *o, size_t n);  // 0.22.55 "level not found", same section
 bool LoadUnit(const char *unit, char *o, size_t n) {
     if (!g_levelOk || !g_experimental) { Out(o, n, "level change code not verified / experimental off"); return false; }
     size_t len = unit ? strlen(unit) : 0;
@@ -3459,6 +3509,7 @@ bool LoadUnit(const char *unit, char *o, size_t n) {
         UnitRefusal(unit, o, n);             // 0.21.10: the six unused slots name the engine's reaction (17s)
         return false;
     }
+    if (UnitNotFound(unit, o, n)) return false;   // 0.22.55: neither in the level list nor a mods\<unit>.drm
     // 0.7.2: also refused during a mission start (main state 2 / 9 - live 2026-11-02 20:29:17: a level.load during the
     // outfit selection set GameTracker+0xb9, the state-9 screen never served it, the game hung)
     char why[200];
@@ -3473,6 +3524,7 @@ bool LoadUnit(const char *unit, char *o, size_t n) {
     }
     static char name[64];                    // the game copies it to GameTracker+0x38; keep ours alive anyway
     strncpy_s(name, sizeof(name), unit, _TRUNCATE);
+    FlightOffForLoad("level.load");          // 0.22.55: [Cheat] FlightKeepOnLoad=0 (default)
     // GAMELOOP_RequestLevelChangeByName(name, gameTracker, doneType 4) - TRLAU name / signature, doneType 4 as the
     // game's own caller tru+0x1dfb6b
     reinterpret_cast<LevelChangeFn>(kLevelChange)(name, reinterpret_cast<void *>(kGameTracker), 4);
@@ -3987,6 +4039,18 @@ void UnitRefusal(const char *unit, char *o, size_t n) {
             "l1_rutlands_ship_m1 hung in the loading screen", unit);
     else
         Out(o, n, "refused: %s has no .drm in mods (listed in unitlist.txt only - the load would fail)", unit);
+}
+// 0.22.55 "level not found" (package P2a): a name that is neither a unit of the level list (kUnits = PC unitlist.txt: the
+// base units in bigfile.000 / patch.000, the DLC units file-tested above) nor a <tru.exe folder>\mods\<unit>.drm is not
+// requested at all - STREAM_LoadLevel 0x5d23f0 has no exists test, a missing name ends in the fatal "Can't open file"
+// box + ExitProcess (0x596cb0, 0.21.10) or an endless loading screen (l1_rutlands_ship_m1, 2026-11-11). true = refused
+// (o = the reason); one log line per refusal.
+bool UnitNotFound(const char *unit, char *o, size_t n) {
+    if (!unit || !unit[0] || UnitIndexOf(unit) >= 0 || UnitNameInNoArchive(unit) || !UnitModsDrmMissing(unit)) return false;
+    Out(o, n, "refused: level not found - '%s' is not in the level list (unitlist.txt) and there is no mods\\%s.drm (the "
+        "engine would stop with \"Can't open file\" or hang in the loading screen)", unit, unit);
+    Log(1, "0.22.55 level not found: '%s' (no kUnits row, no mods\\%s.drm) - load refused", unit, unit);
+    return true;
 }
 // start: every DLC unit once (0.21.10: + slots 3 - 6), one log line with the missing ones
 void UnitDrmScan() {
@@ -4598,9 +4662,47 @@ void ValGlobalCostumes(char *o, size_t n) {
     }
     if (!c) Out(o, n, "empty list");
 }
+// 0.22.55 (owner live 2026-11-15 22:11, dlc_caverns): page Kostueme -> costume.set 857 (doppelganger_casual) in DLC 1
+// froze the game - no crash: the main thread waits in the loop 0x5551d9 -> 0x6f5cxx, the handle resolver 0x5b39d0 answers
+// 0 every time, so the game waits for an instance that never comes (read with cdb -pv, read only). Which instance is not
+// proven (likely the shadow weapons the weapon re-birth message 35 asks for). doppelganger_casual is the DLC 2 player:
+// TruDlc2Player sets it up with DoppelgangerInit, which writes the doppelganger flag [[0xfadb58]+0x1244] = 1 (ENGINE
+// "Player tracker"). So the live switch to doppelganger_casual is refused unless that flag is set (= the DLC 2 setup that
+// loads her objects ran in this level); the row on page Kostueme is greyed with the reason. The next-load choice
+// (costume.choose) is not touched (no freeze seen there).
+bool CosBlocked(int id, bool de, char *o, size_t n) {
+    char name[64];
+    if (id <= 0 || !ObjectName(id, name, sizeof(name)) || _stricmp(name, "doppelganger_casual")) return false;
+    DWORD tracker = 0, now = 0;
+    BYTE dg = 0;
+    if (ReadDword(0x00fadb58, &tracker) && tracker && ReadByte(tracker + 0x1244, &dg) && dg) return false;
+    if (ReadDword(kCostumeNow, &now) && static_cast<int>(now) == id) return false;   // already worn: nothing switches
+    Out(o, n, "%s", de ? "gesperrt: friert ohne DLC-2-Doppelg\303\244ngerin ein (DLC 1, 15.11.)"
+                       : "blocked: freezes without the DLC 2 doppelganger setup (DLC 1, 15.11.)");
+    return true;
+}
 bool SwitchCostume(int id, char *o, size_t n) {
     if (!g_switchOk || !g_postOk || !g_experimental) { Out(o, n, "costume switch not verified / experimental off"); return false; }
     if (!InLevel()) { Out(o, n, "needs a level"); return false; }
+    {                                        // 0.22.55: the entry the switch would take (id, or the cycle's next one)
+        int target = id;
+        if (!target) {
+            WORD ids[128];
+            DWORD now = 0;
+            const int c = GlobalCostumes(ids, 128);
+            ReadDword(kCostumeNow, &now);
+            for (int i = 0; i < c; ++i)
+                if (static_cast<DWORD>(ids[i]) == now) { target = ids[(i + 1) % c]; break; }
+            if (!target && c > 0) target = ids[0];
+        }
+        char why[120];
+        if (CosBlocked(target, false, why, sizeof(why))) {
+            Log(1, "0.22.55 costume switch to object %d refused: %s (doppelganger flag [[0xfadb58]+0x1244] not set)", target,
+                why);
+            Out(o, n, "refused: object %d doppelganger_casual - %s", target, why);
+            return false;
+        }
+    }
     *reinterpret_cast<volatile DWORD *>(kAltPlayerObject) = static_cast<DWORD>(id);
     reinterpret_cast<VoidFn>(kCostumeSwitch)();
     InterlockedExchange(&g_weaponsPending, 2);   // INSTANCE_Post(player, 35, 0) two game frames later
@@ -5534,6 +5636,7 @@ bool LevelStartInGame(const char *name, int given, char *o, size_t n) {
         return false;
     }
     if (CinematicNow()) { Out(o, n, "refused: a cutscene plays (cinematic test 0x453f00) - start the DLC after it ends"); return false; }
+    FlightOffForLoad("the in-level DLC start");  // 0.22.55: [Cheat] FlightKeepOnLoad=0 (default)
     strncpy_s(unit, sizeof(unit), name, _TRUNCATE);
     const int select = given >= 0 ? given : MissionSelectArg(unit);
     args[0] = reinterpret_cast<DWORD>(unit);
@@ -5591,6 +5694,7 @@ bool RunLevelStart(const char *arg, char *o, size_t n) {
         return false;
     }
     if (UnitNameNoDrm(name)) { UnitRefusal(name, o, n); return false; }   // 0.21.10: f27 ends in the same STREAM_LoadLevel
+    if (UnitNotFound(name, o, n)) return false;   // 0.22.55: "level not found" before the start
     char why[200];                               // 0.7.2: first, so a second start during the first one says why
     if (LevelChangePending(why, sizeof(why))) { Out(o, n, "refused: level change pending (%s)", why); return false; }
     DWORD state = 0;
@@ -5613,6 +5717,7 @@ bool RunLevelStart(const char *arg, char *o, size_t n) {
     args[1] = static_cast<DWORD>(select);
     args[2] = 0;
     args[3] = 1;
+    FlightOffForLoad("the mission start");       // 0.22.55: the cheatMode byte outlives the main menu too
     if (!MissionCall(args, select)) { Out(o, n, "exception in the mission start sequence (unit '%s')", unit); return false; }
     Out(o, n, "mission start '%s': uigamedata f22, f27('%s', %d, 0, 1), stdscreenmgr f19 + f7 called (intro plays; %s)",
         unit, unit, select,
@@ -7720,6 +7825,10 @@ int UberCollect(UbCand *out, int max, const float *lara, DWORD player, int *foun
     }
     return count;
 }
+// 0.22.55: a part of a multibody object (section "0.22.55 multibody parts + unused poles", below)
+struct MbPart { int index, count; bool posOk; float pos[3]; char node[32]; };
+bool MbPartOf(DWORD inst, MbPart *m);
+void MbPartText(const MbPart &m, bool de, char *o, size_t n);
 // Present, every frame while dbg.uber is on (the 0.13 projection and label box)
 void DrawUberLabels() {
     char why[160];
@@ -7740,7 +7849,21 @@ void DrawUberLabels() {
     const int count = UberCollect(g_ubCand, max, lara, player, &g_ubFound, g_p5RoomOnly != 0);
     const bool de = g_qbLang == 0;
     ImDrawList *dl = ImGui::GetForegroundDrawList();
-    int roomDropped = 0, behind = 0, dupes = 0, merged = 0, noPlace = 0;
+    int roomDropped = 0, behind = 0, dupes = 0, merged = 0, noPlace = 0, partN = 0;
+    // 0.22.55: a part of a multibody object at its model (bone 0) and named by its link - before the same-place merge,
+    // so the six parts of a door with one reference point are no longer one label "x 6"
+    MbPart parts[33];
+    for (int i = 0; i < count; ++i)
+        if (MbPartOf(g_ubCand[i].inst, &parts[i])) {
+            ++partN;
+            if (!parts[i].posOk) continue;
+            float d2 = 0.0f;
+            for (int k = 0; k < 3; ++k) {
+                g_ubCand[i].pos[k] = parts[i].pos[k];
+                d2 += (parts[i].pos[k] - lara[k]) * (parts[i].pos[k] - lara[k]);
+            }
+            g_ubCand[i].dist2 = d2;
+        }
     // 0.22.42 (W3, live 23:30 / 23:51 overlapping labels): drawn after the debug view now - one rect list per frame
     // (W3LabFrame), the same object id within 50 units = one label "x n", an instance another layer already labelled
     // gets only its state line under that label, the rest stacked / capped per screen cell (W3UberDraw)
@@ -7792,7 +7915,10 @@ void DrawUberLabels() {
         if (readable) Out(rd, sizeof(rd), " (%s%s%s)", readable, word ? ", " : "", word ? word : "");
         char times[16] = "";                 // 0.22.42: the same object id at the same place, n times
         if (dupN[i] > 1) Out(times, sizeof(times), " \303\227%d", dupN[i]);
-        Out(line1, sizeof(line1), "%s %ld%s%s | %.0f", name, static_cast<LONG>(intro), rd, times, sqrtf(c.dist2));
+        char part[56] = "";                  // 0.22.55: " <middle dot> Teil 2/6 (turn)"
+        if (parts[i].count) MbPartText(parts[i], de, part, sizeof(part));
+        Out(line1, sizeof(line1), "%s%s %ld%s%s | %.0f", name, part, static_cast<LONG>(intro), rd, times,
+            static_cast<double>(sqrtf(c.dist2)));
         if (!c.state) Out(line2, sizeof(line2), "%s", de ? "(kein Uber-Zustand)" : "(no uber state)");
         else if (!UberIsGoo(oid) || !UberGooText(c.state, de, line2, sizeof(line2)))   // 0.21.9 goo drips first
             UberText(c.state, gate, de, line2, sizeof(line2));
@@ -7810,8 +7936,9 @@ void DrawUberLabels() {
     }
     Out(g_ubState, sizeof(g_ubState), "%d shown, %d uber states in %.0f units (UberMatch '%s'); 0.22.37: %d outside Lara's "
         "room (RoomOnly), %d behind geometry hidden; 0.22.42: %d same object merged (x n), %d joined another layer's "
-        "label, %d without a free place (LabelStack %d, LabelCellMax %d)", g_ubShown, g_ubFound, g_ubRadius, g_ubMatch,
-        roomDropped, behind, dupes, merged, noPlace, g_w3Stack, g_w3CellMax);
+        "label, %d without a free place (LabelStack %d, LabelCellMax %d); 0.22.55: %d multibody part(s) at their model",
+        g_ubShown, g_ubFound, g_ubRadius, g_ubMatch, roomDropped, behind, dupes, merged, noPlace, g_w3Stack, g_w3CellMax,
+        partN);
 }
 void ValUber(char *o, size_t n) { Out(o, n, "%ld (%s)", g_ubOn, g_ubState); }
 bool RunUber(const char *arg, char *o, size_t n) {
@@ -7966,6 +8093,208 @@ bool JtAt(DWORD b, int index, DWORD *jrec, DWORD *joint) {
     }
     return false;
 }
+// ---- 0.22.55 multibody parts + unused poles (owner live 2026-11-15 ~23:50 / ~23:55, l3_chapel / l3_secretchamber) ----
+// (a) Labels of a multi-part object. Every link (runtime part) of ma_rb_shadow_door_b 4835 has its position +0x20 at the
+// anchor's reference point (the door centre -4910 / -480), so the object-name labels of its six parts were drawn on one
+// spot (the uber labels merged them into one "x 6") and the turning pedestal had none. A part = an instance whose uber
+// state b has b+0x7c = X (JtObject, magic 0xFEA51B1E) and that stands in X's link table: X+0x6c = handles {instance,
+// stamp = [instance+0x44]} (the resolver 0x5b39d0), count X+0x70 (0x4d12d0; ENGINE "Multibody anchor X", TruLink 0.4).
+// Its model is drawn with its bone matrices: bone 0 = [inst+0x90] (ENGINE 5.3: inst+0x90 = base + 0x40), translation at
+// +0x30 - world points in Lara's unit frame (the engine transforms an owner's object markup with that matrix, 0x5be360 /
+// 0x49ba20; TruMenu 0.22.43 W5 draws it so and it sits on the ledges live). So a part's label goes to bone 0 and names
+// the part: "<object> <middle dot> Teil n/N (<node>)", n = the link index as TruLink's "link n". A part without a readable bone
+// matrix (or one farther than kMbFar from +0x20) keeps +0x20. Read only.
+// (b) Poles ma_pt_pole_a (owner ~23:55: pole 4686 lies loose in l3_secretchamber, no hole in its unit, no placed object
+// refers to it; base-game data, untouched by the port; the static P6 cross-check found it listed in the manor's shared
+// 'modifiable' script, so it is referenced, only without a holder): a pole is marked "kein Loch (Original-Daten)" when
+// no ma_pt_pole_hole stands with the same stream unit (+0xe0, 0x5b3a56) and no script member of
+// type instanceref of any loaded instance that holds its intro id (+0x58). Script members as TruLink 0.4 reads them
+// ([inst+0x60] = script object: +8 runtime ScriptType (vtable 0x84e4d4, ctor 0x5784f0: +8 = the root), +0xc data; root
+// +0x2c = members (count at -4), 20 B {+0 tag (base type = low 4 bits, bit 7 compound), +8 union (ScriptType*), +0xc u16
+// data offset}; a member's type name = [[type+8]+0x10]). Detected at run time - no id list in the source; units that are
+// not loaded are not seen (a reference from there would not count). Render thread, one scan at most every 2 s.
+const NavCheckBytes kMbChecks[] = {
+    {0x004d12d0, "8b442404 85c0 7c17 3b4170 7d12 8b496c 8d14c1 52 e8e7260e00"},   // links: count X+0x70, handles X+0x6c
+    {0x005b39d0, "8b4c2404 85c9 740e 8b01 85c0 7408 8b5044 3b5104 7402 33c0 c3"},  // handle {inst, stamp = [inst+0x44]}
+    {0x005be360, "8b510c85d27411 8b41200fbf4030c1e006 038290000000c3"},            // bone matrices [owner+0x90] + bone * 0x40
+    {0x005b3a56, "899fe0000000"},                                                 // instance +0xe0 = stream unit id
+    {0x005784f0, "c706d4e48400 894610 894614 884618 884619 8b442408 50 e834c4ffff 894608"},   // ScriptType vtable, +8 root
+};
+const DWORD kMbScriptTypeVt = 0x0084e4d4;
+const float kMbFar = 20000.0f;               // a bone 0 farther than this from +0x20 is not trusted (garbage / not set up)
+bool g_mbOk = false;                         // part labels (needs the joint checks too)
+bool g_plOk = false;                         // pole scan (+0xe0, script type rows)
+char g_mbWhy[96] = "not checked";
+void MbCheck() {
+    const int total = static_cast<int>(sizeof(kMbChecks) / sizeof(kMbChecks[0]));
+    int bad = 0;
+    DWORD first = 0;
+    for (const NavCheckBytes &c : kMbChecks)
+        if (!HexBytesAt(c.at, c.hex) && !bad++) first = c.at;
+    g_mbOk = bad == 0 && g_jtOk;
+    g_plOk = bad == 0;
+    if (bad) Out(g_mbWhy, sizeof(g_mbWhy), "code check failed at 0x%08lx (%d of %d)", first, bad, total);
+    else if (!g_jtOk) Out(g_mbWhy, sizeof(g_mbWhy), "needs the 0.22.31 joint checks (%s)", g_jtWhy);
+    else Out(g_mbWhy, sizeof(g_mbWhy), "ok");
+    Log(g_mbOk ? 1 : 0, "0.22.55 multibody part labels at bone 0 + unused poles: checks %s (%d rows); part labels %s, pole "
+        "scan %s", g_mbWhy, total, g_mbOk ? "on" : "off (+0x20 as before)", g_plOk ? "on" : "off");
+}
+// a link of a multibody object: its index / the link count, its model position (bone 0) and its current node name
+bool MbPartOf(DWORD inst, MbPart *m) {
+    memset(m, 0, sizeof(*m));
+    if (!g_mbOk || !inst) return false;
+    const DWORD b = UberStateOf(inst);
+    const DWORD x = b ? JtObject(b) : 0;
+    DWORD table = 0, count = 0;
+    if (!x || !ReadDword(x + 0x70, &count) || count < 2 || count > 64 || !ReadDword(x + 0x6c, &table) || !table) return false;
+    for (DWORD i = 0; i < count; ++i) {
+        DWORD li = 0, stamp = 0, now = 0;
+        if (!ReadDword(table + 8 * i, &li) || li != inst || !ReadDword(table + 8 * i + 4, &stamp) ||
+            !ReadDword(inst + 0x44, &now) || now != stamp)
+            continue;
+        m->index = static_cast<int>(i);
+        m->count = static_cast<int>(count);
+        DWORD mats = 0, k = 0;
+        float p[3], o[3];
+        if (ReadDword(inst + 0x90, &mats) && mats > 0x10000 && ReadFloats(mats + 0x30, p, 3) &&
+            ReadFloats(inst + kInstancePosition, o, 3)) {
+            bool ok = true;
+            for (int c = 0; c < 3; ++c) ok = ok && p[c] == p[c] && fabsf(p[c]) < 1.0e6f && fabsf(p[c] - o[c]) < kMbFar;
+            if (ok) { m->pos[0] = p[0]; m->pos[1] = p[1]; m->pos[2] = p[2]; m->posOk = true; }
+        }
+        if (ReadDword(b + 0x84, &k)) UberNodeName(b, static_cast<LONG>(k), m->node, sizeof(m->node));
+        return true;
+    }
+    return false;
+}
+// " <middle dot> Teil 2/6 (turn)" / "... part 2/6 (turn)" (n = the link index, as TruLink's link n; U+00B7 is in the
+// menu font's Latin-1 range)
+void MbPartText(const MbPart &m, bool de, char *o, size_t n) {
+    Out(o, n, " \302\267 %s %d/%d%s%s%s", de ? "Teil" : "part", m.index, m.count, m.node[0] ? " (" : "", m.node,
+        m.node[0] ? ")" : "");
+}
+extern bool g_rkOk;                          // 0.21.1 room check rows (+0xe0), section "0.21.1 ai.kill"
+const int kPlMax = 32;
+struct PlPole { DWORD inst, unit; LONG intro, refBy; bool hole; signed char verdict; };   // verdict 1 unused, 0 used
+PlPole g_plPoles[kPlMax];
+int g_plN = 0;
+DWORD g_plAt = 0;
+LONG g_plScripts = 0, g_plMembers = 0, g_plRefs = 0;   // last scan: script objects / members read, instancerefs seen
+LONG g_plLogged[kPlMax][2];                  // intro id + verdict already logged (one line per change)
+int g_plLoggedN = 0;
+// the type name of member e is "instanceref" (cache: the one root that is, up to 16 that are not)
+bool PlIsInstRef(DWORD e, DWORD *irRoot, DWORD *notRoots, int *notN) {
+    DWORD tag = 0, uni = 0, st = 0, vt = 0, root = 0, name = 0;
+    if (!ReadDword(e, &tag) || ((tag & 0xf) != 0xa && (tag & 0xf) != 0xb) || !ReadDword(e + 8, &uni) || !uni) return false;
+    st = uni;
+    if ((tag & 0x80) && !ReadDword(uni, &st)) return false;
+    if (!st || !ReadDword(st, &vt) || vt != kMbScriptTypeVt || !ReadDword(st + 8, &root) || !root) return false;
+    if (*irRoot && root == *irRoot) return true;
+    for (int i = 0; i < *notN; ++i)
+        if (notRoots[i] == root) return false;
+    char text[16];
+    const bool is = ReadDword(root + 0x10, &name) && name && ReadString(name, text, sizeof(text)) && !strcmp(text, "instanceref");
+    if (is && !*irRoot) *irRoot = root;
+    else if (!is && *notN < 16) notRoots[(*notN)++] = root;
+    return is;
+}
+void PlScan() {
+    const DWORD now = GetTickCount();
+    if (g_plAt && now - g_plAt < 2000) return;
+    g_plAt = now ? now : 1;
+    g_plN = 0;
+    if (!g_plOk || !g_rkOk || !InLevel()) return;
+    const int poleId = ObjectId("ma_pt_pole_a"), holeId = ObjectId("ma_pt_pole_hole");
+    if (!poleId) return;                     // no pole object in this level's object list
+    DWORD holeUnits[32];
+    int hn = 0;
+    DWORD inst = 0;
+    ReadDword(kFirstInstance, &inst);
+    for (int guard = 0; inst && guard < 4096; ++guard) {
+        DWORD next = 0, object = 0, oid = 0, unit = 0, intro = 0;
+        if (ReadDword(inst + 0x10, &object) && object && ReadDword(object + 0x14, &oid)) {
+            const int id = static_cast<int>(oid & 0xffff);
+            if (id == poleId && g_plN < kPlMax && ReadDword(inst + 0xe0, &unit) && ReadDword(inst + 0x58, &intro)) {
+                PlPole &p = g_plPoles[g_plN++];
+                p.inst = inst;
+                p.unit = unit;
+                p.intro = static_cast<LONG>(intro);
+                p.refBy = 0;
+                p.hole = false;
+                p.verdict = -1;
+            } else if (holeId && id == holeId && hn < 32 && ReadDword(inst + 0xe0, &unit)) {
+                holeUnits[hn++] = unit;
+            }
+        }
+        if (!ReadDword(inst + 8, &next)) break;
+        inst = next;
+    }
+    if (!g_plN) return;
+    for (int i = 0; i < g_plN; ++i)
+        for (int k = 0; k < hn && !g_plPoles[i].hole; ++k) g_plPoles[i].hole = holeUnits[k] == g_plPoles[i].unit;
+    LONG scripts = 0, members = 0, refs = 0;
+    DWORD irRoot = 0, notRoots[16];
+    int notN = 0;
+    bool complete = true;
+    inst = 0;
+    ReadDword(kFirstInstance, &inst);
+    int guard = 0;
+    for (; inst && guard < 4096; ++guard) {
+        DWORD next = 0, so = 0, type = 0, vt = 0, root = 0, data = 0, base = 0, count = 0, owner = 0, ownerSo = 0;
+        if (ReadDword(inst + 0x60, &so) && so && ReadDword(so + 8, &type) && type && ReadDword(type, &vt) &&
+            vt == kMbScriptTypeVt && ReadDword(type + 8, &root) && root && ReadDword(so + 0xc, &data) && data &&
+            ReadDword(root + 0x2c, &base) && base && ReadDword(base - 4, &count) && count <= 256 &&
+            !(ReadDword(so + 0x20, &owner) && owner && owner != inst && ReadDword(owner + 0x60, &ownerSo) && ownerSo == so)) {
+            // (the runtime parts of a multibody share the anchor's script object: read once, at its owner)
+            ++scripts;
+            for (DWORD k = 0; k < count; ++k) {
+                const DWORD e = base + 20 * k;
+                WORD off = 0;
+                DWORD value = 0;
+                ++members;
+                if (!PlIsInstRef(e, &irRoot, notRoots, &notN) || !ReadWord(e + 0xc, &off) || !ReadDword(data + off, &value))
+                    continue;
+                ++refs;
+                DWORD by = 0;
+                ReadDword(inst + 0x58, &by);
+                for (int i = 0; i < g_plN; ++i)
+                    if (value && static_cast<LONG>(value) == g_plPoles[i].intro && g_plPoles[i].inst != inst)
+                        g_plPoles[i].refBy = static_cast<LONG>(by ? by : 1);
+            }
+        }
+        if (!ReadDword(inst + 8, &next)) { complete = false; break; }
+        inst = next;
+    }
+    if (inst) complete = false;              // the guard ended the walk
+    g_plScripts = scripts;
+    g_plMembers = members;
+    g_plRefs = refs;
+    for (int i = 0; i < g_plN; ++i) {
+        PlPole &p = g_plPoles[i];
+        p.verdict = static_cast<signed char>(p.hole || p.refBy ? 0 : complete && scripts > 0 ? 1 : -1);
+        int at = -1;
+        for (int k = 0; k < g_plLoggedN && at < 0; ++k)
+            if (g_plLogged[k][0] == p.intro) at = k;
+        if (at >= 0 && g_plLogged[at][1] == p.verdict) continue;
+        if (at < 0 && g_plLoggedN < kPlMax) at = g_plLoggedN++;
+        if (at >= 0) { g_plLogged[at][0] = p.intro; g_plLogged[at][1] = p.verdict; }
+        Log(1, "0.22.55 pole ma_pt_pole_a %ld (stream unit %lu): %s (pole holes loaded %d, %ld script objects / %ld members "
+            "read, %ld instancerefs, referrer intro %ld)", p.intro, p.unit, p.verdict > 0 ? "NO HOLE (original data) - no "
+            "ma_pt_pole_hole in its unit, no instanceref of a loaded instance points at it" : p.hole ? "used - a "
+            "ma_pt_pole_hole stands in its unit" : p.refBy ? "used - an instanceref points at it" : "not decided (scan "
+            "incomplete)", hn, scripts, members, refs, p.refBy);
+    }
+}
+// 1 = no hole / no instanceref (original data), 0 = a hole or an instanceref, -1 = no verdict (not a pole / not scanned)
+int PlVerdict(DWORD inst) {
+    for (int i = 0; i < g_plN; ++i)
+        if (g_plPoles[i].inst == inst) return g_plPoles[i].verdict;
+    return -1;
+}
+// 0.22.55 (coordinator after the static Xbox / PC cross-check of package P6: pole 4686 IS listed in the manor units'
+// shared 'modifiable' script - referenced, only without a hole / holder): the text says only what is proven
+const char *PlUnusedText(bool de) { return de ? "kein Loch (Original-Daten)" : "no hole (original data)"; }
+
 int JtType(DWORD joint) {                    // physics type byte J+0x178 (1 hinge, 3 slider; -1 = unreadable)
     BYTE t = 0;
     __try { t = *reinterpret_cast<const volatile BYTE *>(joint + 0x178); } __except (EXCEPTION_EXECUTE_HANDLER) { return -1; }
@@ -10139,7 +10468,8 @@ const char *DvOwnerUnitAny(DWORD inst) {
     return "";
 }
 // " 6100u v1500u [mansion_exterior_afterburn]": distance to Lara, height (^ above / v below, from 50 units), owner unit;
-// 0.22.37 (P5): [Debug] DistMetres 1 = " 61.0m v15.0m" (100 units = 1 m); [Debug] LabelRoom 1 = the readable room name
+// 0.22.37 (P5): [Debug] DistMetres 1 = " 21.0m v5.2m" (0.22.55: kUnitsPerMetre ~290 units = 1 m, was 100 = 1 m - the
+// height / depth threshold stays 50 units); [Debug] LabelRoom 1 = the readable room name
 // (P5RoomName, bar language; fallback the unit name) - and with always = true (collectibles, key items, object names)
 // the room also when it is Lara's own unit
 void DvDistText(const float *p, const char *unit, char *o, size_t n, bool always = false) {
@@ -10149,8 +10479,9 @@ void DvDistText(const float *p, const char *unit, char *o, size_t n, bool always
         float dx = p[0] - g_dvLaraPos[0], dy = p[1] - g_dvLaraPos[1], dz = p[2] - g_dvLaraPos[2];
         const float dist = sqrtf(dx * dx + dy * dy + dz * dz);
         if (g_p5Metres) {
-            LabelAdd(o, n, &used, " %.1fm", static_cast<double>(dist / 100.0f));
-            if (fabsf(dz) >= 50.0f) LabelAdd(o, n, &used, " %c%.1fm", dz > 0.0f ? '^' : 'v', static_cast<double>(fabsf(dz) / 100.0f));
+            LabelAdd(o, n, &used, " %.1fm", static_cast<double>(dist / kUnitsPerMetre));
+            if (fabsf(dz) >= 50.0f)
+                LabelAdd(o, n, &used, " %c%.1fm", dz > 0.0f ? '^' : 'v', static_cast<double>(fabsf(dz) / kUnitsPerMetre));
         } else {
             LONG d = static_cast<LONG>(dist / 10.0f + 0.5f) * 10;
             LabelAdd(o, n, &used, " %ldu", d);
@@ -10367,11 +10698,13 @@ DvName g_dvNames[65];
 void DvDrawNames(ImDrawList *dl, const DvCam &c, char *state, size_t stateSize, size_t *used) {
     int count = 0, found = 0, walked = 0, hidden = 0, gear = 0, greyN = 0, prefix = 0, occluded = 0, symN = 0;
     int pots = 0, twice = 0;                 // 0.22.42 (W3): empty jars left out, instances another layer labelled
+    int parts = 0, unusedPoles = 0;          // 0.22.55: multibody parts at bone 0, poles marked unused
     const float rad = P5Radius(g_dvNameRadius), r2 = rad * rad;   // 0.22.37: draw distance per area
     DWORD inst = 0, player = 0;
     ReadDword(kPlayerPtr, &player);
     ReadDword(kFirstInstance, &inst);
     LgCollect();
+    PlScan();                                // 0.22.55: pole verdicts (at most every 2 s)
     for (int guard = 0; inst && guard < 4096; ++guard, ++walked) {
         DWORD next = 0, object = 0, oid = 0;
         float p[3], d2 = 0.0f;
@@ -10390,6 +10723,11 @@ void DvDrawNames(ImDrawList *dl, const DvCam &c, char *state, size_t stateSize, 
             else if (rule == 3) { ++gear; hit = false; }
             else if (rule == 4) { ++prefix; hit = false; }   // 0.22.37: co_ / fx_ ([Debug] HideCo / HideFx)
             if (hit && W3EmptyPot(inst)) { ++pots; hit = false; }   // 0.22.42 (W3): plain / empty jars ([Debug] HideEmptyPots)
+            MbPart part;                     // 0.22.55: a multibody part at its model (bone 0), not the shared +0x20
+            if (hit && MbPartOf(inst, &part) && part.posOk) {
+                p[0] = part.pos[0]; p[1] = part.pos[1]; p[2] = part.pos[2];
+                ++parts;
+            }
             if (hit) {
                 ++found;
                 if (DvVisible(c, p, 100.0f, &d2) && d2 <= r2) {
@@ -10421,7 +10759,7 @@ void DvDrawNames(ImDrawList *dl, const DvCam &c, char *state, size_t stateSize, 
         DvToCam(c, d.pos, q);
         if (!DvCamToScreen(c, q, &at)) continue;
         DWORD object = 0, oid = 0, intro = 0;
-        char name[64], line[160];
+        char name[64], line[240];             // 0.22.55: + part / pole text (was 160)
         ReadDword(d.inst + 0x10, &object);
         if (object) ReadDword(object + 0x14, &oid);
         if (!ObjectName(static_cast<int>(oid & 0xffff), name, sizeof(name))) Out(name, sizeof(name), "obj %lu", oid & 0xffff);
@@ -10433,8 +10771,18 @@ void DvDrawNames(ImDrawList *dl, const DvCam &c, char *state, size_t stateSize, 
         const char *readable = P5Readable(name);   // 0.22.37: "Wandschalter (einmalig)" (kP5Readable)
         char rd[64] = "";
         if (readable) Out(rd, sizeof(rd), " (%s)", readable);
-        if (g_dvNameIds) Out(line, sizeof(line), "%s %ld%s%s%s", name, static_cast<LONG>(intro), rd, dist, tail);
-        else Out(line, sizeof(line), "%s%s%s%s", name, rd, dist, tail);
+        const bool deName = g_qbLang == 0;
+        MbPart part;                          // 0.22.55: "<object> <middle dot> Teil n/N (<node>)"
+        char partText[56] = "";
+        if (MbPartOf(d.inst, &part)) MbPartText(part, deName, partText, sizeof(partText));
+        char poleText[64] = "";               // 0.22.55: a pole without a hole / reference in the loaded data
+        if (PlVerdict(d.inst) == 1) {
+            Out(poleText, sizeof(poleText), " - %s", PlUnusedText(deName));
+            ++unusedPoles;
+        }
+        if (g_dvNameIds)
+            Out(line, sizeof(line), "%s%s %ld%s%s%s%s", name, partText, static_cast<LONG>(intro), rd, dist, tail, poleText);
+        else Out(line, sizeof(line), "%s%s%s%s%s%s", name, partText, rd, dist, tail, poleText);
         // 0.22.37 (P5): behind geometry dim / none ([Debug] Occlusion), symbol by the object name ([Debug] StyleNames)
         if (W3LabFind(d.inst) >= 0) { ++twice; continue; }   // 0.22.42 (W3): another layer labelled this instance already
         const float pa[3] = {d.pos[0], d.pos[1], d.pos[2] + kW3OcclLift};   // 0.22.42: 1 m above the origin
@@ -10469,9 +10817,10 @@ void DvDrawNames(ImDrawList *dl, const DvCam &c, char *state, size_t stateSize, 
     g_dvDrawn[kDvNames] = drawn;
     LabelAdd(state, stateSize, used, "names %d drawn of %d matching '%s' (%d instances, radius %.0f, max %d, %d skipped: "
              "overlap; 0.22.36: %d grey, %d collected / hidden + %d gear without label; 0.22.37: %d co_ / fx_ hidden, %d "
-             "behind geometry hidden, %d symbols; 0.22.42: %d empty jar(s) hidden, %d already labelled by another layer); ",
+             "behind geometry hidden, %d symbols; 0.22.42: %d empty jar(s) hidden, %d already labelled by another layer; "
+             "0.22.55: %d multibody part(s) at their model, %d pole(s) marked 'no hole'); ",
              drawn, found, g_dvNameMatch[0] ? g_dvNameMatch : "*", walked, rad, g_dvNameMax, skipped, greyN, hidden, gear,
-             prefix, occluded, symN, pots, twice);
+             prefix, occluded, symN, pots, twice, parts, unusedPoles);
 }
 
 // 0.15, below: the collision overlay (stage R2) - slide faces / enemy-only collision groups of the loaded units
@@ -29540,7 +29889,7 @@ void PdMenuControls(char *o, size_t n) {
 //   a unit after the origin shift, trigger planes 9922 / 9923 / 9925 with the extents of 9871 / 9867 / 9870;
 //   work/w3_1411/intros_caverns.txt), and the portal to dlc_caverns_hall is ~30 m ahead. W3RoomDrops keeps an instance of
 //   another intro unit when its own stream unit +0xe0 (INSTANCE_SetCurrentStreamUnitID 0x5b3a56, kRkChecks) is Lara's
-//   stream unit or when it is within [Debug] RoomNear (default 3000 = 30 m); one log line per instance and Lara unit
+//   stream unit or when it is within [Debug] RoomNear (default 3000 = ~10 m); one log line per instance and Lara unit
 //   (at most 20 per 10 s) names the object, both units, Lara's unit, the distance and the verdict.
 // * Near objects not pale (21:17 medipack 5.4 m, Lara's own label): no fading within [Debug] OcclNear (600) and never for
 //   Lara; the test point of names / uber labels is 1 m above the origin (kW3OcclLift; was 0.6 m).
@@ -29612,7 +29961,7 @@ void W3RoomLog(DWORD inst, const char *unit, bool haveSid, DWORD sid, float dist
     g_w3LogMissed = 0;
     Log(1, "dbg.roomonly: %s %ld (0x%08lx) %s - intro unit %s, own stream unit (+0xe0) %s, Lara's unit %s, %.1f m from "
            "Lara, RoomNear %.1f m%s", name, static_cast<LONG>(intro), inst, why, unit, cur, lara[0] ? lara : "?",
-        static_cast<double>(dist / 100.0f), static_cast<double>(g_w3RoomNear / 100.0f), missed);
+        static_cast<double>(dist / kUnitsPerMetre), static_cast<double>(g_w3RoomNear / kUnitsPerMetre), missed);
 }
 bool W3RoomDrops(DWORD inst, const char *unit) {
     DWORD sid = 0, laraSid = 0, player = 0;
@@ -29794,7 +30143,8 @@ void ValDvRoomNear(char *o, size_t n) {
     int d = 0, s = 0, nr = 0;
     W3RoomCounts(&d, &s, &nr);
     Out(o, n, "%.0f (%.1f m; RoomOnly %d; since Lara entered '%s': %d dropped, %d kept by their stream unit, %d kept near)",
-        static_cast<double>(g_w3RoomNear), static_cast<double>(g_w3RoomNear / 100.0f), g_p5RoomOnly, g_w3SeenUnit, d, s, nr);
+        static_cast<double>(g_w3RoomNear), static_cast<double>(g_w3RoomNear / kUnitsPerMetre), g_p5RoomOnly, g_w3SeenUnit, d,
+        s, nr);
 }
 // dbg.roomnear <0 .. 20000>|off and dbg.occlnear <0 .. 5000>|off (game units)
 bool W3RunDist(float *var, int hi, const char *item, const char *key, const char *arg, char *o, size_t n) {
@@ -29809,7 +30159,11 @@ bool W3RunDist(float *var, int hi, const char *item, const char *key, const char
         const long x = strtol(a, &end, 10);
         if (end && !*end && x >= 0 && x <= hi) v = x;
     }
-    if (v < 0) { Out(o, n, "usage: %s <0 .. %d>|off (game units, 100 = 1 m); now %.0f", item, hi, static_cast<double>(*var)); return false; }
+    if (v < 0) {
+        Out(o, n, "usage: %s <0 .. %d>|off (game units, about %.0f = 1 m); now %.0f", item, hi,
+            static_cast<double>(kUnitsPerMetre), static_cast<double>(*var));
+        return false;
+    }
     if (!DvGate(item, o, n)) return false;
     *var = static_cast<float>(v);
     DvPersistInt(key, static_cast<int>(v));
@@ -29821,7 +30175,7 @@ bool W3RunDist(float *var, int hi, const char *item, const char *key, const char
 bool RunDvRoomNear(const char *arg, char *o, size_t n) { return W3RunDist(&g_w3RoomNear, 20000, "dbg.roomnear", "RoomNear", arg, o, n); }
 void ValDvOcclNear(char *o, size_t n) {
     Out(o, n, "%.0f (%.1f m; last frame %ld label(s) not faded for being near / Lara)", static_cast<double>(g_w3OcclNear),
-        static_cast<double>(g_w3OcclNear / 100.0f), g_w3LastNear);
+        static_cast<double>(g_w3OcclNear / kUnitsPerMetre), g_w3LastNear);
 }
 bool RunDvOcclNear(const char *arg, char *o, size_t n) { return W3RunDist(&g_w3OcclNear, 5000, "dbg.occlnear", "OcclNear", arg, o, n); }
 void ValDvEmptyPots(char *o, size_t n) {
@@ -29947,7 +30301,7 @@ void W5Check() {
     if (!g_w5MkOk) Out(why, sizeof(why), "code differs at 0x%08lx - object markup left out, no query filter", at);
     Log(g_w5MkOk ? 1 : 0, "0.22.43 W5: draw.markup - object markup through the owner's bone matrix, the query's skip "
         "rules, type + id labels within %.0f m (at most %d), RoomOnly / occlusion like the triggers: %s (%d checks)",
-        static_cast<double>(kW5LabelNear / 290.0f), kW5LabelMax, why,
+        static_cast<double>(kW5LabelNear / kUnitsPerMetre), kW5LabelMax, why,
         static_cast<int>(sizeof(kW5MkChecks) / sizeof(kW5MkChecks[0])));
 }
 // the engine's skip rules of the markup query (0x5ce447 ..): true = Lara cannot use the box now
@@ -34086,6 +34440,8 @@ bool RunDvCpAll(const char *arg, char *o, size_t n);
 void ValDvCpList(char *o, size_t n);
 bool RunDvCpGo(const char *arg, char *o, size_t n);
 bool RunCpJump(const char *arg, char *o, size_t n);   // 0.21.9
+bool RunChapReload(const char *arg, char *o, size_t n);   // 0.22.55, section "0.21.7 chapter units"
+void ValChapReload(char *o, size_t n);
 bool RunArenaGo(const char *arg, char *o, size_t n);  // 0.22.26 test arena
 void ValArena(char *o, size_t n);
 bool RunArenaMode(const char *arg, char *o, size_t n);   // 0.22.32 (Q100)
@@ -38162,6 +38518,13 @@ const Item kItems[] = {
                              "10: the request is served only in a level - level.start <unit> 0 there)", true, ValUnit,
      RunLevel},
     {"level.reload", "action", "reload the current unit, experimental", true, ValUnit, RunReload},
+    // 0.22.55 (package P2a)
+    {"chapter.reload", "action", "0.22.55: start of the current chapter (Lara's unit -> its chapter start of page Kapitel, "
+                                 "kChapOrder) as the chapter rows: save.backup kapitel, then the DLC start of the pause "
+                                 "menu (DLC 1 / 2) or level.load (base game, debug), main menu = mission start", false,
+     ValChapReload, RunChapReload},
+    {"flight.keep", "bool", "0.22.55: [Cheat] FlightKeepOnLoad - 0 (default) = every level load TruMenu starts turns "
+                            "flight off first, 1 = flight stays", false, ValFlightKeep, RunFlightKeep},
     // 0.7.1
     {"level.start", "action", "start dlc2 / dlc1 / <unit> as the mission menu does (uigamedata f22 + f27(unit, select, 0, "
                               "1), stdscreenmgr f19 + f7; the intro plays; 0.7.2: select 0 for DLC 2 as the title update, "
@@ -38433,7 +38796,8 @@ const Item kItems[] = {
                                  "name, symbol or both", false, ValDvLabelStyle, RunDvLabelStyle},
     {"dbg.room", "bool", "0.22.37: the room name always on collectible / key-item / name labels (readable, bar language)",
      false, ValDvRoom, RunDvRoom},
-    {"dbg.metres", "bool", "0.22.37: label distances in metres (100 units = 1 m) instead of game units", false, ValDvMetres,
+    {"dbg.metres", "bool", "0.22.37: label distances in metres (0.22.55: ~290 units = 1 m) instead of game units", false,
+     ValDvMetres,
      RunDvMetres},
     {"dbg.drawdist", "action", "0.22.37 <units>|off | here <units>|clear | reload: draw distance cap ([Debug] "
                                "DrawDistance, TruMenu.debugview.txt per unit)", false, ValDvDrawDist, RunDvDrawDist},
@@ -39626,6 +39990,7 @@ const CmdDanger kCmdDanger[] = {
     {"level.reload", "l\303\244dt das Level neu", "reloads the level"},
     {"unit.go", "l\303\244dt evtl. einen Abschnitt", "may load a unit"},
     {"cp.jump", "Sicherung, l\303\244dt evtl. einen Abschnitt", "backup, may load a unit"},   // 0.21.9
+    {"chapter.reload", "Sicherung, l\303\244dt den Kapitel-Anfang", "backup, loads the chapter start"},   // 0.22.55
     {"joint.set", "R\303\244tsel-Cheat (bewegt ein Gelenk)", "puzzle cheat (moves a joint)"},   // 0.22.31 (Q106)
     {"arena.go", "Sicherung, l\303\244dt evtl. einen Abschnitt", "backup, may load a unit"},   // 0.22.26
     {"pos.goload", "l\303\244dt evtl. einen Abschnitt", "may load a unit"},
@@ -40999,7 +41364,7 @@ const char *RadialWhy(const RadItem &e) {
     static const char *const kNeedLevel[] = {"cheat.", "player.", "weapon.give", "ammo.", "gear.", "instance.bring",
                                              "instance.spawn", "instance.remove", "instance.unhide", "camera.mode",
                                              "camera.restore", "camera.fov", "costume.next", "costume.set",
-                                             "arena.load"};   // 0.22.33
+                                             "arena.load", "chapter.reload"};   // 0.22.33; 0.22.55
     bool needs = false;
     for (const char *p : kNeedLevel)
         if (!_strnicmp(id, p, strlen(p))) needs = true;
@@ -42506,6 +42871,8 @@ void PageLevel() {
         if (TmButton(label)) QueueItem("level.load", name);
     }
     if (unit[0] && TmButton("Reload current unit  [level.reload]")) QueueItem("level.reload", "");
+    if (unit[0] && TmButton("Reload current chapter (backup, chapter start)  [chapter.reload]###chreload"))   // 0.22.55
+        QueueItem("chapter.reload", "");
     // 0.7.1: the mission menu's start (main menu only) - the intro plays, unlike level.load
     if (g_missionOk) {                                     // 0.7.2: DLC 1 first
         if (TmButton("Start DLC 1 as the mission menu (intro)  [level.start dlc1]")) QueueItem("level.start", "dlc1");
@@ -42674,6 +43041,10 @@ void PageCheat() {
         FlightHintText(false, hint, sizeof(hint));
         ImGui::SetTooltip("%s\n(pad only - no keyboard key for up / down)", hint);
     }
+    bool keep = g_flightKeep != 0;           // 0.22.55 [Cheat] FlightKeepOnLoad (default off)
+    if (TmCheckbox("keep flying after a chapter load / Fliegen nach Kapitel-Laden beibehalten  [flight.keep]###flkeep",
+                   &keep))
+        QueueItem("flight.keep", keep ? "1" : "0");
     ImGui::TextWrapped("Toggles cheatMode and posts message 12 to the player (TRLAU Skew.cpp). While on and the menu "
                        "is closed: RT moves Lara up, LT down (speed %.0f per 30 fps frame, [Cheat] FlightSpeed), the "
                        "left stick / the walking keys move her as usual; no keyboard key for up / down. 0.21.6: a line "
@@ -43192,6 +43563,9 @@ const QbRow kQbLara[] = {                    // + the saved positions and the tw
     {"Bewegung / Anzeige", "Movement / display", "-", "fig_move", kQbGroup, -1, kQcNone, 0, kQbPlayer, 0},
     {"Fliegen", "Flight", "cheat.flight", "", kQbBool, -1, kQcNone, 0, kQbPlayer, 0},
     {"Flug-Tempo", "Flight speed", "cheat.speed", "", kQbValue, -1, kQcNone, kQvSpeed, kQbPlayer, 0},
+    // 0.22.55 (owner 2026-11-15): under Fliegen, default off ([Cheat] FlightKeepOnLoad)
+    {"Fliegen nach Kapitel-Laden beibehalten", "Keep flying after chapter load", "flight.keep", "", kQbBool, -1, kQcNone, 0,
+     kQbPlayer, 0},
     {"Positions-Anzeige", "Position overlay", "overlay.position", "", kQbBool, -1, kQcNone, 0, kQbWhite, 0},
     {"Lara-drin-Zeile", "Lara-in line", "overlay.larain", "", kQbBool, -1, kQcNone, 0, kQbWhite, 0},
     // 0.22.48 (owner 2026-11-14: "alles was Adrenalin betrifft kommt wie bei der Schattenpower zu Lara"): every adrenaline
@@ -43500,6 +43874,9 @@ const QbRow kQbTimeTest[] = {                // 0.18 Zeit / Test
 // start l3_main_bedroom (generalbank DTP (7, 2), Befund-Manor-Prolog-0611.md) and the DLC starts (script (8, 104)
 // 'dlc_level1_start.drm' / 'dlc_level2_start.drm'). Right twice within 3 s: save.backup kapitel, then level.load.
 const QbRow kQbChapters[] = {
+    // 0.22.55 (package P2a): the start of Lara's current chapter, as clean as the chapter rows below (chapter.reload)
+    {"Aktuelles Kapitel neu laden", "Reload current chapter", "chapter.reload", "", kQbAction, -1, kQcNone, 0, kQbChapter,
+     kQfConfirm},
     {"Prolog (Croft Manor)", "Prologue (Croft Manor)", "level.load", "l3_main_bedroom", kQbAction, -1, kQcNone, 0,
      kQbChapter, kQfConfirm | kQfBackup},
     {"1 Mittelmeer", "1 Mediterranean Sea", "level.load", "l1_seatop", kQbAction, -1, kQcNone, 0, kQbChapter,
@@ -44432,6 +44809,9 @@ const QbHelp kQbHelp[] = {
                              "(2-7, compact 8-16)"},   // 0.22.39; 0.22.40 (Q126b); 0.22.41 (Q126c)
     {"cheat.flight", "", "Frei fliegen ohne Schwerkraft - Tasten in der Zeile oben|Fly freely without gravity - keys in "
                          "the line above"},
+    {"flight.keep", "", "Aus: jedes Laden aus TruMenu schaltet Fliegen aus|Off: every TruMenu load turns flight "
+                        "off"},   // 0.22.55
+    {"chapter.reload", "", "Sicherung, dann Start des Kapitels von Laras Unit|Backup, then the start of Lara's chapter"},
     {"overlay.larain", "", "Zeile 'Lara in: <Trigger>' in der Positions-Anzeige|Line 'Lara in: <trigger>' in the position "
                            "overlay"},
     {"player.unstuck", "mark", "Zur zuletzt gemerkten Marke statt zu sicherem Boden|To the last mark instead of safe "
@@ -45228,6 +45608,8 @@ bool ChapSteps(const char *unit, char *steps, size_t n, bool *menu, char *o, siz
     const char *dlc = nullptr;
     const bool dlcStart = ChapDlcStart(unit, &dlc);
     *menu = stateOk && state == 10;
+    if (UnitNameNoDrm(unit)) { UnitRefusal(unit, o, on); return false; }   // 0.22.55: before the backup step runs
+    if (UnitNotFound(unit, o, on)) return false;   // 0.22.55 "level not found"
     if (*menu) {
         if (!g_missionOk || !g_experimental || (!dlcStart && !g_outfitRuleOk)) {
             Out(o, on, de ? "Hauptmen\303\274: Missionsstart nicht gepr\303\274ft / Experimental aus - erst ein Level starten"
@@ -47117,11 +47499,17 @@ bool RunCpJump(const char *arg, char *o, size_t n) {
     }
     if (menu) Out(go, sizeof(go), "level.start %s 0", unit);
     else Out(go, sizeof(go), "unit.go %s", unit);
+    // 0.22.55 (owner 2026-11-15 20:25: CP 4735 switched flight on - cheat.flight 1 of dbg.cpgo / the force form - and it
+    // stayed on over the next level.load): a checkpoint row never turns flight on. Lara goes to the checkpoint with
+    // player.goto alone (a checkpoint is the game's own respawn place, on the floor); unit.go's portal path flies her to
+    // the portal (RkUnitGoSteps) - when flight was off before the row, the last step turns it off again.
+    BYTE cheatMode = 0;
+    const bool flying = g_flight || (ReadByte(kCheatMode, &cheatMode) && cheatMode != 0);
+    const char *off = flying ? "" : ";cheat.flight 0";
     if (force)                               // 0.22.31
-        Out(steps, sizeof(steps), "save.backup kapitel;%s;wait.unit %s;cheat.flight 1;player.goto %ld force", go, unit,
-            intro);
+        Out(steps, sizeof(steps), "save.backup kapitel;%s;wait.unit %s;player.goto %ld force%s", go, unit, intro, off);
     else
-        Out(steps, sizeof(steps), "save.backup kapitel;%s;wait.unit %s;dbg.cpgo %ld", go, unit, intro);
+        Out(steps, sizeof(steps), "save.backup kapitel;%s;wait.unit %s;player.goto %ld%s", go, unit, intro, off);
     Out(title, sizeof(title), "CP %ld (%s)", intro, unit);
     Log(1, "cp.jump %s %ld: %s (src=%s)", unit, intro, steps, ShotSource("cp.jump"));
     return ShortcutStart(steps, title, o, n);
@@ -48537,12 +48925,16 @@ int QbCosRows(QbView *v, QbDyn *d, int max, bool de) {
         CosLabel(g_cos.ids[i], lab, sizeof(lab));
         Out(w.name, sizeof(w.name), "  %s", lab);
         const bool off = !now && CosOffered(g_cos.ids[i]) == 0;   // 0.21.7: refused by the game's check 0x5c54e0
+        char block[120] = "";                // 0.22.55: doppelganger_casual outside the DLC 2 setup (freeze 15.11.)
+        const bool blocked = !now && CosBlocked(g_cos.ids[i], de, block, sizeof(block));
         Out(w.state, sizeof(w.state), "%s", whyLive[0] ? (de ? "gesperrt" : "n/a") : now ? (de ? "aktuell" : "current")
+                                            : blocked ? (de ? "gesperrt (friert ein)" : "blocked (freezes)")
                                             : off ? (de ? "abgelehnt (keine .drm?)" : "refused (no .drm?)")
                                             : (de ? "rechts = an" : "right = wear"));
+        if (blocked) Out(w.count, sizeof(w.count), "%s", de ? "nur DLC 2" : "DLC 2 only");
         w.square = now ? 1 : 0;
-        w.col = whyLive[0] || off ? grey : now ? green : kQbPlayer;
-        w.stateCol = whyLive[0] || off ? red : now ? green : white;
+        w.col = whyLive[0] || off || blocked ? grey : now ? green : kQbPlayer;
+        w.stateCol = whyLive[0] || off || blocked ? red : now ? green : white;
     }
     return n;
 }
@@ -48567,11 +48959,12 @@ void QbCosAct(const QbDyn &q, int dir) {
             return;
         }
         int next = CosIndexOf(shown);         // 0.21.7: entries the game refuses (0x5c54e0) are passed over
+        char block[120];                     // 0.22.55: and doppelganger_casual outside the DLC 2 setup
         for (int k = 0; k < g_cos.n; ++k) {
             next = CosStep(next, dir, g_cos.n);
-            if (CosOffered(g_cos.ids[next]) != 0) break;
+            if (CosOffered(g_cos.ids[next]) != 0 && !CosBlocked(g_cos.ids[next], de, block, sizeof(block))) break;
         }
-        if (CosOffered(g_cos.ids[next]) == 0) {
+        if (CosOffered(g_cos.ids[next]) == 0 || CosBlocked(g_cos.ids[next], de, block, sizeof(block))) {
             QbResult(true, "%s: %s", cos, de ? "alle Eintr\303\244ge vom Spiel abgelehnt (0x5c54e0)" : "every entry refused by the "
                      "game (0x5c54e0)");
             return;
@@ -48632,6 +49025,12 @@ void QbCosAct(const QbDyn &q, int dir) {
             CosLabel(static_cast<DWORD>(q.intro), lab, sizeof(lab));
             QbResult(true, "%s: %s - %s", cos, lab, de ? "vom Spiel abgelehnt (Pr\303\274fung 0x5c54e0, keine .drm?)"
                                                        : "refused by the game's check 0x5c54e0 (no .drm?)");
+            return;
+        }
+        char block[120];                     // 0.22.55: doppelganger_casual outside the DLC 2 setup - nothing runs
+        if (CosBlocked(static_cast<int>(q.intro), de, block, sizeof(block))) {
+            CosLabel(static_cast<DWORD>(q.intro), lab, sizeof(lab));
+            QbResult(true, "%s: %s - %s", cos, lab, block);
             return;
         }
         g_cos.pending = false;               // an explicit pick replaces a waiting one
@@ -49063,7 +49462,8 @@ int QbChapRows(QbView *v, QbDyn *d, int max, bool de) {
 bool ChapFootHint(const QbDyn &q, bool de, char *o, size_t n) {
     const int u = UnitIndexOf(q.unit);
     const char *t = nullptr;
-    if (q.kind == kQdChapCp) t = de ? "rechts 2x: Sicherung, Unit, Flug + Checkpoint" : "right 2x: backup, unit, flight + checkpoint";
+    if (q.kind == kQdChapCp) t = de ? "rechts 2x: Sicherung, Unit, Checkpoint (ohne Fliegen)"
+                                    : "right 2x: backup, unit, checkpoint (no flight)";   // 0.22.55
     else if (q.kind == kQdPz)                // 0.22.31 (Q106)
         t = q.arg[0] ? (de ? "rechts 2x: Gelenk ins Ziel (Cheat), links: Stopp" : "right 2x: joint into the target (cheat), left: stop")
                      : (de ? "nur Anzeige (Ereignis / anderer Knoten)" : "list only (event / other node)");
@@ -49142,8 +49542,8 @@ bool ChapHelp(const QbDyn &q, bool de, char *o, size_t n) {
         else if (ChapBaseGroup(kUnits[UnitIndexOf(q.unit) < 0 ? 0 : UnitIndexOf(q.unit)].group))   // 0.22.31 (Q105)
             Out(o, n, "%s", de ? "Debug-Laden ohne Story-Stand, dann zum CP (force)" : "Debug load without story state, "
                                  "then to the CP (force)");
-        else Out(o, n, "%s", de ? "Sicherung, dann in die Unit und zum Checkpoint (Flug an)" : "Backup, then into the unit "
-                                  "and to the checkpoint (flight on)");
+        else Out(o, n, "%s", de ? "Sicherung, dann in die Unit und zum Checkpoint (ohne Flug)" : "Backup, then into the "
+                                  "unit and to the checkpoint (no flight)");   // 0.22.55
         return true;
     }
     if (UnitNameNoArchive(q.unit)) {         // 0.22.31 (Q105)
@@ -49161,6 +49561,78 @@ bool ChapHelp(const QbDyn &q, bool de, char *o, size_t n) {
                                       "up the doppelganger state");
     else Out(o, n, "%s", de ? "Hauptmen\303\274: Missionsstart; im Level: Sicherung + laden"   // 0.22.50 D
                             : "Main menu: mission start; in a level: backup + load");
+    return true;
+}
+// 0.22.55 chapter.reload (package P2a, owner 2026-11-15 "Aktuelles Kapitel neu laden": the start of the current chapter,
+// as clean as a mission start; "Unit neu laden" / level.reload only reloads Lara's unit). The chapter = page Kapitel's own
+// table kChapOrder: Lara's unit (stream entry of GameTracker+0xc0, else GameTracker+0x38), its first row (a unit with a
+// return visit counts as its way in), then back to the nearest row of the same group whose heading is a chapter start
+// ("Kapitel ..." / "Prolog ..." - the SetChapterUIData callers, Q105); without one the group's first row (DLC 1 / DLC 2:
+// dlc_level1_start / dlc_level2_start). That unit runs through ChapSteps, the one path of the chapter rows: save.backup
+// kapitel, then in a level the pause menu's DLC start (level.start dlc1 / dlc2 = RegisterAcceptChanges case 8 with the
+// new-game block: the unit's own costume, DLC 2's doppelganger) or level.load for a base-game chapter (debug, no story
+// values - the only in-level path verified for those), from the main menu the mission start. Refused without a level.
+const ChapOrder *ChapStartOf(const char *lara, const ChapOrder **at) {
+    *at = nullptr;
+    int k = -1;
+    for (int i = 0; i < kChapOrderN && k < 0; ++i)
+        if (lara && lara[0] && !_stricmp(kChapOrder[i].unit, lara)) k = i;
+    if (k < 0) return nullptr;
+    *at = &kChapOrder[k];
+    const char *group = kChapOrder[k].group;
+    int first = k;
+    for (int i = k; i >= 0; --i) {
+        if (strcmp(kChapOrder[i].group, group)) continue;
+        first = i;
+        const char *h = kChapOrder[i].head;
+        if (h && (!strncmp(h, "Kapitel ", 8) || !strncmp(h, "Prolog", 6))) return &kChapOrder[i];
+    }
+    return &kChapOrder[first];
+}
+bool ChapReloadPlan(char *unit, size_t un, char *chapter, size_t cn, char *o, size_t on) {
+    const bool de = g_qbLang == 0;
+    char lara[64] = "";
+    PosLaraUnit(lara, sizeof(lara));
+    if (!lara[0]) CurrentUnit(lara, sizeof(lara));
+    if (!InLevel() || !lara[0]) { Out(o, on, "%s", de ? "braucht ein Level (Laras Unit)" : "needs a level (Lara's unit)"); return false; }
+    const ChapOrder *at = nullptr, *start = ChapStartOf(lara, &at);
+    if (!start) {
+        Out(o, on, de ? "%s steht nicht in der Kapitel-Tabelle (Seite Kapitel)" : "%s is not in the chapter table (page "
+            "Kapitel)", lara);
+        return false;
+    }
+    strncpy_s(unit, un, start->unit, _TRUNCATE);
+    if (start->head) ChapHeadText(start->head, de, chapter, cn);
+    else Out(chapter, cn, "%s", !strcmp(start->group, "DLC 1") ? (de ? "DLC 1 Unter der Asche" : "DLC 1 Beneath the Ashes")
+                              : !strcmp(start->group, "DLC 2") ? (de ? "DLC 2 Laras Schatten" : "DLC 2 Lara's Shadow")
+                              : start->group);
+    char *cut = strchr(chapter, '(');        // "Prolog (Croft Manor brennt; ...)" -> "Prolog"
+    if (cut && cut > chapter) { *cut = 0; while (cut > chapter && cut[-1] == ' ') *--cut = 0; }
+    return true;
+}
+void ValChapReload(char *o, size_t n) {
+    char unit[64] = "", chapter[96] = "", why[160] = "";
+    if (!ChapReloadPlan(unit, sizeof(unit), chapter, sizeof(chapter), why, sizeof(why))) { Out(o, n, "%s", why); return; }
+    Out(o, n, "%s -> %s", chapter, unit);
+}
+bool RunChapReload(const char *, char *o, size_t n) {
+    char unit[64] = "", chapter[96] = "", steps[200], title[64], why[300];
+    if (!ChapReloadPlan(unit, sizeof(unit), chapter, sizeof(chapter), o, n)) return false;
+    bool menu = false;
+    if (!ChapSteps(unit, steps, sizeof(steps), &menu, why, sizeof(why))) {
+        Log(1, "chapter.reload: %s -> %s refused: %s", chapter, unit, why);
+        Out(o, n, "%s", why);
+        return false;
+    }
+    Out(title, sizeof(title), "chapter %s", unit);
+    Log(1, "chapter.reload (src=%s): Lara's chapter '%s' starts in %s -> shortcut '%s'%s", ShotSource("chapter.reload"),
+        chapter, unit, steps, menu ? " (the game's mission / DLC start)" : " (level.load, debug)");
+    char started[200];
+    if (!ShortcutStart(steps, title, started, sizeof(started))) { Out(o, n, "%s", started); return false; }
+    const bool de = g_qbLang == 0;
+    Out(o, n, "%s: %s %s", chapter, unit, menu ? (de ? "- Sicherung, dann Start wie das Spiel" : "- backup, then the start as "
+                                                  "the game") : (de ? "- Sicherung, dann laden (debug)" : "- backup, then "
+                                                                 "load (debug)"));
     return true;
 }
 // ---- end of 0.21.7 chapter units ----
@@ -49252,7 +49724,10 @@ void PzRefresh(bool de) {
         PzRow *o = PzAdd(c[i].joint ? IM_COL32(255, 210, 90, 255) : IM_COL32(170, 170, 170, 255));
         if (!o) break;
         if (c[i].joint) ++g_pzPuzzles; else ++g_pzOthers;
-        Out(o->name, sizeof(o->name), "  %s %lu%s", name, intro, c[i].joint ? "" : (de ? " (Ereignis)" : " (event)"));
+        MbPart part;                         // 0.22.55: which part of a multibody object (link n, its node)
+        char partText[56] = "";
+        if (MbPartOf(c[i].inst, &part)) MbPartText(part, de, partText, sizeof(partText));
+        Out(o->name, sizeof(o->name), "  %s%s %lu%s", name, partText, intro, c[i].joint ? "" : (de ? " (Ereignis)" : " (event)"));
         Out(o->state, sizeof(o->state), "%s", state);
         Out(o->count, sizeof(o->count), "%.0f%s", sqrtf(c[i].d2), other ? (de ? " +Knoten" : " +nodes") : "");
         if (!c[i].joint || trans || !nodes || node >= count) continue;
@@ -49318,6 +49793,22 @@ void PzRefresh(bool de) {
                                                       ? (de ? "Bereich au\303\237erhalb der Grenzen" : "range outside the limits")
                                                       : (de ? "nur Anzeige" : "list only"));
         }
+    }
+    // 0.22.55: poles without a hole / reference in the loaded data (section "0.22.55 multibody parts + unused poles"),
+    // within [Debug] UberRadius of Lara, list only
+    PlScan();
+    for (int i = 0; i < g_plN; ++i) {
+        const PlPole &pl = g_plPoles[i];
+        float p[3];
+        if (pl.verdict != 1 || !ReadFloats(pl.inst + kInstancePosition, p, 3)) continue;
+        const float dx = p[0] - lara[0], dy = p[1] - lara[1], dz = p[2] - lara[2], d2 = dx * dx + dy * dy + dz * dz;
+        if (d2 > r2) continue;
+        PzRow *o = PzAdd(IM_COL32(170, 170, 170, 255));
+        if (!o) break;
+        ++g_pzOthers;
+        Out(o->name, sizeof(o->name), "  ma_pt_pole_a %ld", pl.intro);
+        Out(o->state, sizeof(o->state), "%s", PlUnusedText(de));
+        Out(o->count, sizeof(o->count), "%.0f", static_cast<double>(sqrtf(d2)));
     }
 }
 int QbPzRows(QbView *v, QbDyn *d, int max, bool de) {
@@ -49840,7 +50331,10 @@ bool QbHelpLine(int page, int sel, bool de, char *o, size_t n) {
         break;
     case kQdCosRec: t = de ? "Kost\303\274m f\303\274rs n\303\244chste Laden w\303\244hlen; l\303\244dt die Unit neu"
                            : "Choose the costume for the next load; reloads the unit"; break;
-    case kQdCos:
+    case kQdCos: {
+        char block[120];                     // 0.22.55
+        if (CosBlocked(static_cast<int>(q.intro), de, block, sizeof(block))) { Out(o, n, "%s", block); return true; }
+    }
         t = CosOffered(static_cast<WORD>(q.intro)) == 0
                 ? (de ? "Vom Spiel abgelehnt (Pr\303\274fung 0x5c54e0, keine .drm?)" : "Refused by the game's check (no .drm?)")
                 : (de ? "Dieses Kost\303\274m jetzt anziehen (live)" : "Wear this costume now (live)");
@@ -52187,6 +52681,7 @@ void ReadOptions(const char *dir) {
     if (!(g_flightSpeed > 0.0f && g_flightSpeed < 1000.0f))
         g_flightSpeed = static_cast<float>(atof(OptDefault("Cheat", "FlightSpeed")));
     g_flightHint = OptInt(ini, "Cheat", "FlightHint") != 0 ? 1 : 0;   // 0.21.6
+    InterlockedExchange(&g_flightKeep, OptInt(ini, "Cheat", "FlightKeepOnLoad") != 0 ? 1 : 0);   // 0.22.55: default 0
     InterlockedExchange(&g_lsWant, OptInt(ini, "Light", "Stable") != 0 ? 1 : 0);   // 0.22.5: default on (end-cutscene flicker)
     InterlockedExchange(&g_lcStableWant, OptInt(ini, "Light", "StableCut") != 0 ? 1 : 0);   // 0.22.10: default off
     InterlockedExchange(&g_ldWant, OptInt(ini, "Light", "Demote") != 0 ? 1 : 0);   // 0.22.18: default off
@@ -52742,6 +53237,7 @@ void Start(HMODULE self) {
     LabelCheck();                             // 0.13 Thrall-Labels (precheck_013.txt)
     UberCheck();                              // 0.21.7 uber labels (precheck_0217.txt)
     JtCheck();                                // 0.22.31 joint puzzles (Q106; kJtChecks, after UberCheck)
+    MbCheck();                                // 0.22.55 multibody part labels + pole scan (kMbChecks, after JtCheck)
     ShaderCheck();                           // 0.21.7 shader labels (precheck_0217.txt = precheck_shaderlabel.txt rows)
     NavLabelCheck();                          // 0.21.7 navmesh labels (precheck_0217.txt)
     UnitDrmScan();                            // 0.21.9 DLC units without mods\<unit>.drm (file tests only)

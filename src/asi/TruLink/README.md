@@ -10,6 +10,43 @@ Version 0.3 - built and checked with `dumpbin` only, not yet tried in the game (
 `diff`) to find unknown values (health, ammo, walking speed) live without a debugger - see
 [Memory search](#memory-search-03).
 
+## 0.5: physics objects, base classes, object checks, hold until off (2026-11-16)
+
+Built 2026-11-16 into `work\asi\trulink05` (0 warnings, imports `KERNEL32` / `WS2_32` as before; sha256
+`bb11bcd6dc6dc68f0ecc553a23a225a673d425a1f073aba69860031d8a1444fa`, MD5 `a578b71b4afb509f66d987aaaa4887ce`;
+`TruLink.ini` unchanged), **not installed, not tried in the game**.
+Install (game closed): `scripts\windows\Set-TruLink.ps1 -Install -SourceDir work\asi\trulink05`. Offline: 118 byte check
+rows (14 groups, 37 new) match the Steam `tru.exe` and the images of all three full dumps of 2026-11-15
+(`scripts\windows\Test-TruLinkObj.ps1`, new decoder commands `body`, `refs`, `events <id> all`). Details:
+[Objects (0.4)](#objects-04) and [0.5 additions](#05-additions).
+
+| What | 0.5 | Proven |
+|---|---|---|
+| `obj.place <id> near-lara [m] \| at <x y z> \| onto <id> [dz] [yaw deg] [force]` | puts a physics object (body `+0x274`: weights, props) somewhere through **the game's own placement path** - `INSTANCE_SetPosition` 0x5b4100 then `0x497740(body, inst)` (body pose = instance pose x centre of mass `+0x250`), as the game's message 0x75 handler and its birth placement do; velocity 0 (the game's setters), body woken, journaled, `obj.undo` puts it back the same way. Refused for multibody anchors, instances without a body, and (without `force`) when the prop's holder handle is the player | ✅ static (code path, 25 byte rows); ⬜ live |
+| `obj.info`: physics body | body pos / quaternion / velocity (units/s) / spin / mass / asleep flag, centre of mass `+0x250`, holder handle | ✅ dump: body pos - R x COM = instance pos exactly (weight, 2026-11-15) |
+| `obj.info`: base classes | every class of the script chain (`root +0x18` = the base class's runtime type, as IsA 0x5749e0 walks it) with its members `b<d>.m<k>` and values | ✅ static + dump |
+| `uber.events <id> [all]` | object-check transitions (condition 9) list **which link must be in which node** and whether it holds now; `all` lists every node's transitions | ✅ static (0x4d322a / 0x4d1360) + dump |
+| `obj.refs <id>` | every loaded instance whose script members (own + base classes) hold an instanceref to `<id>` | ✅ dump |
+| motor velocity unit | `obj.info` / `joint.get` print the motor velocity per second **and** raw per physics tick (1/30 s); `joint.drive` speeds are deg/s / units/s and are written per tick (0.4 wrote them 30x too fast) | ✅ static; matches the measured 3.5 deg/s of the chapel door |
+| `joint.drive ... hold-until-off`, `joint.hold off` | keeps the target without the 10 s limit until `joint.hold off` / `joint.drive stop`; pushes off the target are driven back; old motor settings restored at stop; stops on unit change / instance gone / leaving the limits | ⬜ live |
+| `mark.note` (labels) | interface only, **needs TruMenu** - see [mark.note](#marknote-needs-trumenu) | - |
+
+### TO TEST 0.5 (live, `l3_chapel`)
+
+| # | TO TEST | expected |
+|---|---|---|
+| 1 | `ping`, `status` | `pong TruLink 0.5`; `0.5 checks (118 rows, 0 bad ...)`, every group 1 (also `place objcheck super units`) |
+| 2 | `obj.info 4828` (a weight on the floor) | `physics body +0x274 ...` with mass 30, asleep, centre of mass 0 0 64.5; base classes with a stickybool |
+| 3 | `obj.place 4828 near-lara 1.5` | the weight appears ~1.5 m from Lara (in front if the yaw guess is right, else beside / behind - note which) and falls to the floor; `obj.info 4828` pos = drawn cube |
+| 4 | `obj.undo` | the weight is back where it was |
+| 5 | `obj.place 4828 onto 4834` (the middle plate) | the weight drops onto the plate; the plate reacts as when carried there (watch `uber.events 4834` / the fire) |
+| 6 | carry a weight, `obj.place <it> near-lara` | refused (holder = the player) unless `force` |
+| 7 | `uber.events 4837 all` | link 4 `unsolved -> RightSolved_LeftNot` needs links 0 / 2 in `position_a`, `LeftSolved_RightNot` links 1 / 3, `preSolve -> solved` all four; `holds now` follows the switches |
+| 8 | `obj.info 4617` / `4525` (villa electric switches) before and after pulling | the base-class members show what changes on the pull (the reuse guard) |
+| 9 | `obj.refs 4528` (secret door) | trigger volume 4521 and switch 4617 (by hand on 15.11.) |
+| 10 | `joint.get 4835 1` while the door closes by itself | `vel -3.500 deg/s = raw -0.00204 rad/tick` |
+| 11 | `joint.drive 4835 1 177 hold-until-off`, wait 60 s, `joint.drive status`, `joint.hold off` | the door opens (~6 s at 30 deg/s), stays open with no time limit (`HOLDING`), closes by itself after `joint.hold off` (motor settings back, `TruLink.log`) |
+
 ## 0.4: live objects - inspect, change, undo (2026-11-15)
 
 Built 2026-11-15 into `work\asi\trulink04` (sha256 `e0e142a2b65c93046620ac2a1e137a4d447bb582d5ed4846e18429670bad6bd0`,
@@ -98,6 +135,7 @@ Numbers (`len`, `value`, `msg`, `data`, `mode`): `0x...` hex, otherwise decimal 
 | `snapshot <name> <addr> <len> [force]` | `ok snapshot p 0x... 2048 bytes` (len up to 4096, 16 snapshots); `snapshot <name>` takes it again at the same address; `snapshot list`, `snapshot del <name>` | server |
 | `diff <name> [update]` | block: every changed dword since the snapshot `+offset address old new f:old f:new i:old i:new` (at most 400 lines); `update` makes the current bytes the new baseline | server |
 | `obj.near`, `obj.info`, `obj.set`, `obj.journal`, `obj.undo`, `uber.events`, `uber.send`, `sticky.get`, `sticky.set`, `joint.get`, `joint.drive` | 0.4, see [Objects (0.4)](#objects-04) | game |
+| `obj.place`, `obj.refs`, `uber.events <id> all`, `joint.drive ... hold-until-off`, `joint.hold off` | 0.5, see [0.5 additions](#05-additions) | game |
 | `log <0-3>` | `ok log level n` (TruLink.log; not saved) | server |
 | `quit` / `exit` / `bye` | `ok bye`, connection closed | server |
 
@@ -235,7 +273,8 @@ the shadow door rail's limits [0, 948.2] and the door went to -1115. `joint.driv
 
 - the target is clamped inside the joint's limits (limit bit on, lo < hi; 1 degree / 2 units inside); a joint without
   limits moves at most 180 degrees / 3000 units per drive;
-- each game frame the motor velocity (axis 0, 0x4da160; hinge in rad/s) is set proportional to the rest (2 /s), at
+- each game frame the motor velocity (axis 0, 0x4da160; 0.5: the engine's unit is **per physics tick of 1/30 s** -
+  hinge rad/tick, rail units/tick; 0.4 wrote deg/s as rad/s, i.e. 30x too fast) is set proportional to the rest (2 /s), at
   most `speed` (default 30 deg/s or 150 units/s), at least 10 % of it, with the force `force` (default 20000, the
   order of the engine's own hinge / rail motors in the chapel door; at most 1e6), motor on (0x4da0c0), both bodies
   woken (0x4d8fd0);
@@ -274,6 +313,77 @@ Start with `Set-TruLink.ps1 -Install -SourceDir work\asi\trulink04`, load the ch
 | 8 | `joint.get 4835 2`, `joint.drive 4835 2 5`, `joint.drive status` | rail value near 0, limits [0, 948.17]; the drive reaches ~5 (or stops with a reason in `TruLink.log`), motor settings back; the door never leaves [0, 948.2] |
 | 9 | `joint.drive 4835 2 -200` | `target -200 clamped into the limits -> 2.00`; no move below 0 |
 | 10 | `obj.set 4820 hide 1`, `obj.undo` | the switch disappears / comes back; iflags 0x800 set / clear |
+
+## 0.5 additions
+
+All on the game thread like 0.4; the decoders are in `TruLinkObj.h` (offline test commands in brackets).
+
+**obj.place** (`place` byte rows). A physics object is drawn where its body is: the engine writes the instance pose
+from the body every frame (0x497610: `pos = body pos - R(body) x COM`, COM = instance `+0x250`), which is why
+`obj.set pos` on a weight only moved the label. `obj.place` uses the path the game itself takes to put such an object
+somewhere (message 0x75 handler 0x6c2a5c..0x6c2a91; the same at 0x6bd193..0x6bd1da; birth placement 0x6baf8b..0x6bafc8):
+
+1. `INSTANCE_SetPosition` 0x5b4100 (= `jmp 0x5c55b0`, cdecl inst, `vec4 *` 16-byte aligned): instance `+0x20`, the
+   attached parts, the body origin (`0x4ef720`);
+2. only with `yaw <deg>`: `INSTANCE_SetRotation` 0x5b4040 (instance `+0x30`, the body quaternion), upright;
+3. `0x497740(body, inst)` (cdecl): body position = instance matrix x COM, body quaternion from the instance rotation
+   (Body::SetPosition 0x4ef720 / SetQuaternion 0x4ef780 - both also move the body's geoms);
+4. TruLink's additions, all game functions: linear / angular velocity 0 (0x4d8df0 / 0x4d8e30), wake (0x4d8fd0).
+
+Destinations: `near-lara [m]` = Lara's position + m metres (default 1.5) along (-sin yaw, cos yaw) and 100 units up
+(the forward convention is the camera's, ENGINE section 16; for Lara 🔶 - check it live), `at x y z` (instance
+origin), `onto <id> [dz]` = 150 (or dz) units above that instance's origin. Refused: multibody anchors, no body,
+holder handle = the player (`force` overrides). Journal kind `place`; `obj.undo` runs the same path back to the old
+position and rotation.
+
+**Base classes** (`super`). `[inst+0x60]+8` is the runtime ScriptType; its root `[t+8]` holds the class Symbol (u16
+`+8`), a native class its name (`+0x10`), and the base class's runtime ScriptType (`+0x18`, 0 at the end) - the chain
+IsA 0x5749e0 walks. Every class's members address the same data block `[so+0xc]`; `obj.info` lists them as
+`b<depth>.m<k>` after the own members `m<k>` (sticky members of base classes decode with the owner's intro id).
+
+**Object checks** (`objcheck`). Uber condition 9 (0x4d31e0 case 9 = 0x4d322a): X = the multibody of `[[b+0x74]+0x4c]`
+(0x453310), record `[trans+0x1c]` = {+4 count, +8 entries of 12 B {link index, kind, node}}, evaluated by 0x4d1360:
+every entry must hold - kind 1 = the link's uber is in that node (a running transition fails), kind 2 = the link has
+no uber state; other kinds and an empty list are false. `uber.events` prints each entry with its current node and
+`holds now`; `uber.events <id> all` adds every other node's transitions (so `position_d -> position_a` and
+`preSolve -> solved` can be read without waiting for them).
+
+**obj.refs**. Walks the instance list once; each script object once (runtime parts share the anchor's); every member
+of type `instanceref` in the whole class chain whose data equals the target's intro id. Arrays of instancerefs are not
+read.
+
+**Motor velocity unit** (`units`). The physics step dt is `[0xe7f188]` = frame microseconds / 33333.3 (double
+0x855280, 0x5da47c), i.e. 1.0 per 1/30 s; bodies integrate `pos += v x dt` (0x4ef84b) and a joint's motor row takes
+the motor velocity as its target velocity (0x4e2340), so it is in **rad (hinge) or units (rail) per tick**. `obj.info`
+prints `vel <x> deg/s = raw <r> rad/tick` (x = r x 57.3 x 30). Chapel door hinge: raw -0.00204 rad/tick = -3.5 deg/s,
+the measured closing speed on 2026-11-15 (148.04 -> 103.22 deg in ~13 s).
+
+**joint.drive ... hold-until-off**. Approach as before (30 s instead of 10 s to reach the target); once reached no
+time limit, no away / overshoot / no-progress stop and node changes of the linked ubers are only logged (as
+`through 1`): the motor keeps velocity 0 inside the tolerance and drives back when the joint is pushed off (logged).
+Ends with `joint.hold off` or `joint.drive stop`, a new drive, the instance gone (unit change), the joint type changed
+or the value leaving the limits; the saved motor velocity / force / enable are put back then (when the joint still
+carries TruLink's force). `joint.drive status` says `HOLDING`; `TruLink.log` gets one line every 10 s.
+
+### mark.note (needs TruMenu)
+
+Labels are drawn by TruMenu, so TruLink cannot add text to them. Interface wanted from TruMenu (exports next to
+`TruMenuList` / `TruMenuInvoke`; TruLink resolves them with `GetProcAddress` and answers `err needs TruMenu <version>`
+when they are missing):
+
+```c
+// text: printable ASCII, at most 95 characters (TruMenu copies it); flags bit 0 = show even when object names are
+// off, bit 1 = keep over a level / unit load (default: cleared at level load). Thread safe (TruMenu locks its table).
+// returns 1 stored / replaced, 0 table full (64 notes), -1 bad arguments
+extern "C" __declspec(dllexport) int TruMenuNote(unsigned intro, const char *text, unsigned flags);
+extern "C" __declspec(dllexport) int TruMenuNoteClear(unsigned intro);       // 0xffffffff = all; returns notes removed
+// one line per note "intro<TAB>flags<TAB>text\n" into out (0-terminated); returns the length, or the size needed
+extern "C" __declspec(dllexport) int TruMenuNoteList(char *out, int size);
+```
+
+TruMenu draws the note as one more line under the instance's label (same colour rule as the label, `^` / distance as
+today), keyed by the intro id (runtime ids too). TruLink commands then: `mark.note <id> <text...>`, `mark.clear
+[<id>|all]`, `mark.list`, and `mark.refs <id>` = a note `<- <intro> <member>` on every instance `obj.refs <id>` finds.
 
 ## Threading
 

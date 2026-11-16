@@ -1,5 +1,7 @@
-// TruLinkObj.h - TruLink 0.4 object inspection: the pure-memory decoders of the obj.* / uber.* / sticky.* / joint.*
-// commands, shared by TruLink.asi (live, on the game thread) and the offline test TruLinkObjTest.exe (full minidump).
+// TruLinkObj.h - TruLink 0.4 / 0.5 object inspection: the pure-memory decoders of the obj.* / uber.* / sticky.* /
+// joint.* commands, shared by TruLink.asi (live, on the game thread) and the offline test TruLinkObjTest.exe (full
+// minidump). 0.5: physics body, base-class members, object-check conditions, all-node transitions, obj.refs, motor
+// velocity per physics tick.
 //
 // The includer provides three functions:
 //   bool TlRead(DWORD address, void *out, DWORD length);   guarded read, false = not readable
@@ -40,12 +42,24 @@ const DWORD kJtLimitOn = 0x004d9f50, kJtMotorOn = 0x004da0c0, kJtMotorVel = 0x00
             kJtWake = 0x004d8fd0;
 const float kUnitsPerMetre = 290.0f;      // ENGINE 4.3: ~290 units per metre (280..310, not proven exactly)
 const float kRadToDeg = 57.29577951308232f;
+// 0.5: physics time unit. The frame step [0xe7f188] = frame microseconds / 33333.3 (double 0x855280, 0x5da47c) is the
+// physics dt (0x492b80); bodies integrate pos += v x dt (0x4ef84b) and a joint motor row takes the motor velocity as
+// its target velocity (0x4e2340), so motor and body velocities are per tick = 1/30 s at normal game speed.
+const float kTicksPerSecond = 30.0f;
+// 0.5: physics body [inst+0x274] (pool body, AllocBody 0x4e9590 in 0x4972fb / 0x4975ef; ctor 0x4dd820): +0x80 pos,
+// +0x90 quaternion (x y z w), +0xa0 linear / +0xb0 angular velocity (per tick), +0x13c geoms, +0x148 instance,
+// +0x14c mass (+0x150 = 1 / mass, SetMass 0x4dd500), +0x15c flags (bit 0 asleep: 0x4ef83d skips the integration,
+// wake 0x4d8fd0), +0x160 sleep timer. Instance +0x250 = centre of mass in the instance frame (written 0x4975d6).
+const DWORD kSetPos = 0x005b4100;         // INSTANCE_SetPosition(inst, vec4 *) cdecl = jmp 0x5c55b0 (movaps: align 16)
+const DWORD kSetRot = 0x005b4040;         // INSTANCE_SetRotation(inst, vec4 *) cdecl: +0x30 and the body quaternion
+const DWORD kBodyToInst = 0x00497740;     // cdecl (body, inst): body pose = instance pose (+0x20 / +0x30) x COM +0x250
+const DWORD kBodyLinVel = 0x004d8df0, kBodyAngVel = 0x004d8e30;     // thiscall (body, vec4 *): +0xa0 / +0xb0
 
 // ---- byte checks: every layout / function the commands rely on ----
 enum { kGrpList, kGrpUber, kGrpMulti, kGrpCmd, kGrpMsg, kGrpJoint, kGrpDrive, kGrpSticky, kGrpScript, kGrpHide,
-       kGrpCount };
+       kGrpPlace, kGrpCheck, kGrpSuper, kGrpUnits, kGrpCount };
 const char *const kGrpNames[kGrpCount] = {"list", "uber", "multibody", "command", "message", "joint", "drive",
-                                          "sticky", "script", "hide"};
+                                          "sticky", "script", "hide", "place", "objcheck", "super", "units"};
 struct Check { DWORD at; const char *hex; int group; };
 const Check kTlChecks[] = {
     // instance list, object names, units, handles (TruMenu g_instOk / kLfChecks / kRkChecks rows)
@@ -143,6 +157,44 @@ const Check kTlChecks[] = {
     // hide / unhide = message 7 (data != 0 hides): default handler and the multibody handler (all parts)
     {0x005b4110, "8b442408 833807 752b 83780400 8b442404 7411 81481800000020 81481400080400", kGrpHide},
     {0x004d1508, "83f807 7445", kGrpHide},
+    // 0.5 place: the body at +0x274, the game's instance setters and its body <- instance path (reset / message 0x75)
+    {0x004975ef, "89be74020000", kGrpPlace},                                          // [inst+0x274] = body
+    {0x00497337, "56 8bcf e8e1180400", kGrpPlace}, {0x004d8c20, "8b442404 898148010000 c20400", kGrpPlace},  // +0x148
+    {0x004975d6, "899e50020000 898654020000 898e58020000", kGrpPlace},               // +0x250 COM
+    {0x004dd84d, "0f298080000000", kGrpPlace}, {0x004dd869, "0f298890000000", kGrpPlace},   // ctor: +0x80 / +0x90
+    {0x004dd876, "0f2980a0000000 0f2980b0000000", kGrpPlace},                        // ctor: +0xa0 / +0xb0
+    {0x004dd540, "d99e4c010000", kGrpPlace},                                          // SetMass: +0x14c mass
+    {0x005b4100, "e9ab140100", kGrpPlace},                                            // -> 0x5c55b0
+    {0x005c55b0, "558bec 83e4f0 83ec24 8b450c 0f2800 53 56 8b7508 0f284e20", kGrpPlace},
+    {0x005c561e, "8d8650020000 85c0 7413 8b4024 85c0 740c 8b4c240c 51 8bc8 e8e5a0f2ff", kGrpPlace},
+    {0x005b4040, "558bec 83e4f0 83ec54 53 8b5d08 56 8b750c 57 56 8d7b30 57 53 e85362eaff", kGrpPlace},
+    {0x00497740, "558bec 83e4f0 81ec88000000 56 8b750c 57 8b7d08 8d4630 50", kGrpPlace},
+    {0x00497771, "8b9654020000 8b8e50020000", kGrpPlace},
+    {0x00497801, "e81a7f0500", kGrpPlace}, {0x0049781b, "e8607f0500", kGrpPlace},     // -> 0x4ef720 / 0x4ef780
+    {0x00497654, "8b8654020000 8b9650020000 8b8e58020000", kGrpPlace},               // sync inst <- body
+    {0x004ef720, "56 57 8b7c240c 8bf1 8bcf e851b9faff 84c0 743e 8b07 898680000000", kGrpPlace},
+    {0x004ef780, "558bec 83e4f0 83ec08 56 57 8b7d08 8bf1 8bcf e8b9b9faff 84c0 7426 0f2807 0f298690000000", kGrpPlace},
+    {0x004d8df0, "56 57 8b7c240c 8bf1 8bcf e88122fcff 84c0 7423 8b07 8986a0000000", kGrpPlace},
+    {0x004d8e30, "56 57 8b7c240c 8bf1 8bcf e84122fcff 84c0 7423 8b07 8986b0000000", kGrpPlace},
+    {0x004d8fd0, "d98108010000 83a15c010000fe d99960010000 c3", kGrpPlace},
+    {0x006b5820, "83c654 56 e8a7e1efff 83c404 3b0594f0e700", kGrpPlace},              // holder handle vs player
+    // 0.5 object check: uber condition 9 -> 0x4d1360 (all records {link, kind, node} must hold)
+    {0x004d329c, "02", kGrpCheck}, {0x004d3284, "2a324d00", kGrpCheck},               // cond 9 -> 0x4d322a
+    {0x004d322a, "8b4174 8b484c 51 e8da00f8ff 8b761c 83c404 85c0 74e4 85f6 74e0 56 8bc8 e814e1ffff", kGrpCheck},
+    {0x00453310, "8b442404 8b80d0020000 85c0 741a 8b08 8b81ec020000 85c0 740e 83c0fc 7409 8178541e1ba5fe", kGrpCheck},
+    {0x004d1360, "51 53 55 8b6c2410 837d0400 56 0f97c0 33db 84c0 57", kGrpCheck},
+    {0x004d138f, "8b7508 8b043e 03f7 85c0 0f8c89000000 3b4170 0f8d80000000 8b496c 8d14c1", kGrpCheck},
+    {0x004d13e5, "8b4604 83e801 740c 83e801 751e 85c9 0f94c0 eb19 85c9 7413 8b8984000000 85c9 7c09 3b4e08 7504",
+     kGrpCheck},
+    {0x004d1415, "83c70c", kGrpCheck},                                                // 12-byte records
+    // 0.5 super: the script class chain (IsA 0x5749e0: type -> root +8 -> class id u16 +8, super type root +0x18)
+    {0x005749e0, "85c9 741c 8b442404 0fb700 eb03 8d4900 8b4908 663b4108 740c 8b4918 85c9 75f0", kGrpSuper},
+    {0x005749c0, "8b4108 8b4018 c3", kGrpSuper},
+    // 0.5 units: physics dt in ticks of 1/30 s, motor velocity = row target velocity, integration pos += v x dt
+    {0x00855280, "000000a0aa46e040", kGrpUnits},                                      // double 33333.33 us
+    {0x005da47c, "dc3580528500", kGrpUnits},                                          // fdiv [0x855280]
+    {0x004e2340, "d9ee 8b442420 8b542428 d918 d984cf08010000", kGrpUnits},             // motor row target = vel
+    {0x004ef84b, "0f288ea0000000 d94508 f30f104508 0fc6c000 51 0f59c1 d91c24 0f288e80000000", kGrpUnits},
 };
 const int kTlCheckCount = static_cast<int>(sizeof(kTlChecks) / sizeof(kTlChecks[0]));
 
@@ -411,12 +463,14 @@ inline void JointLine(const char *prefix, DWORD x, int index) {
         _snprintf_s(value, sizeof(value), _TRUNCATE, "%.2f %s", static_cast<double>(v), hinge ? "deg" : "units");
     else
         _snprintf_s(value, sizeof(value), _TRUNCATE, "%s", type == 1 || type == 3 ? "n/a (offline / unreadable)" : "-");
+    // 0.5: the motor velocity is per physics tick (1/30 s, kTicksPerSecond): hinge rad/tick, rail units/tick
     TlAdd("%sjoint %d: %s (phys %d, record 0x%08lx type %u, A %ld B %ld) J 0x%08lx value %s limits [%.2f, %.2f]%s "
-          "limit %s motor %s (vel %.3f%s force %.6g, motors %u)\n", prefix, index, JointTypeName(type), type, jrec,
-          recType, static_cast<LONG>(D(jrec + 4)), static_cast<LONG>(D(jrec + 8)), joint, value,
+          "limit %s motor %s (vel %.3f %s = raw %.5f %s, force %.6g, motors %u)\n", prefix, index, JointTypeName(type),
+          type, jrec, recType, static_cast<LONG>(D(jrec + 4)), static_cast<LONG>(D(jrec + 8)), joint, value,
           hinge ? Deg(lim[0]) : static_cast<double>(lim[0]), hinge ? Deg(lim[1]) : static_cast<double>(lim[1]),
           hinge ? " deg" : "", (flags & 2) ? "on" : "off", (flags & 0x10) ? "on" : "off",
-          hinge ? Deg(vel) : static_cast<double>(vel), hinge ? " deg/s" : "", static_cast<double>(force), motors);
+          (hinge ? Deg(vel) : static_cast<double>(vel)) * kTicksPerSecond, hinge ? "deg/s" : "units/s",
+          static_cast<double>(vel), hinge ? "rad/tick" : "units/tick", static_cast<double>(force), motors);
 }
 
 // ---- script object [inst+0x60]: +8 ScriptType (vtable 0x84e4d4, +8 root), +0xc data, +0x20 owner instance;
@@ -464,6 +518,73 @@ inline DWORD ScriptOwner(DWORD inst) {
     const DWORD so = ScriptObj(inst);
     const DWORD owner = so ? D(so + 0x20) : 0;
     return owner && D(owner + 0x60) == so ? owner : inst;
+}
+// 0.5: the class chain as IsA 0x5749e0 walks it: runtime ScriptType t -> root [t+8] (class id = u16 Symbol [root+8],
+// a native class has its name at [root+0x10]) -> the base class's runtime ScriptType [root+0x18] (0 ends). roots[0] =
+// the instance's own type; every class's members address the same data block [so+0xc] (base members first).
+inline int ClassChain(DWORD so, DWORD *roots, int max) {
+    int n = 0;
+    DWORD t = D(so + 8);
+    while (t && n < max && D(t) == kScriptTypeVt) {
+        const DWORD root = D(t + 8);
+        if (!root) break;
+        for (int i = 0; i < n; ++i)
+            if (roots[i] == root) return n;                     // a loop: stop
+        roots[n++] = root;
+        t = D(root + 0x18);
+    }
+    return n;
+}
+inline void ClassLabel(DWORD root, char *out, size_t n) {
+    WORD id = 0;
+    R16(root + 8, &id);
+    char name[48];
+    if (RStr(D(root + 0x10), name, sizeof(name))) _snprintf_s(out, n, _TRUNCATE, "'%s' class sym %u", name, id);
+    else _snprintf_s(out, n, _TRUNCATE, "class sym %u", id);
+}
+
+// ---- 0.5: physics body [inst+0x274] (layout: kTicksPerSecond comment) ----
+inline DWORD BodyOf(DWORD inst) {
+    const DWORD b = D(inst + 0x274);
+    return b && D(b + 0x148) == inst ? b : 0;                   // 0x4d8c20 sets +0x148 = the instance (0x49733a)
+}
+// a portable prop's holder: the prop process 0x6b57b0 resolves the handle at [[inst+0x2d0]]+0x2ec +0x54 and compares
+// it with the player (0x6b5820); only read for instances with a body and without uber / multibody state
+inline DWORD HolderOf(DWORD inst) {
+    if (!BodyOf(inst)) return 0;
+    const DWORD u = SlotU(inst);
+    if (!u || (u >= 0x10 && D(u - 0x10 + 0x70) == kUberMagic) || (u >= 4 && IsMulti(u - 4))) return 0;
+    return HandleInst(u + 0x54);
+}
+inline double QuatYawDeg(const float *q) {                     // q = x y z w
+    const double x = q[0], y = q[1], z = q[2], w = q[3];
+    return atan2(2.0 * (w * z + x * y), 1.0 - 2.0 * (y * y + z * z)) * 57.29577951308232;
+}
+inline void BodyLine(DWORD inst, const char *prefix) {
+    const DWORD raw = D(inst + 0x274), body = BodyOf(inst);
+    if (!raw) return;
+    if (!body) { TlAdd("%sphysics body +0x274 0x%08lx: its +0x148 is not this instance - not decoded\n", prefix, raw); return; }
+    float p[4] = {0}, q[4] = {0}, v[4] = {0}, w[4] = {0}, com[3] = {0}, mass = 0;
+    DWORD fl = 0;
+    TlRead(body + 0x80, p, 16);
+    TlRead(body + 0x90, q, 16);
+    TlRead(body + 0xa0, v, 16);
+    TlRead(body + 0xb0, w, 16);
+    TlRead(inst + 0x250, com, 12);
+    RF(body + 0x14c, &mass);
+    R32(body + 0x15c, &fl);
+    TlAdd("%sphysics body +0x274 0x%08lx: pos %.2f %.2f %.2f quat %.4f %.4f %.4f %.4f (yaw %.2f deg) velocity %.1f %.1f "
+          "%.1f units/s spin %.1f %.1f %.1f deg/s mass %.4g flags +0x15c 0x%lx (%s); centre of mass +0x250 %.2f %.2f %.2f\n",
+          prefix, body, static_cast<double>(p[0]), static_cast<double>(p[1]), static_cast<double>(p[2]),
+          static_cast<double>(q[0]), static_cast<double>(q[1]), static_cast<double>(q[2]), static_cast<double>(q[3]),
+          QuatYawDeg(q), static_cast<double>(v[0] * kTicksPerSecond), static_cast<double>(v[1] * kTicksPerSecond),
+          static_cast<double>(v[2] * kTicksPerSecond), Deg(w[0]) * kTicksPerSecond, Deg(w[1]) * kTicksPerSecond,
+          Deg(w[2]) * kTicksPerSecond, static_cast<double>(mass), fl, (fl & 1) ? "asleep" : "awake",
+          static_cast<double>(com[0]), static_cast<double>(com[1]), static_cast<double>(com[2]));
+    const DWORD holder = HolderOf(inst);
+    if (holder)
+        TlAdd("%sholder handle +0x54 -> 0x%08lx intro %lu%s (the prop process compares it with the player: carried?)\n",
+              prefix, holder, D(holder + 0x58), holder == D(kPlayer) ? " = the player" : "");
 }
 
 // ---- sticky store (ENGINE 6.3; TruMenu sticky.get) ----
@@ -689,16 +810,45 @@ inline void CommandTable(DWORD x, const char *prefix) {
         }
     }
 }
-// current node of b: its transitions and how to fire them
-inline void NodeEvents(DWORD b, DWORD x, const char *prefix) {
-    const LONG k = static_cast<LONG>(D(b + 0x84));
-    const DWORD trans = D(b + 0x80), flags = D(b + 0x90);
-    char name[48];
-    NodeName(b, k, name, sizeof(name));
-    float t = 0.0f;
-    RF(b + 0x88, &t);
-    TlAdd("%snode %ld '%s' time %.2f s flags +0x90 0x%lx%s%s\n", prefix, k, name, static_cast<double>(t), flags,
-          trans ? " - a transition runs: events are dropped now" : "", (flags & 9) ? " - events dropped (+0x90 & 9)" : "");
+// 0.5: uber condition 9 "object check" (0x4d31e0 case 9 = 0x4d322a): X = the multibody of [[b+0x74]+0x4c] (0x453310,
+// magic 0xfea51b1e), record [trans+0x1c] {+4 count, +8 entries of 12 B {link index, kind, node}} checked by 0x4d1360:
+// EVERY entry must hold - kind 1: the link's uber state is in that node (node -1 = a running transition fails), kind 2:
+// the link has no uber state; any other kind fails; no entry = false. Prints one line per entry, returns the result.
+inline bool ObjCheck(DWORD b, DWORD tr, const char *prefix) {
+    const DWORD owner = D(b + 0x74), oi = owner ? D(owner + 0x4c) : 0, x = oi ? Multi(oi) : 0;
+    const DWORD rec = D(tr + 0x1c), n = rec ? D(rec + 4) : 0, e = rec ? D(rec + 8) : 0;
+    bool all = x && rec && n > 0 && n <= 32 && e;
+    TlAdd("%s     object check 0x4d1360 record 0x%08lx: %lu condition(s), ALL must hold, on multibody X 0x%08lx "
+          "(intro %lu)%s\n", prefix, rec, n, x, oi ? D(oi + 0x58) : 0, x ? "" : " - X not found: never true");
+    for (DWORD k = 0; e && k < n && k < 32; ++k) {
+        const LONG link = static_cast<LONG>(D(e + 12 * k));
+        const DWORD kind = D(e + 12 * k + 4), node = D(e + 12 * k + 8);
+        const DWORD li = x ? LinkInst(x, link) : 0, lb = li ? Uber(li) : 0;
+        char want[48] = "-", now[48] = "-";
+        bool ok = false;
+        if (kind == 1) {
+            if (lb) {
+                NodeName(lb, static_cast<LONG>(node), want, sizeof(want));
+                const LONG cur = static_cast<LONG>(D(lb + 0x84));
+                if (cur >= 0) NodeName(lb, cur, now, sizeof(now));
+                else _snprintf_s(now, sizeof(now), _TRUNCATE, "(transition)");
+                ok = cur >= 0 && static_cast<DWORD>(cur) == node;
+            }
+            TlAdd("%s       link %ld (intro %lu) in node %lu '%s' - now '%s': %s\n", prefix, link, li ? D(li + 0x58) : 0, node,
+                  want, now, ok ? "yes" : "no");
+        } else if (kind == 2) {
+            ok = !lb;
+            TlAdd("%s       link %ld (intro %lu) has no uber state: %s\n", prefix, link, li ? D(li + 0x58) : 0, ok ? "yes" : "no");
+        } else {
+            TlAdd("%s       link %ld kind %lu value %lu: unknown kind - the engine answers false\n", prefix, link, kind, node);
+        }
+        all = all && ok;
+    }
+    TlAdd("%s     -> holds now: %s\n", prefix, all ? "YES" : "no");
+    return all;
+}
+// the transitions of node k of b and how to fire them
+inline void NodeTransitions(DWORD b, DWORD x, LONG k, const char *prefix) {
     const DWORD node = NodeAddr(b, k);
     for (int j = 0; node && j < TransCount(node); ++j) {
         const DWORD tr = TransAt(node, j);
@@ -718,21 +868,42 @@ inline void NodeEvents(DWORD b, DWORD x, const char *prefix) {
                             index, static_cast<double>(lo), static_cast<double>(hi), val ? "" : "n/a ", static_cast<double>(v), index);
         }
         TlAdd("%s  -> %lu '%s' on %s%s\n", prefix, D(tr + 4), to, cond, joint);
+        if (c == 9) ObjCheck(b, tr, prefix);
     }
 }
-inline void Events(DWORD inst) {
+// current node of b: its transitions and how to fire them; all = also every other node of the graph
+inline void NodeEvents(DWORD b, DWORD x, const char *prefix, bool all = false) {
+    const LONG k = static_cast<LONG>(D(b + 0x84));
+    const DWORD trans = D(b + 0x80), flags = D(b + 0x90);
+    char name[48];
+    NodeName(b, k, name, sizeof(name));
+    float t = 0.0f;
+    RF(b + 0x88, &t);
+    TlAdd("%snode %ld '%s' time %.2f s flags +0x90 0x%lx%s%s\n", prefix, k, name, static_cast<double>(t), flags,
+          trans ? " - a transition runs: events are dropped now" : "", (flags & 9) ? " - events dropped (+0x90 & 9)" : "");
+    NodeTransitions(b, x, k, prefix);
+    if (!all) return;
+    for (int o = 0; o < NodeCount(b); ++o) {
+        if (o == k) continue;
+        char other[48];
+        NodeName(b, o, other, sizeof(other));
+        TlAdd("%s  (other node %d '%s')\n", prefix, o, other);
+        NodeTransitions(b, x, o, prefix);
+    }
+}
+inline void Events(DWORD inst, bool all = false) {
     char name[64];
     InstName(inst, name, sizeof(name));
     const DWORD b = Uber(inst), x = MultiOfAny(inst);
-    TlAdd("ok+ uber.events 0x%08lx intro %lu %s%s\n", inst, D(inst + 0x58), name,
-          !b && !x ? ": no uber state and no multibody object" : "");
-    if (b) NodeEvents(b, x, "");
+    TlAdd("ok+ uber.events 0x%08lx intro %lu %s%s%s\n", inst, D(inst + 0x58), name,
+          !b && !x ? ": no uber state and no multibody object" : "", all ? " (all nodes)" : "");
+    if (b) NodeEvents(b, x, "", all);
     if (Multi(inst)) {
         for (int i = 0; i < Links(x); ++i) {
             const DWORD li = LinkInst(x, i), lb = li ? Uber(li) : 0;
             if (!lb) { TlAdd("link %d: %s\n", i, li ? "no uber state" : "gone"); continue; }
             TlAdd("link %d (intro %lu):\n", i, D(li + 0x58));
-            NodeEvents(lb, x, "  ");
+            NodeEvents(lb, x, "  ", all);
         }
         CommandTable(x, "");
     } else if (x) {
@@ -762,6 +933,7 @@ inline void Graph(DWORD b, DWORD x) {
                 _snprintf_s(extra, sizeof(extra), _TRUNCATE, " joint %d [%.2f, %.2f)", x ? JointIndexOf(x, D(tr + 0x20)) : -1,
                             static_cast<double>(lo), static_cast<double>(hi));
             TlAdd("    -> %lu '%s' on %s%s\n", D(tr + 4), to, cond, extra);
+            if (c == 9) ObjCheck(b, tr, "  ");
         }
     }
 }
@@ -815,19 +987,37 @@ inline void Info(DWORD inst) {
     TlAdd("object 0x%08lx models %u (+0x3a, DTPs +0x40 0x%08lx) current model +0x235 %u; process +0x110 0x%08lx, "
           "message +0x120 0x%08lx, object data +0x50 0x%08lx\n", object, models, D(object + 0x40), curModel,
           D(inst + 0x110), D(inst + 0x120), D(inst + 0x50));
-    // script
+    BodyLine(inst, "");                                         // 0.5: the physics body +0x274
+    // script: the own type (m<k>, as sticky.get takes them) and, 0.5, every base class of the chain (b<d>.m<k>)
     const DWORD so = ScriptObj(inst), root = so ? ScriptRoot(so) : 0;
     if (so) {
         const DWORD data = D(so + 0xc), owner = ScriptOwner(inst), ownerIntro = D(owner + 0x58);
+        DWORD roots[16];
+        const int depth = ClassChain(so, roots, 16);
         const int mc = root ? MemberCount(root) : 0;
-        TlAdd("script object 0x%08lx type 0x%08lx root 0x%08lx data 0x%08lx owner intro %ld: %d member(s) of its own "
-              "type (base class members not listed)\n", so, D(so + 8), root, data, static_cast<LONG>(ownerIntro), mc);
+        char cl[64] = "-";
+        if (root) ClassLabel(root, cl, sizeof(cl));
+        TlAdd("script object 0x%08lx type 0x%08lx root 0x%08lx (%s) data 0x%08lx owner intro %ld: %d member(s) of its own "
+              "type, %d base class(es)\n", so, D(so + 8), root, cl, data, static_cast<LONG>(ownerIntro), mc,
+              depth > 0 ? depth - 1 : 0);
         for (int k = 0; k < mc; ++k) {
             Member m;
             if (!MemberAt(root, k, &m)) break;
             char v[160];
             MemberValue(m, data, ownerIntro, v, sizeof(v));
             TlAdd("  m%d +%u %s (name sym %u, user %u): %s\n", k, m.offset, m.type, m.name, m.user, v);
+        }
+        for (int d = 1; d < depth; ++d) {
+            const int bc = MemberCount(roots[d]);
+            ClassLabel(roots[d], cl, sizeof(cl));
+            TlAdd("  base %d: root 0x%08lx %s: %d member(s)\n", d, roots[d], cl, bc);
+            for (int k = 0; k < bc; ++k) {
+                Member m;
+                if (!MemberAt(roots[d], k, &m)) break;
+                char v[160];
+                MemberValue(m, data, ownerIntro, v, sizeof(v));
+                TlAdd("    b%d.m%d +%u %s (name sym %u, user %u): %s\n", d, k, m.offset, m.type, m.name, m.user, v);
+            }
         }
     } else {
         TlAdd("script object: none (+0x60 = 0)\n");
@@ -862,6 +1052,47 @@ inline void Info(DWORD inst) {
         Graph(b, IsMulti(bx) ? bx : 0);
     }
     TlAdd(".\n");
+}
+
+// 0.5 obj.refs: every loaded instance whose script members (own type and every base class) hold an instanceref to the
+// intro id of target; runtime parts that share their anchor's script object are counted once (the anchor)
+inline void Refs(DWORD target) {
+    const DWORD intro = D(target + 0x58);
+    char tn[64];
+    InstName(target, tn, sizeof(tn));
+    TlAdd("ok+ obj.refs %lu %s: instanceref members (own and base classes) that point to it\n", intro, tn);
+    static DWORD seen[2048];
+    int nSeen = 0, hits = 0, scripts = 0;
+    const int walked = ForInstances([&](DWORD inst, int index) {
+        const DWORD so = ScriptObj(inst);
+        if (!so) return true;
+        for (int i = 0; i < nSeen; ++i)
+            if (seen[i] == so) return true;
+        if (nSeen < 2048) seen[nSeen++] = so;
+        ++scripts;
+        const DWORD data = D(so + 0xc), owner = ScriptOwner(inst);
+        DWORD roots[16];
+        const int depth = ClassChain(so, roots, 16);
+        for (int d = 0; d < depth; ++d) {
+            for (int k = 0; k < MemberCount(roots[d]); ++k) {
+                Member m;
+                if (!MemberAt(roots[d], k, &m) || strcmp(m.type, "instanceref") || D(data + m.offset) != intro) continue;
+                char name[64];
+                InstName(owner, name, sizeof(name));
+                char cl[64];
+                ClassLabel(roots[d], cl, sizeof(cl));
+                char at[24];
+                if (d) _snprintf_s(at, sizeof(at), _TRUNCATE, "b%d.m%d", d, k);
+                else _snprintf_s(at, sizeof(at), _TRUNCATE, "m%d", k);
+                TlAdd("#%d 0x%08lx intro %lu %s: %s +%u (name sym %u, %s)\n", owner == inst ? index : ListIndex(owner),
+                      owner, D(owner + 0x58), name, at, m.offset, m.name, cl);
+                ++hits;
+            }
+        }
+        return true;
+    });
+    TlAdd("%d reference(s) in %d script object(s) of %d instances (arrays of instancerefs are not read)\n.\n", hits,
+          scripts, walked);
 }
 
 }  // namespace tlobj

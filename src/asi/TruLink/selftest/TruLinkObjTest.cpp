@@ -1,9 +1,10 @@
-// TruLinkObjTest.exe - offline test of the TruLink 0.4 object decoders (TruLinkObj.h) on a full tru.exe minidump or
+// TruLinkObjTest.exe - offline test of the TruLink 0.4 / 0.5 object decoders (TruLinkObj.h) on a full tru.exe minidump or
 // the byte check rows against tru.exe itself. Read-only: the dump / exe is only read; no game, no process.
 //
 //   TruLinkObjTest.exe --dump tru.exe.N.dmp <command> [args]    decoders on the dump's memory
 //   TruLinkObjTest.exe --exe tru.exe checks                      byte check rows against the exe file
-// Commands: checks | near [metres] [filter] [max n] | info <id> | events <id> | joint <id> <index> | sticky <owner> <key>
+// Commands: checks | near [metres] [filter] [max n] | info <id> | events <id> [all] | refs <id> | body <id> |
+// joint <id> <index> | sticky <owner> <key>
 // (<id> as in TruLink: intro id, 0x<instance>, #<list index>, player). Joint values need the engine's getter: "n/a".
 // Exit code 0 = ok, 1 = a check failed / error, 2 = usage.
 #define WIN32_LEAN_AND_MEAN
@@ -196,8 +197,8 @@ DWORD Inst(const char *arg) {
 
 int main(int argc, char **argv) {
     if (argc < 4 || (strcmp(argv[1], "--dump") && strcmp(argv[1], "--exe"))) {
-        printf("usage: TruLinkObjTest --dump <tru.dmp> checks | near [m] [filter] [max n] | info <id> | events <id> | "
-               "joint <id> <index> | sticky <owner> <key>\n       TruLinkObjTest --exe <tru.exe> checks\n");
+        printf("usage: TruLinkObjTest --dump <tru.dmp> checks | near [m] [filter] [max n] | info <id> | events <id> [all] | "
+               "refs <id> | body <id> | joint <id> <index> | sticky <owner> <key>\n       TruLinkObjTest --exe <tru.exe> checks\n");
         return 2;
     }
     for (Page &p : g_pages) { p.index = -1; p.valid = 0; p.age = 0; }
@@ -221,7 +222,38 @@ int main(int argc, char **argv) {
         return 0;
     }
     if (!strcmp(cmd, "info") && argc > 4) { const DWORD i = Inst(argv[4]); if (!i) return 1; tlobj::Info(i); return 0; }
-    if (!strcmp(cmd, "events") && argc > 4) { const DWORD i = Inst(argv[4]); if (!i) return 1; tlobj::Events(i); return 0; }
+    if (!strcmp(cmd, "events") && argc > 4) {
+        const DWORD i = Inst(argv[4]);
+        if (!i) return 1;
+        tlobj::Events(i, argc > 5 && !strcmp(argv[5], "all"));
+        return 0;
+    }
+    if (!strcmp(cmd, "refs") && argc > 4) { const DWORD i = Inst(argv[4]); if (!i) return 1; tlobj::Refs(i); return 0; }
+    if (!strcmp(cmd, "body") && argc > 4) {
+        const DWORD i = Inst(argv[4]);
+        if (!i) return 1;
+        if (!tlobj::D(i + 0x274)) { printf("no physics body (+0x274 = 0)\n"); return 0; }
+        tlobj::BodyLine(i, "");
+        // the instance pose the game derives from the body (0x497610: pos = body pos - R(body) x COM): check value
+        float p[4], q[4], com[3], ip[3];
+        TlRead(tlobj::D(i + 0x274) + 0x80, p, 16);
+        TlRead(tlobj::D(i + 0x274) + 0x90, q, 16);
+        TlRead(i + 0x250, com, 12);
+        TlRead(i + 0x20, ip, 12);
+        const double x = q[0], y = q[1], z = q[2], w = q[3];
+        const double r[3][3] = {{1 - 2 * (y * y + z * z), 2 * (x * y - z * w), 2 * (x * z + y * w)},
+                                {2 * (x * y + z * w), 1 - 2 * (x * x + z * z), 2 * (y * z - x * w)},
+                                {2 * (x * z - y * w), 2 * (y * z + x * w), 1 - 2 * (x * x + y * y)}};
+        for (int k = 0; k < 2; ++k) {                          // column- and row-vector convention
+            double o[3];
+            for (int a = 0; a < 3; ++a)
+                o[a] = p[a] - (k ? r[0][a] * com[0] + r[1][a] * com[1] + r[2][a] * com[2]
+                                 : r[a][0] * com[0] + r[a][1] * com[1] + r[a][2] * com[2]);
+            printf("body pos - R x COM (%s): %.2f %.2f %.2f; instance +0x20 %.2f %.2f %.2f\n", k ? "row vector" : "column vector",
+                   o[0], o[1], o[2], static_cast<double>(ip[0]), static_cast<double>(ip[1]), static_cast<double>(ip[2]));
+        }
+        return 0;
+    }
     if (!strcmp(cmd, "joint") && argc > 5) {
         const DWORD i = Inst(argv[4]);
         if (!i) return 1;

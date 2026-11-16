@@ -1,7 +1,7 @@
 ﻿<#
 .SYNOPSIS
-    Offline test of the TruLink 0.4 object decoders (obj.near / obj.info / uber.events / joint / sticky) on a full
-    tru.exe minidump, and of TruLink's byte check rows against tru.exe and the dump.
+    Offline test of the TruLink 0.4 / 0.5 object decoders (obj.near / obj.info / uber.events / obj.refs / physics
+    body / joint / sticky) on a full tru.exe minidump, and of TruLink's byte check rows against tru.exe and the dump.
 
 .DESCRIPTION
     Builds src\asi\TruLink\selftest\TruLinkObjTest.cpp (the same decoder header TruLinkObj.h as TruLink.asi, with a
@@ -20,7 +20,8 @@
 
 .PARAMETER Command
     Decoder commands for the dump, one string each (or several in one string, separated by ';'):
-    'near [m] [filter] [max n]', 'info <id>', 'events <id>', 'joint <id> <index>', 'sticky <owner> <key>'.
+    'near [m] [filter] [max n]', 'info <id>', 'events <id> [all]', 'refs <id>', 'body <id>', 'joint <id> <index>',
+    'sticky <owner> <key>'.
 
 .EXAMPLE
     .\scripts\windows\Test-TruLinkObj.ps1 -Dump .\tru.exe.26292.dmp -Command 'near 15', 'info 4820', 'events 4835'
@@ -41,7 +42,7 @@ Import-Module (Join-Path $PSScriptRoot 'TruCommon.psm1') -Force -Verbose:$false
 
 $paths = Get-TruWorkspacePath -ScriptRoot $PSScriptRoot
 $repo = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
-$outDir = if ($OutDir) { $OutDir } else { Join-Path $repo 'work\asi\trulink04_test' }
+$outDir = if ($OutDir) { $OutDir } else { Join-Path $repo 'work\asi\trulink05_test' }
 $logDir = $paths.Logs
 New-Item -ItemType Directory -Force -Path $outDir, $logDir | Out-Null
 $logFile = Join-Path $logDir ('Test-TruLinkObj_{0}.log' -f (Get-Date -Format 'yyyyMMdd_HHmmss'))

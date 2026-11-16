@@ -18,6 +18,11 @@
 // offline dump test (TruLinkObj.h, selftest\TruLinkObjTest.cpp); every command runs as a job on the game thread,
 // every write is journaled with its old value (obj.undo) and logged, and nothing runs when its byte checks failed.
 //
+// 0.5 adds obj.place (physics objects through the game's own placement path: INSTANCE_SetPosition 0x5b4100 + body <-
+// instance 0x497740, as the game's reset / message 0x75 do), obj.refs (reverse instancerefs), base-class members and
+// the physics body in obj.info, object-check conditions and all-node transitions in uber.events, the motor velocity
+// in its real unit (per physics tick = 1/30 s) and joint.drive hold-until-off / joint.hold off.
+//
 // Every game address is checked against the expected bytes at load; on a mismatch the affected command answers
 // "err" and the reason is logged. Loaded by the Ultimate ASI Loader (binkw32.dll of the installed game).
 
@@ -39,7 +44,7 @@
 
 namespace {
 
-const char kVersion[] = "0.4";             // 0.4: obj / uber / sticky / joint commands; 0.3.1: dated log lines (Q107)
+const char kVersion[] = "0.5";             // 0.5: obj.place / obj.refs / hold-until-off; 0.4: obj / uber / sticky / joint
 
 typedef DWORD(WINAPI *XInputGetStateFn)(DWORD, void *);
 typedef void(__cdecl *CameraSetModeFn)(int mode);
@@ -539,12 +544,15 @@ void CmdHelp() {
               "obj.info <id>                 everything readable: pos / rot / flags / intro / script members / links / "
               "joints / commands / uber graph\n"
               "obj.set <id> pos x y z | move dx dy dz | rot x y z (deg) | yaw deg | hide 0|1   (collide / scale: refused)\n"
-              "obj.journal [clear] | obj.undo [all]   every 0.4 write with its old value; undo the last one / all\n"
-              "uber.events <id>              current node: transitions and how to fire them; links; command table\n"
+              "obj.place <id> near-lara [m] | at <x y z> | onto <id> [dz]  [yaw deg] [force]   physics objects (body +0x274)\n"
+              "obj.refs <id>                 every instance whose script members hold an instanceref to <id> (block)\n"
+              "obj.journal [clear] | obj.undo [all]   every write with its old value; undo the last one / all\n"
+              "uber.events <id> [all]        current node (all: every node): transitions, object checks; links; commands\n"
               "uber.send <id> cmd <n> | command <c> | event <v> | broadcast <v> [link k] [force]   the game's path\n"
               "sticky.get <owner> <key|m<i>|+<off>> | sticky.set [int|bool|float] <owner> <key|m<i>|+<off>> <value>\n"
-              "joint.get <id> <index> | joint.drive <id> <index> <target> [speed s] [force f] [hold s] [through 1] | stop | status\n"
-              "id: intro id | 0x<instance> | #<list index> | player   (all 0.4 commands run on the game thread)\n"
+              "joint.get <id> <index> | joint.drive <id> <index> <target> [speed s] [force f] [hold s | hold-until-off] [through 1]\n"
+              "joint.drive stop | status | joint.hold off   (speed: deg/s or units/s; the motor runs per 1/30 s tick)\n"
+              "id: intro id | 0x<instance> | #<list index> | player   (all object commands run on the game thread)\n"
               "log <0-3>                    TruLink.log level\n"
               "quit                          close the connection\n"
               "addr: hex or player | gametracker | cheat | camera | cameramgr | playerstate, optional +hexoffset\n"
@@ -568,7 +576,7 @@ void CmdStatus() {
               since == 0xffffffff ? -1L : static_cast<long>(since), g_reentries);
     g_out.Add("checks camera %d restore %d post %d objects %d image 0x%08lx-0x%08lx\n", g_cameraOk, g_restoreOk,
               g_postOk, g_tableOk, g_imageStart, g_imageEnd);
-    g_out.Add("0.4 checks (%d rows, %d bad, first bad 0x%08lx):", tlobj::kTlCheckCount, g_grpBad, g_grpFirstBad);
+    g_out.Add("0.5 checks (%d rows, %d bad, first bad 0x%08lx):", tlobj::kTlCheckCount, g_grpBad, g_grpFirstBad);
     for (int g = 0; g < tlobj::kGrpCount; ++g) g_out.Add(" %s %d", tlobj::kGrpNames[g], g_grp[g] ? 1 : 0);
     g_out.Add("\njournal %d entries, joint.drive %s\n", g_jCount, g_driveOn ? "running" : "idle");
     g_out.Add(".\n");
@@ -1589,7 +1597,8 @@ struct ObjJobArgs {
     char argv[16][64];
     bool force;
 };
-enum { kOpNear = 1, kOpInfo, kOpSet, kOpUndo, kOpJournal, kOpEvents, kOpSend, kOpStGet, kOpStSet, kOpJGet, kOpJDrive };
+enum { kOpNear = 1, kOpInfo, kOpSet, kOpUndo, kOpJournal, kOpEvents, kOpSend, kOpStGet, kOpStSet, kOpJGet, kOpJDrive,
+       kOpPlace, kOpRefs, kOpJHold };
 ObjJobArgs g_oj;
 
 const char *GroupWhy(int g) {
@@ -1607,12 +1616,13 @@ bool NeedGroups(std::initializer_list<int> groups) {
 }
 
 // ---- journal ----
-enum { kJPos = 1, kJRot, kJHide, kJSticky, kJUber, kJJoint };
-const char *const kJNames[] = {"?", "pos", "rot", "hide", "sticky", "uber", "joint"};
+enum { kJPos = 1, kJRot, kJHide, kJSticky, kJUber, kJJoint, kJPlace };
+const char *const kJNames[] = {"?", "pos", "rot", "hide", "sticky", "uber", "joint", "place"};
 struct JEntry {
     int kind;
     DWORD inst, stamp, intro;
     float old[3], now[3];
+    float oldRot[3], nowRot[3];              // 0.5 place: the instance rotation before / after
     DWORD oldWord, newWord;
     int stType;
     DWORD stOwner;
@@ -1724,10 +1734,16 @@ void OpInfo() {
     if (inst) tlobj::Info(inst);
 }
 void OpEvents() {
-    if (g_oj.argc < 2) { g_out.Add("err usage: uber.events <id>\n"); return; }
-    if (!NeedGroups({tlobj::kGrpCmd})) return;
+    if (g_oj.argc < 2) { g_out.Add("err usage: uber.events <id> [all]\n"); return; }
+    if (!NeedGroups({tlobj::kGrpCmd, tlobj::kGrpCheck})) return;
     const DWORD inst = ObjInst(g_oj.argv[1]);
-    if (inst) tlobj::Events(inst);
+    if (inst) tlobj::Events(inst, g_oj.argc > 2 && !_stricmp(g_oj.argv[2], "all"));
+}
+void OpRefs() {
+    if (g_oj.argc < 2) { g_out.Add("err usage: obj.refs <id>\n"); return; }
+    if (!NeedGroups({tlobj::kGrpScript, tlobj::kGrpSuper})) return;
+    const DWORD inst = ObjInst(g_oj.argv[1]);
+    if (inst) tlobj::Refs(inst);
 }
 void OpJointGet() {
     if (g_oj.argc < 3) { g_out.Add("err usage: joint.get <id> <index> (obj.info lists the joints)\n"); return; }
@@ -1850,6 +1866,146 @@ void OpSet() {
         return;
     }
     g_out.Add("err unknown obj.set field '%s' (pos move rot yaw hide collide scale)\n", what);
+}
+
+// ---- 0.5 obj.place: a physics object (body +0x274) through the game's own placement path ----
+// The drawn pose of a body object follows its body (the sync 0x497610 writes instance +0x20 / +0x30 from the body
+// every frame), so obj.set pos alone is undone at once. What the game itself does to put such an object somewhere
+// (message 0x75 at 0x6c2a5c..0x6c2a91, the same at 0x6bd193..0x6bd1da; the birth placement 0x6baf8b..0x6bafc8):
+// INSTANCE_SetPosition 0x5b4100 (instance +0x20, the attached parts, the body origin), optionally INSTANCE_SetRotation
+// 0x5b4040 (+0x30 and the body quaternion), then 0x497740(body, inst) = the body pose from the instance pose and the
+// centre of mass +0x250. TruLink adds the game's velocity setters (0x4d8df0 / 0x4d8e30: 0) and the body wake 0x4d8fd0,
+// so the object falls and settles where it was put.
+typedef void(__cdecl *InstVecFn)(void *inst, const float *v);
+typedef void(__cdecl *BodyToInstFn)(void *body, void *inst);
+typedef void(__thiscall *BodyVecFn)(void *body, const float *v);
+typedef void(__thiscall *BodyFn)(void *body);
+bool PlaceCalls(DWORD inst, DWORD body, const float *p, const float *r, const float *zero) {
+    __try {
+        reinterpret_cast<InstVecFn>(tlobj::kSetPos)(reinterpret_cast<void *>(inst), p);
+        if (r) reinterpret_cast<InstVecFn>(tlobj::kSetRot)(reinterpret_cast<void *>(inst), r);
+        reinterpret_cast<BodyToInstFn>(tlobj::kBodyToInst)(reinterpret_cast<void *>(body), reinterpret_cast<void *>(inst));
+        reinterpret_cast<BodyVecFn>(tlobj::kBodyLinVel)(reinterpret_cast<void *>(body), zero);
+        reinterpret_cast<BodyVecFn>(tlobj::kBodyAngVel)(reinterpret_cast<void *>(body), zero);
+        reinterpret_cast<BodyFn>(tlobj::kJtWake)(reinterpret_cast<void *>(body));
+    } __except (EXCEPTION_EXECUTE_HANDLER) {
+        return false;
+    }
+    return true;
+}
+// pos: new instance origin; rot: new instance rotation (rad) or nullptr = keep
+bool PlaceBody(DWORD inst, const float *pos, const float *rot) {
+    const DWORD body = tlobj::BodyOf(inst);
+    if (!body) return false;
+    float w = 0.0f;
+    tlobj::RF(inst + 0x2c, &w);                                // keep the 4th word: 0x5c55b0 moves by (new - old) as vec4
+    __declspec(align(16)) float p[4] = {pos[0], pos[1], pos[2], w};
+    __declspec(align(16)) float r[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+    __declspec(align(16)) float zero[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+    if (rot) {
+        r[0] = rot[0]; r[1] = rot[1]; r[2] = rot[2];
+        tlobj::RF(inst + 0x3c, &r[3]);
+    }
+    return PlaceCalls(inst, body, p, rot ? r : nullptr, zero);
+}
+void OpPlace() {
+    if (g_oj.argc < 3) {
+        g_out.Add("err usage: obj.place <id> near-lara [m] | at <x> <y> <z> | onto <id> [dz]  [yaw <deg>] [force]\n");
+        return;
+    }
+    if (!NeedGroups({tlobj::kGrpList, tlobj::kGrpPlace})) return;
+    if (!JournalRoom()) return;
+    const DWORD inst = ObjInst(g_oj.argv[1]);
+    if (!inst) return;
+    char label[96];
+    InstLabel(inst, label, sizeof(label));
+    if (tlobj::Multi(inst)) { g_out.Add("err %s is a multibody placed instance (its parts are links) - not placeable\n", label); return; }
+    const DWORD body = tlobj::BodyOf(inst);
+    if (!body) {
+        g_out.Add("err %s has no physics body (+0x274 0x%08lx) - obj.set pos moves such an instance\n", label,
+                  tlobj::D(inst + 0x274));
+        return;
+    }
+    const DWORD player = tlobj::D(tlobj::kPlayer), holder = tlobj::HolderOf(inst);
+    if (holder && holder == player && !g_oj.force) {
+        g_out.Add("err %s: its holder handle is the player (carried?) - drop it first, or force\n", label);
+        return;
+    }
+    float old[3] = {0, 0, 0}, oldRot[3] = {0, 0, 0}, target[3] = {0, 0, 0}, bodyOld[3] = {0, 0, 0};
+    TlRead(inst + 0x20, old, 12);
+    TlRead(inst + 0x30, oldRot, 12);
+    TlRead(body + 0x80, bodyOld, 12);
+    const char *how = g_oj.argv[2];
+    int at = 3;
+    char where[128];
+    if (!_stricmp(how, "near-lara") || !_stricmp(how, "near")) {
+        float lara[3], lrot[3], m = 1.5f;
+        if (!player || !TlRead(player + 0x20, lara, 12) || !TlRead(player + 0x30, lrot, 12)) { g_out.Add("err no player\n"); return; }
+        if (at < g_oj.argc && ParseFloat(g_oj.argv[at], &m)) ++at;
+        if (!(m >= 0.0f && m <= 20.0f)) { g_out.Add("err distance 0..20 m\n"); return; }
+        const float d = m * tlobj::kUnitsPerMetre;            // forward (-sin yaw, cos yaw): ENGINE camera rows; Lara: guess
+        target[0] = lara[0] - sinf(lrot[2]) * d;
+        target[1] = lara[1] + cosf(lrot[2]) * d;
+        target[2] = lara[2] + 100.0f;
+        _snprintf_s(where, sizeof(where), _TRUNCATE, "%.1f m in front of Lara (yaw %.1f deg), 100 units up", static_cast<double>(m),
+                    tlobj::Deg(lrot[2]));
+    } else if (!_stricmp(how, "at")) {
+        if (g_oj.argc < 6) { g_out.Add("err usage: obj.place <id> at <x> <y> <z>\n"); return; }
+        for (int k = 0; k < 3; ++k)
+            if (!ParseFloat(g_oj.argv[3 + k], &target[k])) { g_out.Add("err bad number '%s'\n", g_oj.argv[3 + k]); return; }
+        at = 6;
+        _snprintf_s(where, sizeof(where), _TRUNCATE, "at the given point");
+    } else if (!_stricmp(how, "onto")) {
+        if (g_oj.argc < 4) { g_out.Add("err usage: obj.place <id> onto <id> [dz]\n"); return; }
+        const DWORD other = ObjInst(g_oj.argv[3]);
+        if (!other) return;
+        if (other == inst) { g_out.Add("err onto itself\n"); return; }
+        float dz = 150.0f;
+        at = 4;
+        if (at < g_oj.argc && ParseFloat(g_oj.argv[at], &dz)) ++at;
+        if (!(dz >= -1000.0f && dz <= 3000.0f)) { g_out.Add("err dz -1000..3000 units\n"); return; }
+        TlRead(other + 0x20, target, 12);
+        target[2] += dz;
+        char ol[96];
+        InstLabel(other, ol, sizeof(ol));
+        _snprintf_s(where, sizeof(where), _TRUNCATE, "%.0f units above the origin of %s", static_cast<double>(dz), ol);
+    } else {
+        g_out.Add("err '%s': near-lara | at | onto\n", how);
+        return;
+    }
+    float rot[3] = {0, 0, 0};
+    bool setRot = false;
+    for (int i = at; i + 1 < g_oj.argc; ++i) {
+        if (_stricmp(g_oj.argv[i], "yaw")) continue;
+        float yaw = 0.0f;
+        if (!ParseFloat(g_oj.argv[i + 1], &yaw)) { g_out.Add("err bad yaw '%s'\n", g_oj.argv[i + 1]); return; }
+        rot[2] = yaw / tlobj::kRadToDeg;                        // upright: x = y = 0
+        setRot = true;
+    }
+    if (!PlaceBody(inst, target, setRot ? rot : nullptr)) { g_out.Add("err %s: access fault in the game's placement path (caught)\n", label); return; }
+    float now[3] = {0, 0, 0}, nowRot[3] = {0, 0, 0}, bodyNow[3] = {0, 0, 0};
+    TlRead(inst + 0x20, now, 12);
+    TlRead(inst + 0x30, nowRot, 12);
+    TlRead(body + 0x80, bodyNow, 12);
+    JEntry *e = JournalAdd(kJPlace, inst);
+    memcpy(e->old, old, sizeof(old));
+    memcpy(e->oldRot, oldRot, sizeof(oldRot));
+    memcpy(e->now, now, sizeof(now));
+    memcpy(e->nowRot, nowRot, sizeof(nowRot));
+    _snprintf_s(e->what, sizeof(e->what), _TRUNCATE, "%s place", label);
+    g_out.Add("ok %s placed %s: instance %.1f %.1f %.1f (was %.1f %.1f %.1f) body %.1f %.1f %.1f (was %.1f %.1f %.1f)%s, "
+              "velocity 0, woken - INSTANCE_SetPosition 0x%08lx%s + body <- instance 0x%08lx; journal #%d\n", label, where,
+              static_cast<double>(now[0]), static_cast<double>(now[1]), static_cast<double>(now[2]), static_cast<double>(old[0]),
+              static_cast<double>(old[1]), static_cast<double>(old[2]), static_cast<double>(bodyNow[0]),
+              static_cast<double>(bodyNow[1]), static_cast<double>(bodyNow[2]), static_cast<double>(bodyOld[0]),
+              static_cast<double>(bodyOld[1]), static_cast<double>(bodyOld[2]), setRot ? ", upright" : "", tlobj::kSetPos,
+              setRot ? " + INSTANCE_SetRotation" : "", tlobj::kBodyToInst, g_jCount - 1);
+    Log(1, "obj.place %s %s: instance %.2f %.2f %.2f (was %.2f %.2f %.2f) rot z %.2f deg (was %.2f), body %.2f %.2f %.2f "
+        "(was %.2f %.2f %.2f)%s, journal #%d", label, where, static_cast<double>(now[0]), static_cast<double>(now[1]),
+        static_cast<double>(now[2]), static_cast<double>(old[0]), static_cast<double>(old[1]), static_cast<double>(old[2]),
+        tlobj::Deg(nowRot[2]), tlobj::Deg(oldRot[2]), static_cast<double>(bodyNow[0]), static_cast<double>(bodyNow[1]),
+        static_cast<double>(bodyNow[2]), static_cast<double>(bodyOld[0]), static_cast<double>(bodyOld[1]),
+        static_cast<double>(bodyOld[2]), g_oj.force ? " (force)" : "", g_jCount - 1);
 }
 
 // ---- sticky.get / sticky.set ----
@@ -2082,6 +2238,9 @@ struct Drive {
     int index, type, sign, flips, lines, journal;
     float target, from, best, lastV, speed, force, lo, hi, vel, hold;
     bool limits, through;                    // through: go on over node changes of the linked ubers (logged)
+    bool holdOff;                            // 0.5 hold-until-off: no time limit, keeps the target until stop / hold off
+    DWORD lastHoldLog;
+    int corrections;                         // 0.5: hold mode - times the joint was pushed off and driven back
     float saveVel, saveForce;
     bool saveMotor;
     DWORD start, lastTick, lastBetter, reached, clock;
@@ -2148,6 +2307,7 @@ void TlAdd(const char *fmt, ...) {
 
 namespace {
 
+// vel / force in the engine's units: velocity per physics tick (hinge rad/tick, rail units/tick, tlobj::kTicksPerSecond)
 void JtMotor(DWORD joint, float vel, float force, bool on) {
     void *j = reinterpret_cast<void *>(joint);
     reinterpret_cast<JtSetAxisFn>(tlobj::kJtMotorVel)(j, 0, vel);
@@ -2197,7 +2357,7 @@ void DriveTick() {
     }
     for (int i = 0; i < g_drv.links; ++i) {
         const DWORD s = LinkState(g_drv.x, i);
-        if (s != g_drv.nodes[i] && g_drv.through) {
+        if (s != g_drv.nodes[i] && (g_drv.through || g_drv.holdOff)) {
             Log(1, "joint.drive %ld joint %d: link %d node %lu -> %lu%s - going on (through 1)", g_drv.intro, g_drv.index, i,
                 g_drv.nodes[i] & 0xffff, s & 0xffff, (s & 0x10000) ? " (transition)" : "");
             g_drv.nodes[i] = s;
@@ -2218,9 +2378,31 @@ void DriveTick() {
     const float dt = g_drv.lastTick && now > g_drv.lastTick ? (now - g_drv.lastTick) / 1000.0f : 0.0f;
     const float step = fabsf(v - g_drv.lastV);
     char line[200] = "";
+    // 0.5 hold-until-off, once the target was reached: no time limit and no away / overshoot / progress stop - a push
+    // off the target (Lara, the game's own motor) is driven back; only the limits, the instance and stop end it
+    const bool holding = g_drv.holdOff && g_drv.reached;
+    if (holding) {
+        if (dist > 4.0f * tol) {
+            if (dist > g_drv.best + away) {
+                ++g_drv.corrections;
+                Log(1, "joint.drive %ld joint %d hold: pushed to %.2f (target %.2f) - driving back (#%d)", g_drv.intro,
+                    g_drv.index, static_cast<double>(v), static_cast<double>(g_drv.target), g_drv.corrections);
+            }
+            g_drv.best = dist;
+        } else {
+            g_drv.best = dist < tol ? 0.0f : dist;
+        }
+        if (now - g_drv.lastHoldLog > 10000) {
+            g_drv.lastHoldLog = now;
+            Log(1, "joint.drive %ld joint %d hold: %.2f (target %.2f) for %.0f s, %d correction(s)", g_drv.intro, g_drv.index,
+                static_cast<double>(v), static_cast<double>(g_drv.target), (now - g_drv.reached) / 1000.0, g_drv.corrections);
+        }
+    }
     if (g_drv.limits && (v < g_drv.lo - margin || v > g_drv.hi + margin))
         _snprintf_s(line, sizeof(line), _TRUNCATE, "stopped: value %.2f outside the joint's limits [%.2f, %.2f]",
                     static_cast<double>(v), static_cast<double>(g_drv.lo), static_cast<double>(g_drv.hi));
+    else if (holding)
+        ;                                                      // hold mode: the checks below are for the approach
     else if (dt > 0.0f && step > 4.0f * g_drv.speed * dt + (hinge ? 1.0f : 3.0f))
         _snprintf_s(line, sizeof(line), _TRUNCATE, "stopped: step %.2f in %.3f s is more than 4x the drive speed %.1f /s",
                     static_cast<double>(step), static_cast<double>(dt), static_cast<double>(g_drv.speed));
@@ -2240,29 +2422,38 @@ void DriveTick() {
                         "the sign flip", static_cast<double>(v), static_cast<double>(g_drv.target), static_cast<double>(g_drv.best));
         }
     }
-    if (!line[0] && dist + tol < g_drv.best) { g_drv.best = dist; g_drv.lastBetter = now; }
-    if (!line[0] && dist <= tol && !g_drv.reached) g_drv.reached = now ? now : 1;
-    if (!line[0] && g_drv.reached && now - g_drv.reached > static_cast<DWORD>(g_drv.hold * 1000.0f))
+    if (!line[0] && !holding && dist + tol < g_drv.best) { g_drv.best = dist; g_drv.lastBetter = now; }
+    if (!line[0] && dist <= tol && !g_drv.reached) {
+        g_drv.reached = now ? now : 1;
+        g_drv.lastHoldLog = now;
+        if (g_drv.holdOff)
+            Log(1, "joint.drive %ld joint %d: reached %.2f after %.1f s - holding until joint.drive stop / joint.hold off",
+                g_drv.intro, g_drv.index, static_cast<double>(v), (now - g_drv.start) / 1000.0);
+    }
+    if (!line[0] && !g_drv.holdOff && g_drv.reached && now - g_drv.reached > static_cast<DWORD>(g_drv.hold * 1000.0f))
         _snprintf_s(line, sizeof(line), _TRUNCATE, "reached %.2f (target %.2f), held %.1f s", static_cast<double>(v),
                     static_cast<double>(g_drv.target), static_cast<double>(g_drv.hold));
     if (!line[0] && !g_drv.reached && now - g_drv.lastBetter > 1500)
         _snprintf_s(line, sizeof(line), _TRUNCATE, "stopped: no progress for 1.5 s at %.2f (blocked: Lara, contact, a lock?)",
                     static_cast<double>(v));
-    if (!line[0] && !g_drv.reached && now - g_drv.start > 10000)
-        _snprintf_s(line, sizeof(line), _TRUNCATE, "stopped: timeout 10 s at %.2f", static_cast<double>(v));
+    if (!line[0] && !g_drv.reached && now - g_drv.start > (g_drv.holdOff ? 30000u : 10000u))
+        _snprintf_s(line, sizeof(line), _TRUNCATE, "stopped: timeout %d s at %.2f (target not reached)", g_drv.holdOff ? 30 : 10,
+                    static_cast<double>(v));
     g_drv.lastV = v;
     g_drv.lastTick = now;
     if (line[0]) { DriveStop(line); return; }
-    // the commanded velocity: proportional to the rest, at most speed, at least 10 % of it; 0 while holding
+    // the commanded velocity: proportional to the rest, at most speed, at least 10 % of it; 0 while holding (hold
+    // mode: 0 inside the tolerance, else back towards the target the same way)
     const float err = g_drv.target - v;
     float cmd = 2.0f * fabsf(err);
     if (cmd > g_drv.speed) cmd = g_drv.speed;
     if (cmd < 0.1f * g_drv.speed) cmd = 0.1f * g_drv.speed;
-    if (g_drv.reached) cmd = 0.0f;
+    if (g_drv.reached && (!g_drv.holdOff || dist <= tol)) cmd = 0.0f;
     g_drv.vel = (err >= 0.0f ? 1.0f : -1.0f) * static_cast<float>(g_drv.sign) * cmd;
-    JtMotor(g_drv.joint, hinge ? g_drv.vel / tlobj::kRadToDeg : g_drv.vel, g_drv.force, true);
+    // 0.5: the engine's motor velocity is per physics tick (1/30 s): deg/s -> rad/tick, units/s -> units/tick
+    JtMotor(g_drv.joint, (hinge ? g_drv.vel / tlobj::kRadToDeg : g_drv.vel) / tlobj::kTicksPerSecond, g_drv.force, true);
     JtWakeBodies(g_drv.joint);
-    if (g_drv.lines < 300 && (g_drv.lines < 20 || (g_drv.lines % 10) == 0))
+    if (g_drv.lines < 300 && !holding && (g_drv.lines < 20 || (g_drv.lines % 10) == 0))
         Log(1, "joint.drive %ld joint %d t %.2f s: value %.2f target %.2f motor velocity %.2f%s force %.6g best %.2f",
             g_drv.intro, g_drv.index, (now - g_drv.start) / 1000.0, static_cast<double>(v), static_cast<double>(g_drv.target),
             static_cast<double>(g_drv.vel), hinge ? " deg/s" : " /s", static_cast<double>(g_drv.force),
@@ -2278,9 +2469,11 @@ void OpJointDrive() {
     }
     if (g_oj.argc >= 2 && !_stricmp(g_oj.argv[1], "status")) {
         if (!g_driveOn) { g_out.Add("ok joint.drive: idle\n"); return; }
-        g_out.Add("ok joint.drive %ld joint %d -> %.2f since %.1f s, last value %.2f, motor velocity %.2f\n", g_drv.intro,
-                  g_drv.index, static_cast<double>(g_drv.target), (GetTickCount() - g_drv.start) / 1000.0,
-                  static_cast<double>(g_drv.lastV), static_cast<double>(g_drv.vel));
+        g_out.Add("ok joint.drive %ld joint %d -> %.2f since %.1f s, last value %.2f, motor velocity %.2f %s%s%s\n",
+                  g_drv.intro, g_drv.index, static_cast<double>(g_drv.target), (GetTickCount() - g_drv.start) / 1000.0,
+                  static_cast<double>(g_drv.lastV), static_cast<double>(g_drv.vel), g_drv.type == 1 ? "deg/s" : "units/s",
+                  g_drv.holdOff ? (g_drv.reached ? ", HOLDING until joint.hold off" : ", hold-until-off (approaching)") : "",
+                  g_drv.holdOff && g_drv.corrections ? " (pushed back - see TruLink.log)" : "");
         return;
     }
     if (g_oj.argc < 4) {
@@ -2314,14 +2507,16 @@ void OpJointDrive() {
     d.speed = hinge ? 30.0f : 150.0f;
     d.force = 20000.0f;
     d.hold = 2.0f;
-    for (int i = 4; i + 1 < g_oj.argc; i += 2) {
+    for (int i = 4; i < g_oj.argc; i += 2) {
+        if (!_stricmp(g_oj.argv[i], "hold-until-off")) { d.holdOff = true; --i; continue; }   // 0.5: a flag, no value
         float f = 0.0f;
+        if (i + 1 >= g_oj.argc) { g_out.Add("err option '%s' needs a value\n", g_oj.argv[i]); return; }
         if (!ParseFloat(g_oj.argv[i + 1], &f)) { g_out.Add("err bad number '%s'\n", g_oj.argv[i + 1]); return; }
         if (!_stricmp(g_oj.argv[i], "speed")) d.speed = f;
         else if (!_stricmp(g_oj.argv[i], "force")) d.force = f;
         else if (!_stricmp(g_oj.argv[i], "hold")) d.hold = f;
         else if (!_stricmp(g_oj.argv[i], "through")) d.through = f != 0.0f;
-        else { g_out.Add("err unknown option '%s' (speed / force / hold / through)\n", g_oj.argv[i]); return; }
+        else { g_out.Add("err unknown option '%s' (speed / force / hold / hold-until-off / through)\n", g_oj.argv[i]); return; }
     }
     if (!(d.speed > 0.0f && d.speed <= (hinge ? 120.0f : 600.0f))) { g_out.Add("err speed 0..%s\n", hinge ? "120 deg/s" : "600 units/s"); return; }
     if (!(d.force > 0.0f && d.force <= 1.0e6f)) { g_out.Add("err force 0..1e6\n"); return; }
@@ -2362,16 +2557,23 @@ void OpJointDrive() {
     g_drv = d;
     InterlockedExchange(&g_driveOn, 1);
     Log(1, "joint.drive %s joint %d (%s): %.2f -> %.2f, limits [%.2f, %.2f] limit %s (kept), saved motor %s vel %.4f force "
-        "%.6g; speed %.1f%s force %.6g hold %.1f s%s; journal #%d", label, index, tlobj::JointTypeName(type),
+        "%.6g (raw, per tick); speed %.1f%s force %.6g %s%s; journal #%d", label, index, tlobj::JointTypeName(type),
         static_cast<double>(v), static_cast<double>(target), static_cast<double>(d.lo), static_cast<double>(d.hi),
         (flags & 2) ? "on" : "off", d.saveMotor ? "on" : "off", static_cast<double>(vel), static_cast<double>(force),
-        static_cast<double>(d.speed), hinge ? " deg/s" : " /s", static_cast<double>(d.force), static_cast<double>(d.hold),
-        clamp, d.journal);
-    g_out.Add("ok joint.drive %s joint %d (%s): %.2f -> %.2f, limits [%.2f, %.2f] kept%s - motor speed %.1f%s force %.6g; "
-              "stops on reach / away / overshoot / node change / 10 s (TruLink.log, joint.drive status | stop)\n", label, index,
-              tlobj::JointTypeName(type), static_cast<double>(v), static_cast<double>(target), static_cast<double>(d.lo),
-              static_cast<double>(d.hi), clamp, static_cast<double>(d.speed), hinge ? " deg/s" : " /s",
-              static_cast<double>(d.force));
+        static_cast<double>(d.speed), hinge ? " deg/s" : " units/s", static_cast<double>(d.force),
+        d.holdOff ? "hold-until-off" : "hold", clamp, d.journal);
+    if (d.holdOff)
+        g_out.Add("ok joint.drive %s joint %d (%s): %.2f -> %.2f, limits [%.2f, %.2f] kept%s - motor speed %.1f%s force %.6g; "
+                  "HOLD UNTIL OFF: keeps the target until joint.hold off / joint.drive stop (also stops on unit change, "
+                  "instance gone, leaving the limits, or 30 s without reaching it)\n", label, index, tlobj::JointTypeName(type),
+                  static_cast<double>(v), static_cast<double>(target), static_cast<double>(d.lo), static_cast<double>(d.hi), clamp,
+                  static_cast<double>(d.speed), hinge ? " deg/s" : " units/s", static_cast<double>(d.force));
+    else
+        g_out.Add("ok joint.drive %s joint %d (%s): %.2f -> %.2f, limits [%.2f, %.2f] kept%s - motor speed %.1f%s force %.6g; "
+                  "stops on reach / away / overshoot / node change / 10 s (TruLink.log, joint.drive status | stop)\n", label,
+                  index, tlobj::JointTypeName(type), static_cast<double>(v), static_cast<double>(target),
+                  static_cast<double>(d.lo), static_cast<double>(d.hi), clamp, static_cast<double>(d.speed),
+                  hinge ? " deg/s" : " units/s", static_cast<double>(d.force));
 }
 
 // ---- journal / undo ----
@@ -2388,10 +2590,11 @@ void OpJournal() {
     for (int i = 0; i < g_jCount; ++i) {
         const JEntry &e = g_journal[i];
         char vals[128] = "";
-        if (e.kind == kJPos || e.kind == kJRot)
+        if (e.kind == kJPos || e.kind == kJRot || e.kind == kJPlace)
             _snprintf_s(vals, sizeof(vals), _TRUNCATE, "%.2f %.2f %.2f -> %.2f %.2f %.2f%s", static_cast<double>(e.old[0]),
                         static_cast<double>(e.old[1]), static_cast<double>(e.old[2]), static_cast<double>(e.now[0]),
-                        static_cast<double>(e.now[1]), static_cast<double>(e.now[2]), e.kind == kJRot ? " rad" : "");
+                        static_cast<double>(e.now[1]), static_cast<double>(e.now[2]),
+                        e.kind == kJRot ? " rad" : e.kind == kJPlace ? " (game placement path)" : "");
         else if (e.kind == kJHide || e.kind == kJSticky)
             _snprintf_s(vals, sizeof(vals), _TRUNCATE, "%lu -> %lu", e.oldWord, e.newWord);
         g_out.Add("#%d %s %s %s %s(%lu s ago)\n", i, kJNames[e.kind], e.what, vals, e.undone ? "UNDONE " : "", (now - e.tick) / 1000);
@@ -2437,6 +2640,19 @@ void UndoOne(int i) {
         Log(1, "obj.undo #%d %s: %lu restored (store write + notification)", i, e.what, e.oldWord);
         break;
     }
+    case kJPlace: {                                         // 0.5: the same game path back to the old pose
+        if (!JAlive(e)) { g_out.Add("#%d %s: instance gone - skipped\n", i, e.what); break; }
+        if (!PlaceBody(e.inst, e.old, e.oldRot)) { g_out.Add("#%d %s: no body / access fault - skipped\n", i, e.what); break; }
+        e.undone = true;
+        float cur[3] = {0, 0, 0};
+        TlRead(e.inst + 0x20, cur, 12);
+        g_out.Add("#%d %s: placed back at %.2f %.2f %.2f rot z %.2f deg (now %.2f %.2f %.2f)\n", i, e.what,
+                  static_cast<double>(e.old[0]), static_cast<double>(e.old[1]), static_cast<double>(e.old[2]),
+                  tlobj::Deg(e.oldRot[2]), static_cast<double>(cur[0]), static_cast<double>(cur[1]), static_cast<double>(cur[2]));
+        Log(1, "obj.undo #%d %s: placed back at %.3f %.3f %.3f", i, e.what, static_cast<double>(e.old[0]),
+            static_cast<double>(e.old[1]), static_cast<double>(e.old[2]));
+        break;
+    }
     case kJUber:
         e.undone = true;
         g_out.Add("#%d %s: not undoable (the game's logic ran) - passed\n", i, e.what);
@@ -2478,6 +2694,19 @@ void ObjRun() {
     case kOpStSet: OpStSet(); break;
     case kOpJGet: if (NeedGroups({tlobj::kGrpList, tlobj::kGrpMulti})) OpJointGet(); break;
     case kOpJDrive: OpJointDrive(); break;
+    case kOpPlace: OpPlace(); break;
+    case kOpRefs: if (NeedGroups({tlobj::kGrpList})) OpRefs(); break;
+    case kOpJHold:
+        if (g_oj.argc >= 2 && !_stricmp(g_oj.argv[1], "off")) {
+            if (!g_driveOn) { g_out.Add("ok joint.hold: nothing running\n"); break; }
+            const bool held = g_drv.holdOff;
+            DriveStop("joint.hold off");
+            g_out.Add("ok joint.hold off: %s stopped, the joint's motor settings put back (TruLink.log)\n",
+                      held ? "hold" : "drive");
+        } else {
+            g_out.Add("err usage: joint.hold off   (start a hold with joint.drive <id> <index> <target> hold-until-off)\n");
+        }
+        break;
     }
 }
 
@@ -2544,6 +2773,9 @@ bool HandleLine(char *line) {
     else if (!_stricmp(cmd, "sticky.set")) CmdObj(kOpStSet, tok, count, force);
     else if (!_stricmp(cmd, "joint.get")) CmdObj(kOpJGet, tok, count, force);
     else if (!_stricmp(cmd, "joint.drive")) CmdObj(kOpJDrive, tok, count, force);
+    else if (!_stricmp(cmd, "obj.place")) CmdObj(kOpPlace, tok, count, force);        // 0.5
+    else if (!_stricmp(cmd, "obj.refs")) CmdObj(kOpRefs, tok, count, force);
+    else if (!_stricmp(cmd, "joint.hold")) CmdObj(kOpJHold, tok, count, force);
     else if (!_stricmp(cmd, "log")) {
         DWORD level = 0;
         if (count < 2 || !ParseNumber(tok[1], &level) || level > 3) g_out.Add("err usage: log <0-3>\n");
@@ -2723,7 +2955,7 @@ void Start(HMODULE self) {
                     g_grpRows[g]);
         strncat_s(groups, sizeof(groups), one, _TRUNCATE);
     }
-    Log(g_grpBad ? 0 : 1, "0.4 object checks: %d of %d rows bad%s (first 0x%08lx) - %s", g_grpBad, tlobj::kTlCheckCount,
+    Log(g_grpBad ? 0 : 1, "0.5 object checks: %d of %d rows bad%s (first 0x%08lx) - %s", g_grpBad, tlobj::kTlCheckCount,
         g_grpBad ? ", the affected commands answer err" : "", g_grpFirstBad, groups);
     g_jobDone = CreateEventA(nullptr, FALSE, FALSE, nullptr);
     g_tls = TlsAlloc();
@@ -2754,5 +2986,5 @@ BOOL WINAPI DllMain(HINSTANCE instance, DWORD reason, LPVOID) {
 
 // exported so TruLink's own "modules" command and other tools can identify the plugin
 extern "C" __declspec(dllexport) const char *TruLinkVersion() {
-    return "TruLink 0.4 (127.0.0.1 text channel: read / write / camera / post / objects / modules / menu / scan / watch / snapshot; 0.3.1: dated log lines; 0.4: obj / uber / sticky / joint with journal + undo)";
+    return "TruLink 0.5 (127.0.0.1 text channel: read / write / camera / post / objects / modules / menu / scan / watch / snapshot; 0.3.1: dated log lines; 0.4: obj / uber / sticky / joint with journal + undo; 0.5: obj.place / obj.refs / base classes / object checks / hold-until-off)";
 }

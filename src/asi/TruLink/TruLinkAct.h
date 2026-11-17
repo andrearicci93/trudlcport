@@ -133,6 +133,7 @@ inline void DriveStop(DriveCtl &c, const char *why) {
         }
     }
     const bool val = alive && TlJointValue(g_drv.joint, g_drv.type, &v);
+    if (val && g_drv.type == 1 && g_drv.limits) v = tlobj::HingeUnwrap(v, g_drv.lo, g_drv.hi);   // 0.5.2
     if (c.ended) c.ended(g_drv.journal);     // TruLink: nothing left to undo in the journal row
     TlLog(1, "%s %ld joint %d: %s - value %s%.2f (from %.2f, target %.2f) after %.1f s; motor %s", c.tag, g_drv.intro,
           g_drv.index, why, val ? "" : "? ", static_cast<double>(v), static_cast<double>(g_drv.from),
@@ -166,6 +167,8 @@ inline void DriveTick(DriveCtl &c, DWORD clock) {
     }
     float v = 0.0f;
     if (!TlJointValue(g_drv.joint, g_drv.type, &v)) { DriveStop(c, "value unreadable"); return; }
+    // 0.5.2: a hinge at a stop near 180 reads -180 (the getter's range) - taken back into the limits, not "outside"
+    if (g_drv.type == 1 && g_drv.limits) v = tlobj::HingeUnwrap(v, g_drv.lo, g_drv.hi);
     const DWORD now = GetTickCount();
     const bool hinge = g_drv.type == 1;
     const float tol = hinge ? 0.5f : 2.0f, away = hinge ? 3.0f : 10.0f, over = hinge ? 2.0f : 5.0f, margin = hinge ? 2.0f : 5.0f;

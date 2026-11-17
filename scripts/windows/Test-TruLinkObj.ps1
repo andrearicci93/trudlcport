@@ -21,7 +21,8 @@
 .PARAMETER Command
     Decoder commands for the dump, one string each (or several in one string, separated by ';'):
     'near [m] [filter] [max n]', 'info <id>', 'events <id> [all]', 'refs <id>', 'body <id>', 'joint <id> <index>',
-    'sticky <owner> <key>'.
+    'sticky <owner> <key>', 'puzzle <id>' (TruMenu's TruPuzzleCore.h), 'swcmd <switch> <target> [trace]' (TruMenu 0.22.57:
+    the object command entry the switch's loaded script sends to the target; trace = every code word it reads).
 
 .EXAMPLE
     .\scripts\windows\Test-TruLinkObj.ps1 -Dump .\tru.exe.26292.dmp -Command 'near 15', 'info 4820', 'events 4835'

@@ -2928,6 +2928,99 @@ Reihenfolge fest (Flacker-Test)".
   combos as set now (e.g. `LB + View = weiter . RB + View = 1 Bild . LB + RB + View = Foto`), built from the INI values,
   so it follows any change.
 
+## 0.22.57 - puzzle helpers 2: figures only with the fire, hold open for every gate kind, part labels, weights onto a plate, switch commands from the scripts (2026-11-17)
+
+Build `work\asi\menu0257` (TruMenu.asi MD5 `30c8cdcddd91353874e2fecde5f63562`, sha256
+`382a58c6b085f3daa906535de9b4d7af9c3ad96136b21400063cb6ef888fd7de`; 0 warnings; quick / readability / format checks exit
+0, ini check exit 1 only for the 5 known TruTrace rows), not installed;
+with TruLink 0.5.2 (`work\asi\trulink052`, `src\asi\TruLink\README.md`). Package Q2 of the workspace
+`docs\Pakete-1711.md`, from the live test of 2026-11-16 (`docs\Testanleitung-1611.md`, results K3 - K13, V3, D1, D7).
+Offline only: build, the four TruMenu checks, the switch trace on the chapel dump 26292. "(unproven)" = only the live
+test shows it.
+
+- **"Figuren auf Ziel setzen" only while the fire burns.** Live 16.11. (K7c / K7d): a picture set in the dark is stored
+  by the pillar script (+112 / +168) but **not** acted on at the lighting; the locks open at the **next switch pull
+  while lit**, from the stored pictures. The original cannot reach the dark case (its switches are disabled without the
+  fire). The row is grey with `gesperrt: erst Feuer (Platte unten)` / `locked: fire first (plate down)` while the fire
+  plate is up, and `puzzle.figures` refuses then (log line). The check row says `Feuer aus: Schloesser erst bei Feuer +
+  Schalterzug`. The 0.22.56 text "the locks open only at the next lighting" below is wrong (kept as history).
+- **Hold open for every gate that can close** (Kapitel -> Raetsel in der Naehe, under the target), kind from the gate's
+  data at run time (no id list), one hold at a time (a new one ends the old one; left = release):
+  - *motor* (`puzzle.hold <intro> <joint>`): a hinge **or rail** with limit and motor on and a velocity (0.22.56: hinge
+    only). Row `Tuer (Gelenk j, Teil p)` with `offen 156 Grad, zu in ~45 s` and `Tuer offen halten (Motor)`; only while
+    open (> 5 degrees / 10 units from the closed end) or held - closed joints (the shadow door's locks) get no row. The
+    drive target is **8 degrees / 20 units inside the open limit** (was 1; live K11b: 170 with the limit ~178 held), the
+    **180 / -180 wrap** of the hinge getter at the stop is taken back into the limits (`tlobj::HingeUnwrap`, in the row,
+    the start value and every drive tick - live K10 / K11b: -180.00 between 179.91 and 175.18, the drive stopped "outside
+    the limits"). **Fix:** 0.22.56 left the door rows out after a check over non-ring parts (`if (!ring) continue;` in
+    the target loop) - the reason the great shadow door 4835 showed no door / hold row (K11), not its parts.
+  - *timer* (`puzzle.hold <intro> timer`): an auto-reset gate (P4: back to its start on time alone - DLC 1
+    `dlc_caverns_hall`, 25.0 s). While the link is in the node of the longest time condition on the way back (`open`) and
+    no transition runs, its time in node `[b+0x88]` is set to 0 every game frame, so "time >= 25 s" never holds. Row
+    `Tor offen halten (Zeit in 'open' anhalten, 25 s)`; `rechts 2x (haelt, sobald offen)` before the gate opened. Off =
+    the time runs again from 0 (the full 25 s).
+  - *counter command* (`puzzle.hold <intro> counter`): a reversible gate with "set node" records in its object command
+    table (chapel round gates / reward grate: Raise / Lower). The open entry = the set-node record whose node is the
+    link's node now or leads to it on internal edges (Raise -> At_Top); when the link reaches the closing side (Lower and
+    what it reaches internally: AtBottom, FX_collision) the open entry is sent at once through X vf+4 (`tlact::CmdExec`,
+    the plate's own path), at most every 250 ms, 400 times. `erst oeffnen (Platte / Schalter)` while closed.
+  - none for a target that a trigger volume names (`nein: Story schliesst (Trigger t)` - villa secret door) and none for
+    one-shot gates without a closing motor.
+- **Part labels** (live K3 / K10): the key-items layer (debug view 14, the layer that labelled the door parts on 16.11.)
+  now names a part `<object> . Teil n/N (<node>)` at its model (bone 0) as the names layer; parts whose bone 0 shares a
+  spot (within 30 units) with a lower link are lifted 90 units per such link. The door's rest time sits on the part the
+  joint moves (joint record B, A when B is the world: shadow door hinge 1 = link 2 = the turning pedestal), in the
+  **state line of the first label** of that part (key items / names) instead of a merged extra line that was dropped
+  when labels overlapped. Same in the uber labels (0.22.56 matched either body of the joint).
+- **Labels of anchors and poles:** a multibody anchor carries the hide bit from its own constructor while its parts are
+  drawn - names / labels / key items now label it (centre plate 4834 had none, K4). The key-items layer adds
+  `kein Loch (Original-Daten)` to a pole's state line (it labels poles first; the names layer then skipped the pole, K13).
+- **"Gewicht zu mir"** lands **behind** Lara (live K5 / K7a; the owner: fine) - row, log and answer say so now; every
+  weight gets its own spot (its slot in the undo table: 120 units apart sideways, four per row, the next row 150 units
+  farther) instead of one stacked pile.
+- **NEW `Gewichte -> Platte x`** (`puzzle.weights <plate>`, one row per plate): the nearest free weights (not carried,
+  not on this plate, loose ones before those on another plate) onto the plate until two lie on it, side by side (+-70
+  units along x, 150 above the plate origin = TruLink `obj.place onto`; one added next to a weight already there goes to
+  the far side of it). Live K12: one weight presses the plate only by its impact, two keep it down. Each old place is
+  kept for `puzzle.bring <id> back`.
+- **Switch -> command from the data** (instead of "learned"): `PzSwitchEntry` (TruPuzzleCore.h) reads the switch's
+  loaded script as `tools/puzzle_switch_scan.py` reads the files - an `instanceref` member holding the target's intro id
+  bound by `instanceref` f6 / f7, then a call of a function / prototype of a class of the target's chain (override by
+  vtable index), whose code pushes an `uberobjectcommand` (member or local) and calls `uberobjectbase` f1: the command
+  entry = value word 1 of its init block. Offline on dump 26292: 4819 -> 0 (link 1), 4820 -> 3, 4821 -> 1 (link 0),
+  4822 -> 2 = P4. Switch rows show `-> <target> <id>, Befehl n (Teil l)`; the figure rows `Schalter s noch n x` at once
+  (the 0.22.56 learning stays as a fallback). One log line per switch / target and level.
+- **"bereits benutzt"** = instance +0x1c bit **0x200** (live V3 / V3b: villa switches 4617 / 4525 0 -> 0x200 at the
+  first pull, +32 stays 0 = their "on" value before and after) with the target state (node, or the open flag of a door
+  without a graph: house door 4520 = its stickybool, +8). The bit is the engine's "has been animated" bit - every pulled
+  switch gets it - so a target that can act again (ring / toggle / repeatable / auto-reset) keeps the switch
+  `bereit (schon gezogen)`. `bereit` replaces `aus, bereit` / `an` (the on value of +32 is no state for these switches).
+- **Export `TruMenuPuzzleList(char *out, int size, int lang)`** (game thread only): the rows of Raetsel in der Naehe as
+  text, for TruLink 0.5.2 `puzzle.list`.
+- **Level not found before queueing** (live D7): the command bar / TruLink answer `err refused: level not found ...` at
+  once for `level.load` / `level.start` (the same unit-list / `mods\<unit>.drm` tests; the item tests again when it runs).
+
+### TO TEST 0.22.57
+
+Install TruMenu 0.22.57 **and** TruLink 0.5.2 (game closed).
+
+| # | Where | Do | Expected |
+|---|---|---|---|
+| 1 | start | `TruMenu.log`, TruLink `ping` | version 0.22.57; `pong TruLink 0.5.2`; checks as 0.22.56 |
+| 2 | `l3_chapel`, plates up | Kapitel -> Raetsel in der Naehe | switch rows `-> ma_uo_shadow_pillars 4837, Befehl 0 (Teil 1)` (4819), 3 / 1 / 2; figure rows `Schalter 48xx noch n x` without a pull; log `0.22.57 puzzle: switch ... sends command entry ...`; `Figuren auf Ziel setzen` grey `gesperrt: erst Feuer` |
+| 3 | same | debug view names + key items (14) | centre plate 4834 has a label; the shadow door parts `... Teil n/6 (...)`, the closed door's part labels stacked, not on one spot |
+| 4 | same | `Gewichte -> Platte 4834`, right 2x | two weights land side by side on the centre plate, the plate goes down, the fire lights; `zurueck` rows per weight |
+| 5 | same, fire lit | `Figuren auf Ziel setzen` | the locks open (the game's sequence) |
+| 6 | same | turn the pedestal open, look at its label and the list | `Tuer offen ...` in the pedestal's label (state line), list rows `Tuer (Gelenk 1, Teil 2)` + `Tuer offen halten (Motor)` |
+| 7 | same | `Tuer offen halten (Motor)` at the open stop, right 2x; wait; left | no "outside the limits" stop; holds ~170 degrees; after left the door closes with -3.5 deg/s |
+| 8 | same, a side plate down | `Tor offen halten (Gegenbefehl)` on the round gate, then take the weight off | the gate stays up (log `counter: ... reached 'Lower' ... sent`); off: it lowers |
+| 9 | same | `Gewicht zu mir` for three weights | each behind Lara on its own spot (not stacked) |
+| 10 | DLC 1 `dlc_caverns_hall` | `Tor offen halten (Zeit ...)`, pull the gate switch, wait 60 s, then off | the gate stays open, label `noch 25 s`; after off it closes 25 s later |
+| 11 | villa | switches 4617 / 4525 before / after | `bereit` before; after `bereits benutzt, Ziel open` / house door `offen` |
+| 12 | `l3_secretchamber` | pole 4686, key items layer | state line `kein Loch (Original-Daten)` |
+| 13 | command bar | `level.load xyz_nichtda` | at once `err refused: level not found ...` (no "ok queued") |
+| 14 | TruLink | `puzzle.list`, `puzzle.list de` | the rows of 2 as tab-separated lines |
+
 ## 0.22.56 - puzzle helpers, notes (TruLink mark.*), camera hints on a level change, chapter rows as a level start (2026-11-16)
 
 Build `work\asi\menu0256` (TruMenu.asi MD5 `a8609c5488595ae4b67f04f1ac1f4125`, sha256
@@ -2988,7 +3081,8 @@ only (byte checks, build, the four TruMenu checks); "(unproven)" marks what only
     <intro>`: the command entries with one event record to that link through X vf+4 0x4d77a0 (as the switches), one
     command per idle link (no transition, events not dropped), at most every 250 ms, 64 commands / 60 s; the game's
     object check and the pillar script do the rest - **no lock, door or node is set**, and without the fire the locks
-    open only at the next lighting (the row says so).
+    open only at the next lighting (the row says so). **Wrong (live 2026-11-16 K7c / K7d, corrected in 0.22.57):** the
+    locks open on the next switch pull while lit, not at the lighting; 0.22.57 offers the row only with the fire.
   - *Tuer*: a hinge with its motor on and a velocity != 0 (motor-closed; chapel: hinge 1 of the great shadow door
     4835 = the turning pedestal / Kreiselschalter that holds the door open): `offen 148 Grad,
     zu in ~42 s` = (value - the limit the motor drives to) / motor speed (rad per 1/30 s tick x 57.3 x 30), also on the
@@ -3022,7 +3116,7 @@ Install TruMenu 0.22.56 **and** TruLink 0.5.1 (game closed). Chapel = `l3_chapel
 | 6 | chapel | weights on the centre plate (carry, or `Gewicht zu mir` first) | plate `unten: Gewicht ...`, switches `aus, bereit`, check row `Feuer an (Platte 4834 unten)` |
 | 7 | chapel, fire lit | pull a wall switch once | log `puzzle: learned - switch ... steps link n of 4837`; that figure row now says `Schalter ... noch n x` |
 | 8 | chapel, fire lit | `Figuren auf Ziel setzen`, right 2x | log `puzzle.figures ... cmd c ... sent` per step, then `every figure on its target`; the check goes `unsolved -> ... -> solved`, the pillar script opens both locks of the great shadow door (the game's own sequence); the door row lists the two lock parts as `nur Anzeige (das Spiel)` |
-| 9 | chapel, fire out (centre plate up), fresh load | repeat 8 | row / footer `Schloesser erst bei Feuer`; figures move, locks stay - light the fire: they open then (P5: stored picture) |
+| 9 | chapel, fire out (centre plate up), fresh load | repeat 8 | row / footer `Schloesser erst bei Feuer`; figures move, locks stay - light the fire: they open then (P5: stored picture) - **live 16.11.: they do NOT open at the lighting, only on the next switch pull while lit (0.22.57)** |
 | 10 | chapel, great shadow door opened with the turning pedestal and closing again | read the door row (target 4835) and the uber label of the pedestal | `offen 1xx Grad, zu in ~nn s`, counting down at ~3.5 degrees per second |
 | 11 | chapel, door open | `Tuer offen halten`, right 2x, wait 60 s, then right (or left) | the pedestal turns fully open and stays (`HAELT`), the door stays open; after off it closes by itself; log `puzzle.hold ... settings put back` |
 | 12 | chapel | `Gewicht zu mir` on a weight, then `zurueck an den alten Platz` | the weight drops ~1.5 m from Lara (in front if the yaw guess is right - note where), physics calm; then back at its old place |

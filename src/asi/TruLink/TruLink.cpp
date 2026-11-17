@@ -45,7 +45,8 @@
 
 namespace {
 
-const char kVersion[] = "0.5.1";           // 0.5.1: mark.* (TruMenu notes), TruLinkAct.h shared with TruMenu; 0.5:
+const char kVersion[] = "0.5.2";           // 0.5.2: puzzle.list, hinge 180 wrap in joint.drive, uber.events time text;
+                                           // 0.5.1: mark.* (TruMenu notes), TruLinkAct.h shared with TruMenu; 0.5:
                                            // obj.place / obj.refs / hold-until-off; 0.4: obj / uber / sticky / joint
 
 typedef DWORD(WINAPI *XInputGetStateFn)(DWORD, void *);
@@ -563,6 +564,8 @@ void CmdHelp() {
               "mark.note <intro> [+keep] [+names] <text...>   a note line under TruMenu's label of <intro> (needs TruMenu\n"
               "                              0.22.56; +keep = over a level load, +names = only with object names on)\n"
               "mark.clear [<intro>|all] | mark.list | mark.refs <id>   (refs: a note '<- <id> <member>' on every referrer)\n"
+              "puzzle.list [de|en]           TruMenu's 'Puzzles nearby' rows (needs TruMenu 0.22.57): name, state, count,\n"
+              "                              action (run it with menu <item> <argument>)\n"
               "log <0-3>                    TruLink.log level\n"
               "quit                          close the connection\n"
               "addr: hex or player | gametracker | cheat | camera | cameramgr | playerstate, optional +hexoffset\n"
@@ -1697,7 +1700,7 @@ struct ObjJobArgs {
     bool force;
 };
 enum { kOpNear = 1, kOpInfo, kOpSet, kOpUndo, kOpJournal, kOpEvents, kOpSend, kOpStGet, kOpStSet, kOpJGet, kOpJDrive,
-       kOpPlace, kOpRefs, kOpJHold, kOpMarkRefs };   // 0.5.1: kOpMarkRefs
+       kOpPlace, kOpRefs, kOpJHold, kOpMarkRefs, kOpPuzzleList };   // 0.5.1: kOpMarkRefs; 0.5.2: kOpPuzzleList
 ObjJobArgs g_oj;
 
 const char *GroupWhy(int g) {
@@ -2444,7 +2447,14 @@ void OpJointDrive() {
     d.limits = (flags & 2) && lim[0] < lim[1];
     d.lo = hinge ? lim[0] * tlobj::kRadToDeg : lim[0];
     d.hi = hinge ? lim[1] * tlobj::kRadToDeg : lim[1];
-    char clamp[96] = "";
+    char wrap[64] = "";                                        // 0.5.2: -180 at a stop near 180 (live 2026-11-16 21:52)
+    if (hinge && d.limits) {
+        const float u = tlobj::HingeUnwrap(v, d.lo, d.hi);
+        if (u != v) _snprintf_s(wrap, sizeof(wrap), _TRUNCATE, "; value %.2f read as %.2f (180 / -180 wrap)",
+                                static_cast<double>(v), static_cast<double>(u));
+        v = u;
+    }
+    char clamp[160] = "";
     const float m = hinge ? 1.0f : 2.0f;                       // stay a little inside the limits
     if (d.limits && (target < d.lo + m || target > d.hi - m)) {
         const float want = target;
@@ -2452,6 +2462,7 @@ void OpJointDrive() {
         _snprintf_s(clamp, sizeof(clamp), _TRUNCATE, "; target %.2f clamped into the limits -> %.2f", static_cast<double>(want),
                     static_cast<double>(target));
     }
+    strncat_s(clamp, sizeof(clamp), wrap, _TRUNCATE);         // 0.5.2: the wrap note goes with the clamp note
     if (!d.limits && fabsf(target - v) > (hinge ? 180.0f : 3000.0f)) {
         g_out.Add("err joint %d has no limits (free): at most %s per drive\n", index, hinge ? "180 deg" : "3000 units");
         return;
@@ -2630,6 +2641,25 @@ void OpMarkRefs() {
               nDone, set, full ? " - TruMenu's note table full for the rest" : "", walked);
     Log(1, "mark.refs %s: %d reference(s), %d note(s) set, %d refused", label, hits, set, full);
 }
+// 0.5.2 puzzle.list [de|en]: TruMenu 0.22.57's "Raetsel in der Naehe" rows (export TruMenuPuzzleList, game thread),
+// one line per row: name TAB state TAB count TAB action ("-" = list only; else the TruMenu item + argument the row runs)
+typedef int(__cdecl *PuzzleListFn)(char *out, int size, int lang);
+void OpPuzzleList() {
+    HMODULE menu = GetModuleHandleA("TruMenu.asi");
+    const PuzzleListFn fn = menu ? reinterpret_cast<PuzzleListFn>(GetProcAddress(menu, "TruMenuPuzzleList")) : nullptr;
+    if (!fn) { g_out.Add("err needs TruMenu 0.22.57 (export TruMenuPuzzleList)\n"); return; }
+    const int lang = g_oj.argc >= 2 && !_stricmp(g_oj.argv[1], "de") ? 0 : 1;
+    static char buf[32768];
+    const int len = fn(buf, static_cast<int>(sizeof(buf)), lang);
+    int rows = 0;
+    for (const char *c = buf; len > 0 && *c; ++c) rows += *c == '\n' ? 1 : 0;
+    g_out.Add("ok+ puzzle.list (%s): %d row(s) - name, state, count, action (tab separated; the action runs with "
+              "menu <item> <argument>, e.g. menu puzzle.hold 4835 1)\n", lang ? "en" : "de", rows);
+    if (len > 0) g_out.Add("%s", buf);
+    if (len >= static_cast<int>(sizeof(buf))) g_out.Add("(list cut: %d bytes needed)\n", len);
+    g_out.Add(".\n");
+    Log(2, "puzzle.list: %d row(s), %d bytes", rows, len);
+}
 void ObjRun() {
     g_tlRegStart = g_tlRegEnd = 0;
     switch (g_oj.op) {
@@ -2647,6 +2677,7 @@ void ObjRun() {
     case kOpPlace: OpPlace(); break;
     case kOpRefs: if (NeedGroups({tlobj::kGrpList})) OpRefs(); break;
     case kOpMarkRefs: if (NeedGroups({tlobj::kGrpList})) OpMarkRefs(); break;   // 0.5.1
+    case kOpPuzzleList: OpPuzzleList(); break;                                   // 0.5.2 (TruMenu checks its own rows)
     case kOpJHold:
         if (g_oj.argc >= 2 && !_stricmp(g_oj.argv[1], "off")) {
             if (!g_driveOn) { g_out.Add("ok joint.hold: nothing running\n"); break; }
@@ -2728,6 +2759,7 @@ bool HandleLine(char *line) {
     else if (!_stricmp(cmd, "obj.place")) CmdObj(kOpPlace, tok, count, force);        // 0.5
     else if (!_stricmp(cmd, "obj.refs")) CmdObj(kOpRefs, tok, count, force);
     else if (!_stricmp(cmd, "joint.hold")) CmdObj(kOpJHold, tok, count, force);
+    else if (!_stricmp(cmd, "puzzle.list")) CmdObj(kOpPuzzleList, tok, count, force);   // 0.5.2
     else if (!_stricmp(cmd, "mark.note") || !_stricmp(cmd, "mark.clear") || !_stricmp(cmd, "mark.list") ||
              !_stricmp(cmd, "mark.refs"))
         CmdMark(tok, count, force);                                                   // 0.5.1

@@ -5,7 +5,8 @@
 //   TruLinkObjTest.exe --exe tru.exe checks                      byte check rows against the exe file
 // Commands: checks | near [metres] [filter] [max n] | info <id> | events <id> [all] | refs <id> | body <id> |
 // joint <id> <index> | sticky <owner> <key> | puzzle <id> (TruMenu 0.22.56 TruPuzzleCore.h: switch base, plate flag,
-// portable, graph kinds, the best object check with steps / commands, hinges)
+// portable, graph kinds, the best object check with steps / commands, hinges) | swcmd <switch> <target> (TruMenu
+// 0.22.57: the command entry the switch's script sends to the target, read from the loaded script data)
 // (<id> as in TruLink: intro id, 0x<instance>, #<list index>, player). Joint values need the engine's getter: "n/a".
 // Exit code 0 = ok, 1 = a check failed / error, 2 = usage.
 #define WIN32_LEAN_AND_MEAN
@@ -231,6 +232,17 @@ int main(int argc, char **argv) {
         return 0;
     }
     if (!strcmp(cmd, "refs") && argc > 4) { const DWORD i = Inst(argv[4]); if (!i) return 1; tlobj::Refs(i); return 0; }
+    if (!strcmp(cmd, "swcmd") && argc > 5) {                   // TruMenu 0.22.57: switch -> command entry from the scripts
+        const DWORD s = Inst(argv[4]), t = Inst(argv[5]);
+        if (!s || !t) return 1;
+        pzcore::PzTrace() = argc > 6 && !strcmp(argv[6], "trace");
+        int calls = 0;
+        const int e = pzcore::PzSwitchEntry(s, t, &calls);
+        const DWORD x = tlobj::Multi(t);
+        printf("swcmd %lu -> %lu: entry %d (%d send(s) found), link %d, used bit 0x200 %d\n", tlobj::D(s + 0x58),
+               tlobj::D(t + 0x58), e, calls, x ? pzcore::PzEntryLink(x, e) : -1, pzcore::PzSwUsed(s) ? 1 : 0);
+        return e >= 0 ? 0 : 1;
+    }
     if (!strcmp(cmd, "puzzle") && argc > 4) {                  // TruMenu 0.22.56 TruPuzzleCore.h on the dump
         const DWORD i = Inst(argv[4]);
         if (!i) return 1;
@@ -247,7 +259,10 @@ int main(int argc, char **argv) {
         printf("  portable: %d, body 0x%08lx\n", pzcore::PzIsPortable(i) ? 1 : 0, tlobj::BodyOf(i));
         const pzcore::PzKind k = pzcore::PzTargetKind(i);
         pzcore::PzKindText(k, false, kt, sizeof(kt));
-        printf("  target kind: %d (%s) n %d secs %.1f\n", k.kind, kt, k.n, static_cast<double>(k.secs));
+        printf("  target kind: %d (%s) n %d secs %.1f link %d hold node %d (%.1f s)\n", k.kind, kt, k.n,
+               static_cast<double>(k.secs), k.link, k.holdNode, static_cast<double>(k.holdSecs));
+        int open = -1;
+        if (pzcore::PzOpenFlagRead(i, &open)) printf("  open flag (modifiable + stickybool class): %d\n", open);
         const DWORD x = tlobj::Multi(i);
         for (int l = 0; x && l < tlobj::Links(x); ++l) {
             const DWORD lb = tlobj::Uber(tlobj::LinkInst(x, l));

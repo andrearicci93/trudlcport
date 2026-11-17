@@ -10,6 +10,45 @@ Version 0.3 - built and checked with `dumpbin` only, not yet tried in the game (
 `diff`) to find unknown values (health, ammo, walking speed) live without a debugger - see
 [Memory search](#memory-search-03).
 
+## 0.5.2: puzzle.list, the hinge 180 wrap, the uber.events time (2026-11-17)
+
+Built 2026-11-17 into `work\asi\trulink052` (0 warnings; MD5 `ca2fb61d86f84ae4dc080b265bb322c9`, sha256
+`017d74889f05f75900a0c64d1b7045746219d9d1d9f0a2ed7ff1db7c99bb1eb1`; `TruLink.ini` unchanged; offline `TruLinkObjTest`
+checks 118 rows, 0 bad), **not installed, not tried in the game**. `puzzle.list` needs TruMenu 0.22.57 (the other
+commands work without it). Install (game closed): `scripts\windows\Set-TruLink.ps1 -Install -SourceDir work\asi\trulink052`.
+
+- **`puzzle.list [de|en]`** (game thread job): TruMenu's Kapitel -> "Raetsel in der Naehe" rows through the new export
+  `TruMenuPuzzleList(out, size, lang)` - block `ok+ puzzle.list`, one line per row `name<TAB>state<TAB>count<TAB>action`;
+  action = the TruMenu item + argument the row runs (`puzzle.hold 4835 1`, `puzzle.weights 4834` ...; run it with
+  `menu <item> <argument>`), `-` for a list-only row. Default English. Without TruMenu 0.22.57: `err needs TruMenu 0.22.57`.
+- **Hinge wrap:** the engine's hinge getter returns (-180, 180] degrees; a hinge whose limit reaches 180 reads -180 at
+  its stop (live 2026-11-16 21:44 / 21:52: the chapel door read -180.00 between 179.91 and 175.18, and `joint.drive 4835 1
+  177 hold-until-off` stopped at once "outside the joint's limits"). `tlobj::HingeUnwrap` takes such a value back into
+  the limits (+-360 when that lands within 3 degrees of them): in `joint.drive` (start value, answer note `read as ...
+  (180 / -180 wrap)`), in every drive tick and stop (TruLinkAct.h, shared with TruMenu) and in the `obj.info` /
+  `joint.get` joint line (`... deg (getter -180.00: 180 wrap)`). Pick a hold target below the upper limit (170 held).
+- **`uber.events` time:** the field is the **time in the current node in game seconds** (now printed `in node n s (game
+  time)`): Update 0x4d7550 adds `[0xe7f188] / 30.0` per update only while no transition runs and `+0x90` bit 3 is clear
+  (0 while GameTracker +0xbb is 6); a set node clears it. Pauses (menu, pause screen) and frames without an update do
+  not count - the 133 s of 16.11. for locks unlocked ~440 s of wall time earlier (ENGINE section 9 "Update").
+- **Reading a pressure plate** (live 16.11. K6): its pressed flag is base-class member **b3.m15 (+92)** of the plate's
+  script - read it with **`obj.info <plate>`** (the `b3.m15 +92 stickybool ... = 1` line). `sticky.get <plate> +92` and
+  `joint.get <plate> 0` do not answer it: the plate's slider joint belongs to its part object (`b3.m0` multibody), the
+  anchor has no joint list of its own.
+- Offline: `TruLinkObjTest ... swcmd <switch> <target> [trace]` runs TruMenu 0.22.57's switch -> command reader on a dump
+  (`scripts\windows\Test-TruLinkObj.ps1 -Command 'swcmd 4819 4837'`; dump 26292: 4819 -> 0, 4820 -> 3, 4821 -> 1, 4822 ->
+  2 as the static P4 scan).
+
+### TO TEST 0.5.2 (live, with TruMenu 0.22.57)
+
+| # | TO TEST | expected |
+|---|---|---|
+| 1 | `ping` | `pong TruLink 0.5.2` |
+| 2 | `l3_chapel`: `puzzle.list`, `puzzle.list de` | the rows of TruMenu's list (switches with their command entry, plates, targets, figures, holds, weights) |
+| 3 | door at its open stop: `joint.get 4835 1`, then `joint.drive 4835 1 170 hold-until-off`, `joint.hold off` | the joint line names the wrap; the drive starts (no "outside the limits"), holds, closes after off |
+| 4 | `uber.events 4835` after the locks opened | `in node n s (game time)` - smaller than the wall time when the game was paused |
+| 5 | `obj.info 4834` with a weight on the centre plate | `b3.m15 +92 stickybool ... = 1` |
+
 ## 0.5.1: mark.* (notes under TruMenu's labels), shared action code (2026-11-16)
 
 Built 2026-11-16 into `work\asi\trulink051` (0 warnings, imports `KERNEL32` / `WS2_32` as before; sha256
@@ -372,7 +411,8 @@ somewhere (message 0x75 handler 0x6c2a5c..0x6c2a91; the same at 0x6bd193..0x6bd1
 4. TruLink's additions, all game functions: linear / angular velocity 0 (0x4d8df0 / 0x4d8e30), wake (0x4d8fd0).
 
 Destinations: `near-lara [m]` = Lara's position + m metres (default 1.5) along (-sin yaw, cos yaw) and 100 units up
-(the forward convention is the camera's, ENGINE section 16; for Lara 🔶 - check it live), `at x y z` (instance
+(the forward convention is the camera's, ENGINE section 16; **live 2026-11-16: this lands BEHIND Lara** - TruMenu's
+"Gewicht zu mir" uses the same direction and says so), `at x y z` (instance
 origin), `onto <id> [dz]` = 150 (or dz) units above that instance's origin. Refused: multibody anchors, no body,
 holder handle = the player (`force` overrides). Journal kind `place`; `obj.undo` runs the same path back to the old
 position and rotation.

@@ -7332,6 +7332,54 @@ def check_02255():
                       '290 units / m, multibody part labels (%d byte checks), pole scan' % n_mb)
 
 
+def check_02257():
+    """0.22.57 (package Q2): (1) kVersion starts with 0.22.57; (2) export TruMenuPuzzleList; (3) puzzle.figures refused
+    while the fire is out; (4) hold kinds: PzKeepTick in PzGameTick, the timer write only to [b+0x88], the counter
+    command only through tlact::CmdExec, the hinge wrap (tlobj::HingeUnwrap) in PzDoorOf and in the shared drive; (5)
+    switch -> command from the scripts (PzSwitchEntry) and the 0.22.56 'continue' that skipped the door rows gone;
+    (6) "already used" from +0x1c bit 0x200; (7) level not found before queueing; (8) no game ids in the new code;
+    (9) README section"""
+    problems = []
+    src = read_cpp()
+    ver = src[:src.find('\n', src.find('kVersion = '))]
+    if '"TruMenu 0.22.57 (puzzle helpers 2' not in ver:
+        problems.append('TruMenu.cpp: kVersion must start with "TruMenu 0.22.57 (puzzle helpers 2 ..."')
+    if 'extern "C" __declspec(dllexport) int __cdecl TruMenuPuzzleList(char *out, int size, int lang)' not in src:
+        problems.append('TruMenu.cpp: export TruMenuPuzzleList missing')
+    figures = fn_body(src, 'bool RunPzFigures(')
+    if 'if (fire == 0) {' not in figures:
+        problems.append('TruMenu.cpp: RunPzFigures must refuse while the fire is out')
+    if 'PzKeepTick();' not in fn_body(src, 'void PzGameTick('):
+        problems.append('TruMenu.cpp: PzGameTick must run PzKeepTick')
+    keep = fn_body(src, 'void PzKeepTick(')
+    if 'lb + 0x88) = 0.0f' not in keep or 'tlact::CmdExec(q.x, q.openCmd)' not in keep:
+        problems.append('TruMenu.cpp: PzKeepTick must write only the time in node and send only the opening entry')
+    core = open(os.path.join(ROOT, 'src', 'asi', 'TruMenu', 'TruPuzzleCore.h'), encoding='utf-8').read()
+    if 'tlobj::HingeUnwrap(d->v' not in core or 'inline int PzSwitchEntry(' not in core:
+        problems.append('TruPuzzleCore.h: PzDoorOf with HingeUnwrap / PzSwitchEntry missing')
+    act = open(os.path.join(ROOT, 'src', 'asi', 'TruLink', 'TruLinkAct.h'), encoding='utf-8').read()
+    if act.count('tlobj::HingeUnwrap(') < 2:
+        problems.append('TruLinkAct.h: the drive must take the hinge wrap (tick + stop)')
+    rows = fn_body(src, 'void PzNewRows(')
+    if 'if (!ring) continue;' in rows:
+        problems.append('TruMenu.cpp: PzNewRows still skips the door rows after a non-ring check')
+    if 'PzSwUsed(o.inst)' not in rows or 'PzDataSwitch(' not in rows:
+        problems.append('TruMenu.cpp: PzNewRows must use PzSwUsed and PzDataSwitch')
+    inv = fn_body(src, 'const char *InvokeCore(')
+    if 'UnitNotFound(unit, why, sizeof(why))' not in inv:
+        problems.append('TruMenu.cpp: InvokeCore must test "level not found" before queueing')
+    for name in ('bool PzHoldRows(', 'int PzCounterOf(', 'bool RunPzWeights(', 'void PzKeepTick(', 'int PzListText('):
+        body = re.sub(r'//[^\n]*', '', fn_body(src, name))
+        if not body: problems.append('TruMenu.cpp: %s missing' % name)
+        elif re.search(r'\b(48[0-9]{2}|9[0-9]{3}|45[0-9]{2})\b', body):
+            problems.append('TruMenu.cpp: %s holds a game id' % name)
+    readme = open(os.path.join(ROOT, 'src', 'asi', 'TruMenu', 'README.md'), encoding='utf-8').read()
+    if '## 0.22.57' not in readme or 'TO TEST 0.22.57' not in readme:
+        problems.append('README.md: section "## 0.22.57" with "TO TEST 0.22.57" missing')
+    return problems, 'puzzle helpers 2 (fire rule, three hold kinds, hinge wrap, switch -> command from the scripts, used bit, ' \
+                     'weights -> plate, puzzle list export, level not found before queueing)'
+
+
 def check_02256():
     """0.22.56 (package P2b): (1) kVersion starts with 0.22.56; (2) the note exports TruMenuNote / TruMenuNoteClear /
     TruMenuNoteList as in src/asi/TruLink/README.md (64 notes, 95 characters, flags 1 / 2), drawn in DvDrawNames and by
@@ -7345,8 +7393,8 @@ def check_02256():
     src = read_cpp()
     code = re.sub(r'//[^\n]*', '', src)
     ver = src[:src.find('\n', src.find('kVersion = '))]
-    if '"TruMenu 0.22.56 (puzzle helpers' not in ver:
-        problems.append('TruMenu.cpp: kVersion must start with "TruMenu 0.22.56 (puzzle helpers ..."')
+    if '"TruMenu 0.22.56 (puzzle helpers' not in ver and '0.22.56 (puzzle helpers' not in ver:   # 0.22.57: later head
+        problems.append('TruMenu.cpp: kVersion must start with "TruMenu 0.22.56 (puzzle helpers ..." (or name it later)')
     for want in ('#include "../TruLink/TruLinkObj.h"', '#include "../TruLink/TruLinkAct.h"'):
         if want not in src: problems.append('TruMenu.cpp: %s missing' % want)
     # ---- (2) notes
@@ -8060,6 +8108,10 @@ def main(argv):
     for p in cproblems56: print('Q02256 %s' % p)
     if not cproblems56: print('ok: 0.22.56 %s' % csummary56)
     problems += cproblems56
+    cproblems57, csummary57 = check_02257()   # 0.22.57 (puzzle helpers 2, package Q2)
+    for p in cproblems57: print('Q02257 %s' % p)
+    if not cproblems57: print('ok: 0.22.57 %s' % csummary57)
+    problems += cproblems57
     cproblems27, csummary27 = check_02227(ini_path, opt.get('--switches', SWITCHES))   # 0.22.27
     for p in cproblems27: print('Q02227 %s' % p)
     if not cproblems27: print('ok: 0.22.27 %s' % csummary27)

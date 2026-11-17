@@ -442,6 +442,17 @@ inline bool RangeOf(DWORD rrec, float *lo, float *hi) {
     BYTE t = 0xff;
     return R8(rrec, &t) && (t == 0 || t == 2) && RF(rrec + 4, lo) && RF(rrec + 8, hi);
 }
+// 0.5.2: the hinge getter returns (-180, 180] degrees (ENGINE 9 "Joint value read path"). A hinge whose limit reaches
+// 180 (chapel shadow door, upper limit ~178) reads -180 at its stop (live 2026-11-16 21:44: 179.91, -180.00, 175.18;
+// 21:52 joint.drive "outside the joint's limits"). With limits lo < hi (degrees): a value outside [lo - 3, hi + 3] that
+// lies inside after +360 / -360 is that value.
+inline float HingeUnwrap(float v, float lo, float hi) {
+    const float m = 3.0f;
+    if (!(lo < hi)) return v;
+    if (v < lo - m && v + 360.0f >= lo - m && v + 360.0f <= hi + m) return v + 360.0f;
+    if (v > hi + m && v - 360.0f >= lo - m && v - 360.0f <= hi + m) return v - 360.0f;
+    return v;
+}
 // one joint line (value through TlJointValue: live on the game thread, "n/a" offline)
 inline void JointLine(const char *prefix, DWORD x, int index) {
     DWORD jrec = 0, joint = 0;
@@ -459,9 +470,14 @@ inline void JointLine(const char *prefix, DWORD x, int index) {
     RF(joint + 0x10c, &force);
     const bool hinge = type == 1;
     char value[48];
-    if ((type == 1 || type == 3) && TlJointValue(joint, type, &v))
-        _snprintf_s(value, sizeof(value), _TRUNCATE, "%.2f %s", static_cast<double>(v), hinge ? "deg" : "units");
-    else
+    if ((type == 1 || type == 3) && TlJointValue(joint, type, &v)) {
+        const float u = hinge && (flags & 2) ? HingeUnwrap(v, lim[0] * kRadToDeg, lim[1] * kRadToDeg) : v;   // 0.5.2
+        if (u != v)
+            _snprintf_s(value, sizeof(value), _TRUNCATE, "%.2f deg (getter %.2f: 180 wrap)", static_cast<double>(u),
+                        static_cast<double>(v));
+        else
+            _snprintf_s(value, sizeof(value), _TRUNCATE, "%.2f %s", static_cast<double>(v), hinge ? "deg" : "units");
+    } else
         _snprintf_s(value, sizeof(value), _TRUNCATE, "%s", type == 1 || type == 3 ? "n/a (offline / unreadable)" : "-");
     // 0.5: the motor velocity is per physics tick (1/30 s, kTicksPerSecond): hinge rad/tick, rail units/tick
     TlAdd("%sjoint %d: %s (phys %d, record 0x%08lx type %u, A %ld B %ld) J 0x%08lx value %s limits [%.2f, %.2f]%s "
@@ -879,7 +895,10 @@ inline void NodeEvents(DWORD b, DWORD x, const char *prefix, bool all = false) {
     NodeName(b, k, name, sizeof(name));
     float t = 0.0f;
     RF(b + 0x88, &t);
-    TlAdd("%snode %ld '%s' time %.2f s flags +0x90 0x%lx%s%s\n", prefix, k, name, static_cast<double>(t), flags,
+    // 0.5.2: +0x88 = game seconds in this node - Update 0x4d7550 adds [0xe7f188] / 30.0 (0x8439b8) per update only while
+    // no transition runs and +0x90 bit 3 is clear, 0 while GameTracker +0xbb == 6; set node 0x4d7440 clears it. Paused
+    // frames and frames the instance is not updated do not count (live 16.11.: 133 s for locks unlocked ~440 s before)
+    TlAdd("%snode %ld '%s' in node %.2f s (game time) flags +0x90 0x%lx%s%s\n", prefix, k, name, static_cast<double>(t), flags,
           trans ? " - a transition runs: events are dropped now" : "", (flags & 9) ? " - events dropped (+0x90 & 9)" : "");
     NodeTransitions(b, x, k, prefix);
     if (!all) return;

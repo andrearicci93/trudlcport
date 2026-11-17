@@ -189,13 +189,18 @@
                file gated md5 = b8b1eb71..., the installed ring tree 7) + the TU doppelganger camera DTPs 21237 / 21238
                and their curve records 22194 appended (tools/tu_camera_dtp.py; md5 810711f1...); a guard refuses every
                kit / reference / game-mods path and every Xbox path except the TitleUpdate.000 given with --tu; then
-               menu_ring_layout --expect-p14, menu_quit_slot_check
-               --expect f15, input_map_tu_fix --verify
+               (2026-11-17, Q7 / Q10, default) tools\script_word_set.py sets the loading screen's start-list count
+               (script 6 +0x11b20) from the PC's 182 to the title update's 193 in place (the ported TU entries 182-192
+               were never constructed: black base loading backgrounds; docs Befund-Q7-Ladebild-1711.md); then
+               -DlcPanel (2026-11-17, Q5, opt-in until the live test): tools\dlc_screen_panel.py build adds the title
+               update's dark translucent panel (uibitmap member of TU script 134) to mission screen script 104 in place
+               (docs\DLC_MENU.md "The panel behind the screen"; other section than the count word, the order of the
+               two does not change the result); then the gates script_sfi_members --scan (no script with entries after
+               its start-list count), menu_ring_layout --expect-p14, menu_quit_slot_check --expect f15,
+               input_map_tu_fix --verify
                -> work\rebuild\generalbank_pc\mods\generalbank.drm + build_report.json (-FixesOut DIR:
                DIR\generalbank_pc). Docs: Befund-Generalbank-PC-Basis-1111.md. Not installed by anything yet.
-               -DlcPanel (2026-11-17, Q5, opt-in): then tools\dlc_screen_panel.py build adds the title update's
-               dark translucent panel (uibitmap member of TU script 134) to mission screen script 104 in place
-               (docs\DLC_MENU.md "The panel behind the screen").
+               md5 of the result: 219aad62... (default), 53f43332... (-DlcPanel); before Q10 810711f1...
                -GeneralbankKit = the old chain (developer; the source of the knowledge):
                our generalbank.drm alone (after Repair's snapshot): B138's + mission screen style + the title
                update's loading screen (script 6, DLC titles) and hint box (script 10 -> 9), 21 steps with the
@@ -377,7 +382,8 @@ $exeOut = if ($FixesOut) { "$fixRoot/exe" } else { 'work/rebuild/exe' }
 # step Generalbank (2026-11-11): our generalbank.drm from the PC patch.000 original + recorded knowledge + ring P14
 $gbPcOut = if ($FixesOut) { "$fixRoot/generalbank_pc" } else { 'work/rebuild/generalbank_pc' }
 # -DlcPanel (2026-11-17, Q5): the title update's dark panel behind the DLC mission screen, added in place to the
-# Generalbank result (tools\dlc_screen_panel.py; opt-in until the live test)
+# Generalbank result (tools\dlc_screen_panel.py; opt-in until the live test); runs after the default script 6 count
+# fix and before the gates (Q10: both orders give the same file, only script 104 + one word of script 6 change)
 $gbPanel = @()
 if ($DlcPanel) { $gbPanel = ,@('tools\dlc_screen_panel.py', 'build', "$gbPcOut/mods/generalbank.drm", "$gbPcOut/mods/generalbank.drm") }
 # step Globalsound (2026-11-10): our globalsoundinfo.drm from the PC original + the recorded title-update edit
@@ -642,10 +648,15 @@ $steps = @{
     # refused by the tool's guard), then PC-only gates; -GeneralbankKit: the old chain
     Generalbank = if (!$GeneralbankKit) { @(
         @('tools\generalbank_pc_build.py', 'build', $gbPcOut),
+        # Q7 / Q10 (2026-11-17): loading screen script 6 start-list count = the title update's 193 (refuses unless 182)
+        @('tools\script_word_set.py', "$gbPcOut/mods/generalbank.drm", "$gbPcOut/mods/generalbank.drm", '6', '11b20=000000b6:000000c1')
+    ) + $gbPanel + @(
+        # gate: no script of the result has start-list entries after its count (exit 1 on a finding)
+        @('tools\script_sfi_members.py', '--scan', "$gbPcOut/mods/generalbank.drm"),
         @('tools\menu_ring_layout.py', "$gbPcOut/mods/generalbank.drm", '--expect-p14'),
         @('tools\menu_quit_slot_check.py', "$gbPcOut/mods/generalbank.drm", '--expect', 'f15'),
         @('tools\input_map_tu_fix.py', '--verify', "$gbPcOut/mods/generalbank.drm", '--report', "$gbPcOut/input_map_check.json")
-    ) + $gbPanel } else { @(
+    ) } else { @(
         @('tools\generalbank_build.py', $gbOut),
         @('tools\input_map_tu_fix.py', '--verify', "$gbOut/mods/generalbank.drm", '--report', "$gbOut/input_map_check.json"),
         # gate S104 (2026-11-05): the result = step 22 + exactly the script 104 fix of step 23, block = TU script 134 test

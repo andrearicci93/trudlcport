@@ -57,7 +57,7 @@ Usage (from the repository root):
   ../bin/pyt -t 1800 tools/gpda_port.py learn [--write]
         developer (reads the Xbox base g_pda + generalbank): recipes with proofs, members the pack changed, init rules,
         md5s of the PC / pack sections -> docs/data/gpda_port.json (no game bytes)
-  ../bin/pyt -t 1800 tools/gpda_port.py build CONVERTED_G_PDA OUT_DIR [--only-safe] [--knowledge JSON]
+  ../bin/pyt -t 1800 tools/gpda_port.py build CONVERTED_G_PDA OUT_DIR [--only-safe] [--knowledge JSON] [--dlc2-sonar MODE]
         -> OUT_DIR/mods/g_pda.drm + OUT_DIR/build_report.json; CONVERTED_G_PDA = the pipeline's converted pack11 g_pda
         (stage 2b + fixes, e.g. work/rebuild/pipeline_check_1111b/dlc2/mods/g_pda.drm); reads the player's PC g_pda
         (patch.000, else bigfile.000), the PC generalbank (section 90), the pack11 g_pda (pack11.000) - each section
@@ -65,7 +65,9 @@ Usage (from the repository root):
         work/rebuild/stage1/locmap_xbox_to_pc.json)
         --only-safe: the port recipes are NOT applied - their PC sections are kept (base game = PC; DLC PDA pages
         unreachable); the new scripts are still added
-  ../bin/pyt -t 1800 tools/gpda_port.py gate G_PDA
+        --dlc2-sonar MODE (Q6, owner's opt-in, NOT Xbox-faithful; default none = the Xbox menu): entry = the DLC 2
+        shadow PDA gets a fourth row SONAR MAP; basepda = DLC 2 shows the base PDA - tools/gpda_dlc2_sonar.py, gate 13
+  ../bin/pyt -t 1800 tools/gpda_port.py gate G_PDA [--dlc2-sonar MODE]
         read-only: the static gates on any merged g_pda (finding 40's dlc2_merge fails 9 of them)
 """
 import sys, os, json, struct, hashlib, collections
@@ -1263,10 +1265,20 @@ def pc_equal_but_pointers(s, p, skeys, pkeys):
     return [(so, ea[so][1], eb[so][1], ea[so][0]) for so in sorted(ea) if ea[so][1] != eb[so][1]]
 
 
+def safe_rel(p):
+    """relative path for the report; an absolute one when p is on another drive (os.path.relpath raises there)"""
+    try: return os.path.relpath(p)
+    except ValueError: return os.path.abspath(p)
+
+
 def build(argv):
     only_safe = '--only-safe' in argv; argv = [a for a in argv if a != '--only-safe']
     know = KNOW
     if '--knowledge' in argv: k = argv.index('--knowledge'); know = argv[k + 1]; del argv[k:k + 2]
+    sonar = 'none'          # Q6 opt-in variant (tools/gpda_dlc2_sonar.py): entry / basepda, default none = Xbox menu
+    if '--dlc2-sonar' in argv: k = argv.index('--dlc2-sonar'); sonar = argv[k + 1]; del argv[k:k + 2]
+    import gpda_dlc2_sonar as V
+    if sonar not in ('none',) + V.MODES: sys.exit('--dlc2-sonar %s: want none / %s' % (sonar, ' / '.join(V.MODES)))
     conv, out = argv[0], argv[1]
     K = load_knowledge(know)
     I = ids()
@@ -1369,6 +1381,12 @@ def build(argv):
         if v0.super_id() == UISCREEN:
             a, b, sh = insert_slot31(d, r, idx[(8, UISCREEN)], f111)
             sst['vtable %d -> %d, prototypes vtIndex+1: %d' % (a, b, sh)] += 1
+        # d) Q6 opt-in variant: DLC 2 sonar entry / base PDA in DLC 2 (not Xbox-faithful; appended after slot 31)
+        if sid == V.SID and sonar != 'none':
+            try:
+                V.apply(d, r, sonar, sst, srisk)
+            except V.Refuse as e:
+                sys.exit('--dlc2-sonar %s: %s - nothing written' % (sonar, e))
         s.data = bytes(d); s.reloc = R.write(r, 'le')
         per[key] = dict(stats=dict(sst), risks=srisk)
         L('%s (%s): %s' % (key, rec[key], dict(sst)))
@@ -1380,15 +1398,15 @@ def build(argv):
     infos = [dict(size=len(x.data)) for x in E2.sections]
     bad = sum(bool(R.check(R.parse(x.reloc, 'le'), len(x.data), infos)) for x in E2.sections)
     if bad: sys.exit('%d sections with relocations out of bounds - nothing written' % bad)
-    gates = gate_sections(E2.sections, pc, PCS, pk, inv, rec, targets, K)
+    gates = gate_sections(E2.sections, pc, PCS, pk, inv, rec, targets, K, want_sonar=sonar)
     for g in gates: L('gate: %s' % g)
     if any(g.startswith('FAIL') for g in gates): sys.exit('gate failed - nothing written')
     os.makedirs(os.path.join(out, 'mods'), exist_ok=True)
     fn = os.path.join(out, 'mods', NAME)
     blob = DW.cdrm_encode(raw, 'le')
     open(fn, 'wb').write(blob)
-    rep = dict(tool='tools/gpda_port.py build', knowledge=K['version'], converted=os.path.relpath(conv), only_safe=only_safe,
-               out=os.path.relpath(fn), md5=md5(blob), sections=len(E2.sections), per_script=per, gates=gates,
+    rep = dict(tool='tools/gpda_port.py build', knowledge=K['version'], converted=safe_rel(conv), only_safe=only_safe,
+               dlc2_sonar=sonar, out=safe_rel(fn), md5=md5(blob), sections=len(E2.sections), per_script=per, gates=gates,
                risks=risk, text_twins_refused=TWINS, locmap=locmap()[1:], log=log)
     json.dump(rep, open(os.path.join(out, 'build_report.json'), 'w'), indent=1)
     L('written %s: %d sections, md5 %s, relocations out of bounds 0, risks %d' % (fn, len(E2.sections), md5(blob), len(risk)))
@@ -1410,11 +1428,17 @@ def vt_sig(v, S, own):
     return out
 
 
-def gate_sections(S, pc, PCS, pk, inv, rec, targets, K=None):
-    """static gates on the written sections (list of DW.Section, PC layout); returns lines, 'FAIL ...' on a failure"""
+def gate_sections(S, pc, PCS, pk, inv, rec, targets, K=None, want_sonar=None):
+    """static gates on the written sections (list of DW.Section, PC layout); returns lines, 'FAIL ...' on a failure.
+    want_sonar: the Q6 variant the file must hold (none / entry / basepda); None = any complete one (reported)"""
     import script_init_from_pc as SIP
+    import gpda_dlc2_sonar as V
     out = []
     Sk = keys(S); idx = {k: i for i, k in enumerate(Sk)}
+    # (13, first: gate 3 needs its exemptions) the Q6 opt-in DLC 2 sonar variant of 3347, decoded from the file alone
+    sv = S[idx[(8, V.SID)]] if (8, V.SID) in idx else None
+    smode, sexempt, sprobs, sinfo = V.gate(sv.data, R.parse(sv.reloc, 'le')) if sv is not None else ('none', {}, [], {})
+    if want_sonar is not None and smode != want_sonar: sprobs = sprobs + ['variant %s, wanted %s' % (smode, want_sonar)]
     tset = {tuple(map(int, k.split(':'))) for k in targets}
     vcache = {}
     def view(key):
@@ -1520,10 +1544,12 @@ def gate_sections(S, pc, PCS, pk, inv, rec, targets, K=None):
         vx = View(xs['data'], xs['reloc'], 'be')
         codes = [(t, n) for nm, t, n, sz in v.W.arrays if nm == 'code']
         xcodes = [(t, n) for nm, t, n, sz in vx.W.arrays if nm == 'code']
-        same = codes == xcodes and all(struct.unpack_from('<I', v.d, t + 4 * j)[0] >> 24 ==
+        ex = sexempt if key == (8, V.SID) else {}      # Q6 variant: only its planned op00 -> op63 sites (gate 13)
+        same = codes == xcodes and all((t + 4 * j) in ex or struct.unpack_from('<I', v.d, t + 4 * j)[0] >> 24 ==
                                        struct.unpack_from('>I', vx.d, t + 4 * j)[0] >> 24 for t, n in codes for j in range(n))
-        out.append(('ok   ' if same and not v.W.bad else 'FAIL ') + '%d:%d decodes (walker problems %d%s), %d code arrays, opcodes = Xbox: %s' % (
-            key[0], key[1], len(v.W.bad), (' ' + repr(v.W.bad[:4])) if v.W.bad else '', len(codes), same))
+        out.append(('ok   ' if same and not v.W.bad else 'FAIL ') + '%d:%d decodes (walker problems %d%s), %d code arrays, opcodes = Xbox: %s%s' % (
+            key[0], key[1], len(v.W.bad), (' ' + repr(v.W.bad[:4])) if v.W.bad else '', len(codes), same,
+            ' (except the %d planned DLC 2 sonar sites)' % len(ex) if ex else ''))
     # (4) text ids (Q48): every text id leaf of a ported / new script (list entry 223 [0, 0], UI text 301 [0, 92]) holds
     # the word the rules derive from the Xbox word at the same offset (locals map; UI text: proven PC prompt id first)
     tst = collections.Counter(); badt = []
@@ -1732,6 +1758,11 @@ def gate_sections(S, pc, PCS, pk, inv, rec, targets, K=None):
                 if cls.get(o) != c: cbad.append('%d:%d start entry %d: class %d @0x%x, member there: %s' % (key[0], key[1], k, c, o, cls.get(o)))
     out.append(('ok   ' if not cbad else 'FAIL ') + 'structural array counts = Xbox, start entries name their member: %s, bad %d %s' % (
         dict(cst), len(cbad), cbad[:8]))
+    # (13) Q6 opt-in variant (tools/gpda_dlc2_sonar.py, not Xbox-faithful): none, or entry / basepda complete and as
+    # planned - every site, block word, relocation (copied from the same call in 3347), jump target (an op00 marker of
+    # the site's function), opcode 3-gram (occurs in 3347's own code) and the three row-4 init words
+    out.append(('ok   ' if not sprobs else 'FAIL ') + 'DLC 2 sonar variant of %d:%d: %s %s, problems %d %s' % (
+        8, V.SID, smode, sinfo, len(sprobs), sprobs[:8]))
     return out
 
 
@@ -1784,6 +1815,8 @@ def twin_types(d, rel, pc_sec, K, key, st, risk, known):
 
 def gate_cli(argv):
     """read-only: the static gates on any merged g_pda (e.g. finding 40's dlc2_merge, which crashed a new base game)"""
+    want = None
+    if '--dlc2-sonar' in argv: k = argv.index('--dlc2-sonar'); want = argv[k + 1]; argv = argv[:k] + argv[k + 2:]
     fn = argv[0]
     K = load_knowledge()
     I = ids()
@@ -1792,7 +1825,7 @@ def gate_cli(argv):
     inv = {(t, I(t, x)): (t, x) for (t, x) in pk}
     S = DW.read(open(fn, 'rb').read(), 'le').sections
     targets = [k for k, r in K['recipes'].items() if r in ('port', 'new93', 'new')]
-    g = gate_sections(S, pc, PCS, pk, inv, K['recipes'], targets, K)
+    g = gate_sections(S, pc, PCS, pk, inv, K['recipes'], targets, K, want_sonar=want)
     for x in g: print('gate: %s' % x)
     sys.exit(1 if any(x.startswith('FAIL') for x in g) else 0)
 

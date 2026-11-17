@@ -57,6 +57,7 @@ def played_intros(pool, sid, secs):
     for f in sc.funcs:
         last = None
         cast = None
+        seen57 = None
         for o, op, arg, ex in sc.code(f):
             if op in MEMBER_OPS and arg in refs:
                 last = refs[arg]
@@ -70,9 +71,16 @@ def played_intros(pool, sid, secs):
                 t = ISR.callee_text(pool, sc, x, tch, secs) or ''
                 log('    script %d f%d +%04x: op%02x %s' % (sid, f['k'], o, op, t), 3)
                 if 'proto' in t and t.split('vt ')[-1].split(' ')[0] == '57' and last is not None:
-                    out.append((last, f['k'], o))
+                    out.append([last, f['k'], o, None])
+                    seen57 = out[-1]
                     log('  script %d f%d +%04x: vt 57 after instanceref -> intro %d' % (sid, f['k'], o, last), 2)
-    return out
+                elif 'checkpointbase f3' in t and seen57 is not None and seen57[3] is None and last is not None:
+                    # Q11: the already-played branch after PlayCinematic sets the post-intro checkpoint itself
+                    # (11733 +0xcf0: instanceref m9 -> intro 4302, checkpointbase f3 = message 0x196(1))
+                    seen57[3] = last
+                    log('  script %d f%d +%04x: checkpointbase f3 after vt 57 -> checkpoint %d' % (
+                        sid, f['k'], o, last), 2)
+    return [tuple(x) for x in out]
 
 
 def main(argv):
@@ -109,6 +117,7 @@ def main(argv):
     own = {}                                  # intro -> its own unit
     carriers = {}                             # intro -> {unit}
     script_of = {}                            # intro -> {script}
+    post_cp = {}                              # intro -> {checkpoint the already-played branch sets} (Q11)
     t0 = time.time()
     for u in units:
         secs = S.drm(u)
@@ -124,7 +133,9 @@ def main(argv):
             hits = played_intros(pool, s['id'], secs)
             if not hits:
                 log('%s: script %d holds the branch but no vt 57 call after an instanceref was found' % (u, s['id']))
-            for intro, k, o in hits:
+            for intro, k, o, cp in hits:
+                if cp is not None:
+                    post_cp.setdefault(intro, set()).add(cp)
                 carriers.setdefault(intro, set()).add(u)
                 script_of.setdefault(intro, set()).add(s['id'])
                 if intro in placed:
@@ -136,14 +147,16 @@ def main(argv):
     with open(out_path, 'w', encoding='ascii', newline='\r\n') as fh:
         fh.write('# TruMenu.unitintros.txt - level-start intros of the PC base units (tools/unit_intro_table.py, %s)\n'
                  % time.strftime('%Y-%m-%d %H:%M:%S'))
-        fh.write('# <intro id> <own unit> # script; carried by ... - game data: next to tru.exe, never in the repository\n')
+        fh.write('# <intro id> <own unit> # script; carried by ...; post-intro checkpoint ... - game data: next to '
+                 'tru.exe, never in the repository\n')
         for intro in sorted(carriers):
-            fh.write('%d %s # script %s; carried by %s\n' % (intro, own.get(intro, '-'),
-                                                           ' '.join(str(x) for x in sorted(script_of[intro])),
-                                                           ' '.join(sorted(carriers[intro]))))
+            fh.write('%d %s # script %s; carried by %s; post-intro checkpoint %s\n' % (
+                intro, own.get(intro, '-'), ' '.join(str(x) for x in sorted(script_of[intro])),
+                ' '.join(sorted(carriers[intro])), ' '.join(str(x) for x in sorted(post_cp.get(intro, ()))) or '-'))
     for intro in sorted(carriers):
-        log('intro %d own %s scripts %s carriers %d' % (intro, own.get(intro, '-'), sorted(script_of[intro]),
-                                                       len(carriers[intro])))
+        log('intro %d own %s scripts %s carriers %d post-intro checkpoint %s' % (
+            intro, own.get(intro, '-'), sorted(script_of[intro]), len(carriers[intro]),
+            sorted(post_cp.get(intro, ())) or '-'))
     log('%d intro(s), %d with an own unit, %d unit(s) read in %.1f s -> %s' % (
         len(carriers), len(own), len(units), time.time() - t0, out_path))
     if LOG['fh']:

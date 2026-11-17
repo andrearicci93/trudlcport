@@ -56,6 +56,39 @@ Xbox TU 20 900, PC 20 084 -> the PC script is the retail version.
    all six `locals.bin_NNN` (same length, offsets unchanged). Language bits 001/002/004/008/016/032 = EN/FR/DE/IT/
    ES/NL = registry `Language` 0..5 (all verified in game).
 
+## The panel behind the screen (`tools/dlc_screen_panel.py`, 2026-11-17)
+
+Symptom (PC, every path: main menu and pause menu, base game and DLC 2): image, text and list are drawn straight
+onto the scene; the Xbox title update draws a dark translucent box behind them (references
+`references/DLC2/Xenia-20261114_DLC-Missionsmenue_ausPause_grauerKasten.png` vs
+`PC-Test-20261114_DLC-Missionsmenue_ausPause_ohneKasten.png` / `PC-Test-20261116_DLC-Missionsmenue_ausBasisspiel_ohneKasten.png`).
+
+Cause (data, `dlc_screen_panel.py scan` / `script_members_list.py xt 134`): the "member inserted at 0x004" above is
+the panel. It is a `uibitmap` (Xbox script 89 = PC 89) named Symbol 1195 (PC 1292) with an init block and a
+start-function-info entry; no code uses it, the engine constructs and draws it:
+
+| init field | value | meaning |
+|---|---|---|
+| +0x18 / +0x1c / +0x20 | 1.0 / 0.25 / 25.0 | position x / y / z (UI units, centre origin, y down) |
+| +0x34 / +0x38 | 28.0 / 14.0 | scale (width / height in UI units) |
+| +0x4c / +0x54 | 0x94050505 | colour ARGB: alpha 0x94 (58 %), RGB 5 / 5 / 5 |
+| +0x5c | 0 | no texture (plain quad) |
+
+UI unit = 1/20 of the screen height (36 px at 720p): 28 x 14 units at (+1.0, +0.25) = 13.4-92.2 % x 16-86 % of
+the screen, exactly the box measured in the Xenia picture (172-1180 x 117-620 of 1280 x 720). z: texts 0.5,
+preview image and selection bar 22, panel 25. The Xbox disc script (Xbox 134 retail) and the PC script 104 have no
+such member - the PC never had the panel.
+
+Fix: `dlc_screen_panel.py build IN OUT` adds the member to PC script 104 of our generalbank: next free instance
+offset (680, no other offset moves), entry first in the member list and start-function-info entry last (the title
+update's order), init = the TU's 240 bytes as u32 values (the three other `uibitmap` inits of the screen are equal
+TU / PC word for word), its 16 property path pointers on the PC screen's own shared path. Self-verify (only script
+104 changes, every old word except the instance size and the two list pointers unchanged, the new init = the TU
+words); the pipeline gates of step Generalbank pass. Pipeline: `Invoke-TruPipeline.ps1 -Step Generalbank -DlcPanel`
+(opt-in until the live test). Not combined with `generalbank_pc_build.py --tailoring` (that rule checks the md5 of
+script 104 before it). Draw order: kept as on the Xbox, the exe rule (member order, construction order or z) is not
+traced - the live test decides (panel behind the texts, texts not dimmed).
+
 ## Dead end (kept for reference): `tools/dlc_screen_widescreen.py`
 
 The TU also changed function 1 of the screen (26 -> 103 words): `if (uiscreen.f10() > 1.5)` it adjusts shadows of

@@ -279,6 +279,7 @@ Technical detail (addresses, structs, tools) is in [ENGINE.md](ENGINE.md); the S
 | Doppelganger outfit outside DLC 2 | Every player outfit carries its own move chart; using gear means "button held + that gear slot filled". The Doppelgänger's chart binds the grapple throw to "left stick held" and an RB gear item to an action without a pad button - harmless in Lara's Shadow, where she carries only the pistol and the PDA. Worn in Beneath the Ashes (the fork's outfit `dlc_doppel_costume_a`, a copy of her file), where the grapple is in the gear, every stick movement threw it (owner 14.11. 23:1x). The fork's outfit copy now takes Lara's buttons for these two moves (X, RB); the DLC 2 file itself stays original | ✅ data + static / ⬜ live (fix) | ENGINE §12 "Gear transitions of machine 2; doppelganger costume in DLC 1" |
 
 ## 13. Xbox vs PC and the title update (game level)
+| Mission screen panel | The Xbox title update puts a dark, about 58 % opaque box behind the preview picture, the text and the mission list (about 13-92 % of the width, 16-86 % of the height), from the main menu and from the pause menu alike. The original disc version has no box, and neither has the PC version, which is the disc state of this screen - so on the PC the text lies straight on the scene | ✅ data / ⬜ PC live with the box | ENGINE §8.2 "DLC mission screen panel"; DLC_MENU.md |
 
 | Topic | Fact | Status | Source |
 |---|---|---|---|

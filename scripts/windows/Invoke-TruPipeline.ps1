@@ -193,6 +193,9 @@
                --expect f15, input_map_tu_fix --verify
                -> work\rebuild\generalbank_pc\mods\generalbank.drm + build_report.json (-FixesOut DIR:
                DIR\generalbank_pc). Docs: Befund-Generalbank-PC-Basis-1111.md. Not installed by anything yet.
+               -DlcPanel (2026-11-17, Q5, opt-in): then tools\dlc_screen_panel.py build adds the title update's
+               dark translucent panel (uibitmap member of TU script 134) to mission screen script 104 in place
+               (docs\DLC_MENU.md "The panel behind the screen").
                -GeneralbankKit = the old chain (developer; the source of the knowledge):
                our generalbank.drm alone (after Repair's snapshot): B138's + mission screen style + the title
                update's loading screen (script 6, DLC titles) and hint box (script 10 -> 9), 21 steps with the
@@ -297,6 +300,8 @@ param(
     [ValidateSet('Report', 'Enforce')][string]$ShaderGate = 'Report',
     # step Generalbank: the old chain on B138's generalbank (+ two generic-store converter runs) instead of the PC build
     [switch]$GeneralbankKit,
+    # step Generalbank: + the title update's dark panel behind the DLC mission screen (tools\dlc_screen_panel.py, Q5)
+    [switch]$DlcPanel,
     # player-path access guard (plan Spielerweg P0): Off / Report (log only) / Enforce; -Player = Enforce
     [ValidateSet('Off', 'Report', 'Enforce')][string]$PlayerMode = 'Off',
     [switch]$Player,
@@ -371,6 +376,10 @@ if ($FixesOut) {
 $exeOut = if ($FixesOut) { "$fixRoot/exe" } else { 'work/rebuild/exe' }
 # step Generalbank (2026-11-11): our generalbank.drm from the PC patch.000 original + recorded knowledge + ring P14
 $gbPcOut = if ($FixesOut) { "$fixRoot/generalbank_pc" } else { 'work/rebuild/generalbank_pc' }
+# -DlcPanel (2026-11-17, Q5): the title update's dark panel behind the DLC mission screen, added in place to the
+# Generalbank result (tools\dlc_screen_panel.py; opt-in until the live test)
+$gbPanel = @()
+if ($DlcPanel) { $gbPanel = ,@('tools\dlc_screen_panel.py', 'build', "$gbPcOut/mods/generalbank.drm", "$gbPcOut/mods/generalbank.drm") }
 # step Globalsound (2026-11-10): our globalsoundinfo.drm from the PC original + the recorded title-update edit
 $gsOut = if ($FixesOut) { "$fixRoot/globalsound" } else { 'work/rebuild/globalsound' }
 # step Lang (2026-11-11, R10): the 60 language variants of the DLC cinematics / DLC 1 radio lines
@@ -636,7 +645,7 @@ $steps = @{
         @('tools\menu_ring_layout.py', "$gbPcOut/mods/generalbank.drm", '--expect-p14'),
         @('tools\menu_quit_slot_check.py', "$gbPcOut/mods/generalbank.drm", '--expect', 'f15'),
         @('tools\input_map_tu_fix.py', '--verify', "$gbPcOut/mods/generalbank.drm", '--report', "$gbPcOut/input_map_check.json")
-    ) } else { @(
+    ) + $gbPanel } else { @(
         @('tools\generalbank_build.py', $gbOut),
         @('tools\input_map_tu_fix.py', '--verify', "$gbOut/mods/generalbank.drm", '--report', "$gbOut/input_map_check.json"),
         # gate S104 (2026-11-05): the result = step 22 + exactly the script 104 fix of step 23, block = TU script 134 test

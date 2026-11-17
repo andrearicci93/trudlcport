@@ -2928,6 +2928,83 @@ Reihenfolge fest (Flacker-Test)".
   combos as set now (e.g. `LB + View = weiter . RB + View = 1 Bild . LB + RB + View = Foto`), built from the INI values,
   so it follows any change.
 
+## 0.22.58 - chapter rows by kind, keep-state loads with the intro mark, loading-screen watch, reload last checkpoint, costume 857 outside DLC 2 (2026-11-17)
+
+Build `work\asi\menu02258` (TruMenu.asi MD5 `f932052dbcf3c83f7fe06014dbe20fe7`, sha256
+`94a1f3c5c104d985052d772dfbd47f69c4bec0d24584ab0a0c1f158d631a320c`; 0 warnings in TruMenu.cpp; quick / readability /
+format checks exit 0, ini check exit 1 only for the 5 known TruTrace rows), not installed. Package Q1b of the workspace
+`docs\Pakete-1711.md`: the Q1a spec S1 - S7 (ENGINE 4.2 "Death restart request", ENGINE 11 "Loading screen close = 8:6
+f3", "Chapter intro under another main unit", "Level-start unit scripts and their intro objects", "TruMenu level.reload
+and Lara's chapter"; TRU-Knowledge 8) and the Q4 spec (`docs\Befund-Q4-Doppelgaenger-Kostuem-1711.md`, ENGINE 20.6).
+Offline only: build, the TruMenu checks, the table tool on the PC files. "(unproven)" = only the live test shows it.
+
+- **Intro table (S3)** - the eight level-start intros (the start scripts with the already-played branch) are game data,
+  so they are not in the source: `tools/unit_intro_table.py` reads the own PC files and writes
+  `TruMenu.unitintros.txt` (default into `local_results\unit_intros\`; copy it next to `tru.exe`, like
+  `TruMenu.weaponwaves.txt`). One line per intro: `<intro id> <own unit> # script; carried by ...`. Info item
+  `chapter.intros` lists the table with every intro's played mark now (sticky int `0:<intro>` key 5968). Without the file
+  the mark steps below are skipped (one log line at the start), the watch still runs.
+- **Page Kapitel rows by kind (S1).** Chapter starts (the rows on top, and unit rows under a heading `Kapitel ...` /
+  `Prolog ...` on the first visit, the DLC starts) = as 0.22.56: backup, the in-level level start f27 (new game data, the
+  intro plays). Every other unit row (mid-chapter, return visits, DLC units) = **`chapter.unit <unit>`**: backup, then
+  **`level.keep <unit>`** (state kept), column `Stand bleibt`. `[Chapter] UnitFresh=1` / `chapter.unitfresh 1`
+  (experimental) = backup, `level.start <unit> 0 mark`: new game data, and on the loading screen (main state 2) the played
+  marks of the table intros whose own unit is loaded (not the target) are kept at 1 - the chapel then should not play
+  chapter 3.1's intro of `l3_caverns_start` ~19 m off its scenery (unproven).
+- **Keep-state loads (S2):** `level.keep <unit>` = `level.load`; when `<unit>` is an intro's own unit and that intro's
+  played mark is not 0, the mark goes to 0 right after the request (the game's sticky set + change notification, as
+  `sticky.set`), so the intro plays and closes the loading screen (unproven). Used by `Kapitel (Stand behalten)`
+  (`chapter.keep`), the `chapter.unit` rows and `level.reload`. **Watch:** after such a load TruMenu watches the script
+  prints for 90 s (it redirects them for the watch when `log.script` is off, and back after): `: Cine already played`
+  without `*** ABOUT TO FADE OUT LOADING SCREEN` within 10 s = a warning line `0.22.58 watch: ...` and the footer
+  `Ladebild haengt evtl. ...`; nothing else is done.
+- **`Letzten Checkpoint laden` / `cp.reload` (S4)**, page Kapitel (second row) and page Rettung: the game's restart after a
+  death without the death - only `[0xe7f0b8] |= 0x80000` (6 byte checks `kCrChecks`), refused outside main state 1, without
+  a player, in a cutscene, with a level change pending, while the game's pause bit 0x1000 is set (not by TruMenu) or the
+  bit is already set. Flight off and the camera-hint clear are armed first. The log names the prediction (byte
+  `[GameTracker+0x169]`, the checkpoint's unit loaded -> in-place restore 0x5de480, else full reload 0x5df760(6)) and the
+  result (main state 2 seen within 5 s = full reload, the longest game-thread gap, the player instance before / after).
+  Not served within 20 s = the bit is taken back.
+- **`level.reload` (S5)** is named what it is: `Unit neu laden (Anfang, Stand bleibt)` / `Reload unit (unit start, state
+  kept)` - a `level.keep` of the current unit (Lara starts at the unit's start, not where she stood).
+- **Chapter from the safe ground (S6):** `chapter.reload` / `chapter.keep current` take Lara's stream unit, but the newest
+  safe-ground spot's stream unit (new field of the sampler) when she is off the map: no stream unit, a unit outside the
+  chapter table, in the fall record 1068, or more than 3000 units below that spot. The row shows the unit it will load
+  and where it came from: `l3_caverns_start (von l3_chapel)`, `... (sicherer Boden ...)`.
+- **DLC (S7):** in DLC 1 / DLC 2 the row reads `DLC-Start neu laden` / `Reload DLC start` (the DLCs have no sub-chapters);
+  `Letzten Checkpoint laden` is the per-area restart.
+- **Costume 857 outside DLC 2** (replaces the 0.22.55 grey lock). **Fix A (default):** with the doppelganger flag
+  `[[0xfadb58]+0x1244]` = 0 the live switch to `doppelganger_casual` (row, `costume.set 857`, the cycle step) goes to its
+  clone **`dlc_doppel_costume_a`** (found by name, checked with the game's 0x5c54e0) - the same model without the type
+  entry: no DoppelgangerInit, no shadow power. Row label `doppelganger_casual -> dlc_doppel_costume_a (ohne
+  Schattenkraft)`, one log line with both ids. Without the clone the row stays grey as 0.22.55. DLC 2 (flag 1) = 857
+  unchanged; `costume.choose` (the next load) untouched. **Option B** `[Costume] DoppelLive=1` / `costume.doppellive 1`
+  (experimental, 5 byte checks `kDgChecks`): the real 857; right before message 35 game data `+0x390` = 0 (the default
+  branch: the unit's gear list instead of the restore branch that waited for the old weapons), two game frames later slot
+  0 (right hand, `WM+4`) must hold a live weapon - else the log line `slot 0 empty after doppelganger switch`, a red footer
+  and at once back to the previous costume.
+
+### TO TEST 0.22.58
+
+Install TruMenu 0.22.58 (game closed) and copy `local_results\unit_intros\TruMenu.unitintros.txt` next to `tru.exe`.
+
+| # | Where | Do | Expected |
+|---|---|---|---|
+| 1 | start | `TruMenu.log` | version 0.22.58; `0.22.58 intro table: 8 level-start intro(s) from ...`; `cp.reload: 6 byte checks ok`; `costume B: 5 byte checks ok` |
+| 2 | any level | `chapter.intros` | 8 rows `<intro> <unit> mark <n / ->` |
+| 3 | `l3_chapel` | Kapitel -> Abschnitte 3 -> `l3_chapel` right 2x | column `Stand bleibt`; log `chapter.unit ... level.keep`; no intro, the screen closes at once, Lara at CP 4735 |
+| 4 | `l3_chapel` | row `3 Croft Manor` right 2x | the 3.1 intro plays from `l3_caverns_start` (fresh), the screen closes, Lara on its checkpoint |
+| 5 | `l3_caverns_start`, intro played | `Unit neu laden (Anfang, Stand bleibt)` right 2x | log `intro 4318: played mark 1 -> 0`; the intro plays again and the screen closes; no `watch: ... no '*** ABOUT TO FADE` warning |
+| 6 | same, without `TruMenu.unitintros.txt` | the same | after ~10 s the warning `0.22.58 watch: ': Cine already played' ...` and the footer hint (the screen may stay - then 7) |
+| 7 | a level, Lara alive | `Letzten Checkpoint laden` right 2x | log prediction + `result IN-PLACE RESTORE` (checkpoint unit loaded) or `FULL RELOAD`; Lara at the last checkpoint |
+| 8 | DLC 1 `dlc_caverns_hall` | Kapitel row 1 | name `DLC-Start neu laden`, state `dlc_level1_start (von dlc_caverns_hall)`; `cp.reload` restarts the area |
+| 9 | `chapter.unitfresh 1`, then `l3_chapel` row | right 2x | log `fresh unit start l3_chapel: intro 4318 of the loaded unit l3_caverns_start - played mark 0 -> 1`; no misplaced intro (unproven) |
+| 10 | after a fall out of the map (or Lara under the chapel ledge) | look at row 1 | `... (sicherer Boden <unit>)`; `chapter.reload` logs `off the map (...)` |
+| 11 | DLC 1, normal costume | `costume.set` another Lara costume, `weapon.slots`, `save.waiting` | slot 0 = pistols, wait table empty (Q4 test 1) |
+| 12 | DLC 1 | Kostueme -> `doppelganger_casual -> dlc_doppel_costume_a (ohne Schattenkraft)` | log `857 doppelganger_casual -> 1031 dlc_doppel_costume_a`; doppelganger look; no new DoppelgangerInit in TruDlc2Player.log; `weapon.slots` slot 0 set; draw, attack, 2 min walking / climbing without a freeze |
+| 13 | DLC 1, `costume.doppellive 1` | `costume.set 857` | log `+0x390 1 -> 0 right before message 35`, `slot 0 ... - ok`; draw without a freeze; LB / RB shadow power. Slot 0 empty: `slot 0 empty ...`, red footer, back to the previous costume |
+| 14 | DLC 2 | `costume.set 857` with the flag set | unchanged (no redirect, no +0x390 line) |
+
 ## 0.22.57 - puzzle helpers 2: figures only with the fire, hold open for every gate kind, part labels, weights onto a plate, switch commands from the scripts (2026-11-17)
 
 Build `work\asi\menu0257` (TruMenu.asi MD5 `30c8cdcddd91353874e2fecde5f63562`, sha256

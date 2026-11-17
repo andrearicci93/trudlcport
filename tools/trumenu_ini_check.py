@@ -5477,12 +5477,12 @@ def check_02244(switches_path):
     # 0.22.44 added none, 0.22.45 the three [Sound] wave log keys, 0.22.47 the seven sound monitor / sonar keys, 0.22.48
     # the three [Sonar] keys, 0.22.49 [Sonar] AllFloors + TriangleCap, 0.22.50 the 11 [Sound] keys of W8_KEYS_02250,
     # 0.22.51 the three keys of S5_KEYS_02251, 0.22.53 the six keys of W11_KEYS_02253, 0.22.54 [Sound] ResetAtStart,
-    # 0.22.55 [Cheat] FlightKeepOnLoad
+    # 0.22.55 [Cheat] FlightKeepOnLoad, 0.22.58 [Chapter] UnitFresh + [Costume] DoppelLive
     if len(opt_rows) != 283 + len(W6_KEYS_02245) + len(W7_KEYS_02247) + len(SO_KEYS_02248) + 2 + len(W8_KEYS_02250) + \
-            len(S5_KEYS_02251) + len(W11_KEYS_02253) + 1 + 1:
+            len(S5_KEYS_02251) + len(W11_KEYS_02253) + 1 + 1 + 2:
         problems.append('TruMenu.cpp: kOpts has %d keys - 0.22.44 adds no INI key (283), 0.22.45 adds %d, 0.22.47 adds %d, '
                         '0.22.48 adds %d, 0.22.49 adds 2, 0.22.50 adds %d, 0.22.51 adds %d, 0.22.53 adds %d, 0.22.54 adds 1, '
-                        '0.22.55 adds 1' % (
+                        '0.22.55 adds 1, 0.22.58 adds 2' % (
                             len(opt_rows), len(W6_KEYS_02245), len(W7_KEYS_02247), len(SO_KEYS_02248), len(W8_KEYS_02250),
                             len(S5_KEYS_02251), len(W11_KEYS_02253)))
     readme = open(os.path.join(ROOT, 'src', 'asi', 'TruMenu', 'README.md'), encoding='utf-8').read()
@@ -5701,9 +5701,12 @@ def check_02246():
         lu.find('reinterpret_cast<LevelChangeFn>(kLevelChange)')
     if not 0 <= i_p < i_f < i_c: problems.append('TruMenu.cpp: LoadUnit must refuse the front end before the request')
     ls = fn_body(src, 'bool RunLevelStart(')
-    for want in ('int select = given >= 0 ? given : MissionSelectArg(unit);', 'if (given == 0 && !g_outfitRuleOk) {',
-                 'words > 2 || (words == 2 && given < 0)'):
+    for want in ('int select = given >= 0 ? given : MissionSelectArg(unit);', 'if (given == 0 && !g_outfitRuleOk) {'):
         if want not in ls: problems.append('TruMenu.cpp: RunLevelStart must hold %s' % want)
+    # 0.22.58 (S1): a third word "mark" is allowed - the usage rule then reads words > 3 || (words == 3 && !mark) || ...
+    if 'words > 2 || (words == 2 && given < 0)' not in ls and \
+            'words > 3 || (words == 3 && !mark) || (words == 2 && given < 0)' not in ls:
+        problems.append('TruMenu.cpp: RunLevelStart must refuse extra words (words > 2 / > 3 with mark)')
     sc = fn_body(src, 'void ShortcutTick(')
     if 'if (!_strnicmp(step, "level.start ", 12)) {' not in sc or 'StartUnitName(u, g_scWaitUnit, sizeof(g_scWaitUnit))' \
             not in sc or 'level up - unit %s' not in sc:
@@ -6737,7 +6740,9 @@ def check_02251(switches_path):
     if not re.search(r'if \(dlcStart && InLevel\(\)\) \{[^}]*?LevelStartInGameOk\(\)', cs, re.S) or \
             cs.count('Out(steps, n, "save.backup kapitel;level.start %s", dlc);') != 2:
         problems.append('TruMenu.cpp: ChapSteps: the DLC rows in a level = "level.start dlc1|dlc2" (LevelStartInGameOk)')
-    if 'if (state == 1 && InLevel()) return LevelStartInGame(name, given, o, n);' not in fn_body(src, 'bool RunLevelStart('):
+    rls = fn_body(src, 'bool RunLevelStart(')   # 0.22.58: the in-level start may arm the intro marks after the call
+    if 'if (state == 1 && InLevel()) return LevelStartInGame(name, given, o, n);' not in rls and \
+            not ('if (state == 1 && InLevel()) {' in rls and 'const bool ok = LevelStartInGame(name, given, o, n);' in rls):
         problems.append('TruMenu.cpp: RunLevelStart must hand a level (main state 1) to LevelStartInGame')
     lg = fn_body(src, 'bool LevelStartInGame(')
     # 0.22.56 (P3 fix 2): any unit in a level - the DLC-only refusal became the dlcStart flag + the camera-hint checks
@@ -7342,8 +7347,8 @@ def check_02257():
     problems = []
     src = read_cpp()
     ver = src[:src.find('\n', src.find('kVersion = '))]
-    if '"TruMenu 0.22.57 (puzzle helpers 2' not in ver:
-        problems.append('TruMenu.cpp: kVersion must start with "TruMenu 0.22.57 (puzzle helpers 2 ..."')
+    if '"TruMenu 0.22.57 (puzzle helpers 2' not in ver and ' - 0.22.57 (puzzle helpers 2' not in ver:   # 0.22.58: later head
+        problems.append('TruMenu.cpp: kVersion must start with "TruMenu 0.22.57 (puzzle helpers 2 ..." (or name it later)')
     if 'extern "C" __declspec(dllexport) int __cdecl TruMenuPuzzleList(char *out, int size, int lang)' not in src:
         problems.append('TruMenu.cpp: export TruMenuPuzzleList missing')
     figures = fn_body(src, 'bool RunPzFigures(')
@@ -7378,6 +7383,110 @@ def check_02257():
         problems.append('README.md: section "## 0.22.57" with "TO TEST 0.22.57" missing')
     return problems, 'puzzle helpers 2 (fire rule, three hold kinds, hinge wrap, switch -> command from the scripts, used bit, ' \
                      'weights -> plate, puzzle list export, level not found before queueing)'
+
+
+def check_02258():
+    """0.22.58 (package Q1b, spec S1 - S7 of Q1a + Q4 costume 857): (1) kVersion starts with 0.22.58; (2) the byte checks
+    kCrChecks (6 rows = ENGINE section 4.2 "Death restart request") and kDgChecks (5 rows = ENGINE section 20.6 "Player
+    message 35"); (3) cp.reload writes only the request bit (no health, no tracker flags) after its refusals (main state
+    1, a player, no cutscene, no level change pending, not already set) and after FlightOffForLoad + ChArm; (4) level.keep
+    = LoadUnit, then the played mark (key 5968) through UiMarkSet, then the watchdog; level.reload / chapter.keep /
+    chapter.unit use it; (5) the intro table comes from TruMenu.unitintros.txt (no intro id table in the source); (6) the
+    fresh unit start writes marks only in main state 2; (7) mid-chapter rows = chapter.unit, chapter starts = level.load
+    through ChapSteps; (8) costume: fix A by name (ObjectId("dlc_doppel_costume_a")), option B writes +0x390 only in
+    DgBeforePost right before message 35 and checks slot 0 (WM + 4); (9) [Chapter] UnitFresh / [Costume] DoppelLive
+    default 0; (10) README"""
+    problems = []
+    src = read_cpp()
+    code = re.sub(r'//[^\n]*', '', src)
+    ver = src[:src.find('\n', src.find('kVersion = '))]
+    if '"TruMenu 0.22.58 (chapter / loading + costume 857' not in ver:
+        problems.append('TruMenu.cpp: kVersion must start with "TruMenu 0.22.58 (chapter / loading + costume 857 ..."')
+    # ---- (2) byte checks
+    def rows_of(start, stop):
+        part = src[src.find(start):src.find(stop, src.find(start))]
+        return {a: h.replace(' ', '') for a, h in re.findall(r'\{0x([0-9a-f]{8}), "([0-9a-f ]+)"\}', part)}
+    cr = rows_of('const ChCheck kCrChecks[] = {', '};')
+    want_cr = {'005dfcad': 'f705b8f0e70000100000', '005dfcba': '8b4730a9000008007427',
+               '005dfcc4': '25fffff7ff57894730e80e48ffff', '005dfcda': 'e8a1e7ffffeb076a06e878faffff',
+               '005d44e0': '8b4424045332db3898690100007427a16492c50083c010', '006f55a7': '810db8f0e70000000800'}
+    if cr != want_cr: problems.append('TruMenu.cpp: kCrChecks must hold the 6 rows of ENGINE 4.2 (got %s)' % sorted(cr))
+    dg = rows_of('const ChCheck kDgChecks[] = {', '};')
+    want_dg = {'007200ba': '8b3d6492c500', '007200c0': '81c790030000', '007200c6': '3817755b',
+               '007200df': '80b94412000000', '00720125': 'a158dbfa00'}
+    if dg != want_dg: problems.append('TruMenu.cpp: kDgChecks must hold the 5 rows of ENGINE 20.6 (got %s)' % sorted(dg))
+    # ---- (3) cp.reload
+    rc = re.sub(r'//[^\n]*', '', fn_body(src, 'bool RunCpReload('))
+    seq = [rc.find('!CrOk()'), rc.find('state != 1'), rc.find('if (!InLevel())'), rc.find('if (CinematicNow())'),
+           rc.find('LevelChangePending(why, sizeof(why))'), rc.find('if (flags & 0x80000)'), rc.find('FlightOffForLoad("cp.reload");'),
+           rc.find('ChArm("cp.reload");'), rc.find('_InterlockedOr(reinterpret_cast<volatile long *>(kStreamFlags), 0x80000);')]
+    if any(x < 0 for x in seq) or seq != sorted(seq):
+        problems.append('TruMenu.cpp: RunCpReload must refuse, end the flight, arm the hint clear, then set the bit (%s)' % seq)
+    for bad in ('0x628', '0x968', '0x960', 'kLevelChange', '0x5de480', '0x5df760'):
+        if bad in re.sub(r'"[^"\n]*"', '', rc): problems.append('TruMenu.cpp: RunCpReload must only set the request bit (%s)' % bad)
+    if 'CrTick(state);' not in fn_body(src, 'void UiTick(') or 'UiTick(state);' not in fn_body(src, 'void ChTick('):
+        problems.append('TruMenu.cpp: ChTick -> UiTick -> CrTick missing')
+    # ---- (4) keep-state load
+    kl = re.sub(r'//[^\n]*', '', fn_body(src, 'bool KeepLoad('))
+    seq = [kl.find('if (!LoadUnit(unit, o, n)) return false;'), kl.find('UiMarkSet(h, 0)'), kl.find('WdArm(unit, what);')]
+    if any(x < 0 for x in seq) or seq != sorted(seq):
+        problems.append('TruMenu.cpp: KeepLoad must request, clear the mark, then arm the watch (%s)' % seq)
+    if 'return KeepLoad(unit, "level.reload", o, n);' not in fn_body(src, 'bool RunReload('):
+        problems.append('TruMenu.cpp: RunReload must go through KeepLoad')
+    if 'Out(steps, sizeof(steps), "save.backup kapitel;level.keep %s", unit);' not in fn_body(src, 'bool RunChapKeep('):
+        problems.append('TruMenu.cpp: RunChapKeep must use level.keep')
+    if 'Out(steps, sizeof(steps), "save.backup kapitel;level.keep %s", unit);' not in fn_body(src, 'bool RunChapUnit('):
+        problems.append('TruMenu.cpp: RunChapUnit must use level.keep by default')
+    if 'const WORD kUiPlayedKey = 5968;' not in src: problems.append('TruMenu.cpp: kUiPlayedKey 5968 missing')
+    wd = fn_body(src, 'void WdTick(')
+    if 'now - g_wd.cineTick >= 10000' not in wd or 'WdScriptLine(g_scriptPartial);' not in fn_body(src, 'void ScriptText('):
+        problems.append('TruMenu.cpp: watchdog: 10 s after "Cine already played", fed from ScriptText')
+    # ---- (5) intro table from the file, no ids in the code
+    if '"%sTruMenu.unitintros.txt"' not in fn_body(src, 'void UiLoad('):
+        problems.append('TruMenu.cpp: UiLoad must read TruMenu.unitintros.txt')
+    sec = code[code.find('struct UiIntro {'):code.find('void UiTick(DWORD state) {')]
+    for gid in ('997', '2562', '4318', '4483', '5484', '7530', '7652', '9071'):
+        if re.search(r'\b%s\b' % gid, sec): problems.append('TruMenu.cpp: intro id %s in the 0.22.58 code (game data)' % gid)
+    # ---- (6) fresh marks only in main state 2
+    im = fn_body(src, 'void ImTick(')
+    if not 0 <= im.find('if (state == 2) {') < im.find('UiMarkSet(h, 1)'):
+        problems.append('TruMenu.cpp: ImTick must write the marks only in main state 2')
+    if 'if (ok && mark) ImArm(name);' not in fn_body(src, 'bool RunLevelStart('):
+        problems.append('TruMenu.cpp: RunLevelStart must arm the marks after the in-level start ("mark")')
+    # ---- (7) rows by kind
+    qr = fn_body(src, 'int QbChapRows(')
+    if 'ChapIsStartRow(co, kUnits[i].unit)' not in qr or '"chapter.unit", kUnits[i].unit, kQbAction' not in qr:
+        problems.append('TruMenu.cpp: QbChapRows must split chapter starts (level.load) from chapter.unit rows')
+    ch = [r for r in qb_rows(src) if r[0] == 'kQbChapters']
+    if len(ch) < 2 or (ch[1][2], ch[1][4]) != ('cp.reload', 'kQbAction'):
+        problems.append('TruMenu.cpp: kQbChapters row 2 must be cp.reload')
+    for item, kind in (('cp.reload', 'action'), ('level.keep', 'action'), ('chapter.unit', 'action'),
+                       ('chapter.unitfresh', 'bool'), ('costume.doppellive', 'bool'), ('chapter.intros', 'info')):
+        if item_types(src).get(item) != kind: problems.append('TruMenu.cpp: item %s (%s) missing' % (item, kind))
+    # ---- (8) costume
+    sc = re.sub(r'//[^\n]*', '', fn_body(src, 'bool SwitchCostume('))
+    if not 0 <= sc.find('CosRedirect(target)') < sc.find('CosValidCall(static_cast<WORD>(clone))') < \
+            sc.find('reinterpret_cast<VoidFn>(kCostumeSwitch)()'):
+        problems.append('TruMenu.cpp: SwitchCostume must redirect and check the clone before 0x6f0a90')
+    if 'ObjectId("dlc_doppel_costume_a")' not in fn_body(src, 'int CosDoppelClone('):
+        problems.append('TruMenu.cpp: the clone must be found by name')
+    if code.count('+ 0x390) = 0') != 1 or '+ 0x390) = 0' not in fn_body(src, 'void DgBeforePost('):
+        problems.append('TruMenu.cpp: +0x390 is written only in DgBeforePost')
+    wt = fn_body(src, 'void WeaponsTick(')
+    if not 0 <= wt.find('if (b) DgBeforePost();') < wt.find('Post(player, 35, 0);'):
+        problems.append('TruMenu.cpp: WeaponsTick must write +0x390 right before message 35')
+    if 'HandleInstance(wm + 4)' not in fn_body(src, 'void DgSlotCheck('):
+        problems.append('TruMenu.cpp: DgSlotCheck must test slot 0 (WM + 4)')
+    # ---- (9) INI defaults
+    header, opt_rows = table(src)
+    d = {(s, k): v for s, k, v, _ in opt_rows}
+    if d.get(('Chapter', 'UnitFresh')) != '0' or d.get(('Costume', 'DoppelLive')) != '0':
+        problems.append('TruMenu.cpp: kOpts [Chapter] UnitFresh=0 / [Costume] DoppelLive=0 missing')
+    readme = open(os.path.join(ROOT, 'src', 'asi', 'TruMenu', 'README.md'), encoding='utf-8-sig').read()
+    if '## 0.22.58' not in readme or 'TO TEST 0.22.58' not in readme:
+        problems.append('README.md: section "## 0.22.58" with "TO TEST 0.22.58" missing')
+    return problems, 'chapter / loading (rows by kind, level.keep + intro marks, watchdog, cp.reload %d byte checks, ' \
+                     'safe-ground chapter, DLC row) + costume 857 (fix A, DoppelLive %d byte checks)' % (len(cr), len(dg))
 
 
 def check_02256():
@@ -7432,8 +7541,10 @@ def check_02256():
         problems.append('TruMenu.cpp: ChapSteps: other units in a level = level.start <unit> 0 (camera-hint checks)')
     if '{"Kapitel (Stand behalten)", "Chapter (keep state)", "chapter.keep", "", kQbChoice, -1, kQcNone, kQvChapKeep,' not in src:
         problems.append('TruMenu.cpp: kQbChapters: choice row "Kapitel (Stand behalten)" (chapter.keep) missing')
-    if 'Out(steps, sizeof(steps), "save.backup kapitel;level.load %s", unit);' not in fn_body(src, 'bool RunChapKeep('):
-        problems.append('TruMenu.cpp: RunChapKeep must load with level.load after the backup')
+    keep = fn_body(src, 'bool RunChapKeep(')   # 0.22.58 (S2): level.keep = level.load + the intro mark step
+    if 'Out(steps, sizeof(steps), "save.backup kapitel;level.load %s", unit);' not in keep and \
+            'Out(steps, sizeof(steps), "save.backup kapitel;level.keep %s", unit);' not in keep:
+        problems.append('TruMenu.cpp: RunChapKeep must load with level.load / level.keep after the backup')
     # ---- (5) puzzles
     pz = src[src.find('// ---- 0.22.56 puzzles nearby'):src.find('// ---- end of 0.22.56 puzzles nearby')]
     pzc = re.sub(r'//[^\n]*', '', pz)
@@ -8112,6 +8223,10 @@ def main(argv):
     for p in cproblems57: print('Q02257 %s' % p)
     if not cproblems57: print('ok: 0.22.57 %s' % csummary57)
     problems += cproblems57
+    cproblems58, csummary58 = check_02258()   # 0.22.58 (chapter / loading + costume 857, package Q1b)
+    for p in cproblems58: print('Q02258 %s' % p)
+    if not cproblems58: print('ok: 0.22.58 %s' % csummary58)
+    problems += cproblems58
     cproblems27, csummary27 = check_02227(ini_path, opt.get('--switches', SWITCHES))   # 0.22.27
     for p in cproblems27: print('Q02227 %s' % p)
     if not cproblems27: print('ok: 0.22.27 %s' % csummary27)

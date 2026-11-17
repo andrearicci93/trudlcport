@@ -47,7 +47,9 @@ slots 0..31 = PC uiscreen 93 (slot 31 = f111), same inherited / own pattern as t
 override - slot 17 "PDA menu onclicked" - is a WARN), every prototype vtIndex consistent; every struct-351 init of the
 file in the PC layout; every ported / new script decodes without walker problems and its code opcodes = the Xbox
 original; every text id leaf of a ported / new script = the rule word of the Xbox word (Q48: a member copied from the
-PC gets its text ids by rule too - the PC re-authored some texts); relocations in bounds; read back.
+PC gets its text ids by rule too - the PC re-authored some texts); every structural array count of a ported / new script = the Xbox count and every start-
+function entry names its member (crash 2026-11-16, PDA sonar: 3365 listed 13 member objects with count 12, so the map
+widget was never constructed); relocations in bounds; read back.
 
 Usage (from the repository root):
   ../bin/pyt -t 1800 tools/gpda_port.py analyze CONVERTED_G_PDA [--report R.json]
@@ -1178,6 +1180,31 @@ def u16_paths(d, rel, xs, st, risk, sid):
         st['u16 paths -> final member names (element 0 named no member)'] += 1; st['init words changed'] += words
 
 
+def array_counts(d, xs, st, risk, sid):
+    """crash 6 / 7 (2026-11-16 22:00 base game l3_chapel and 22:45 DLC 1 dlc_caverns_hall, PDA sonar selected, tru.exe
+    +0x1a775c `cmp [ecx+8],ebx` with ecx = [screen+0x230] = 0, docs Befund-Q3-Sonar-1711): the COUNT word of a structural
+    array of a ported / new script must be the Xbox count. A script instance is built by 0x57c1e0, which walks exactly
+    `count` entries of the root list +0x30 (StartFunctionInfo {class script id, member offset}) and calls the class
+    handler's vt+0x24 for each - that constructs the native member object, and a UI widget adds itself to the screen
+    there (uitext: 0x4ce810 -> [screen+0x20] vt+8 = ScriptUIScreen slot 2 0x5aa9d0 = add child, focusable -> 0x5a76d0
+    = focus list +0x228 / +0x230). In 3365 (ping map screen) the list holds 13 entries, the last = 3380 (uipdamapwidget)
+    at offset 4 = member #0, but the count read 12: the map widget was never constructed into the screen, so the
+    screen kept 8 children and no focus list, and func 1's SetFocus(map widget) read the null focus pointer. The count
+    word is also reached as a uitext init leaf ([0, 128, 0] lands on it); the converted value equals the converter's DTP
+    id map of the Xbox count (13 -> 12, 26428: 11 -> 10, the other 6 start lists map to themselves) and port_init2
+    restored that converted word. Rule: every count
+    word of the Xbox walk's arrays (the vtable has none) = the Xbox count, little-endian (the layout is the Xbox one)."""
+    xd = xs['data']
+    Wx = SC.Walk(xd, R.parse(xs['reloc'], 'be'), 'be').run()
+    for nm, t, n, sz in Wx.arrays:
+        if nm == 'vtable' or t < 4 or t > len(d): continue
+        cur = struct.unpack_from('<I', d, t - 4)[0]
+        if cur == n: st['array counts = Xbox'] += 1; continue
+        struct.pack_into('<I', d, t - 4, n)
+        st['array counts -> the Xbox count'] += 1; st['init words changed'] += 1
+        risk.append('%d +0x%x: %s count %d -> Xbox count %d' % (sid, t - 4, nm, cur, n))
+
+
 def protected_offsets(W):
     """word offsets of every structural array (members, functions, code, vtable, ...) and of its count word"""
     out = set()
@@ -1331,6 +1358,7 @@ def build(argv):
         # b) init words
         d = bytearray(s.data); r = R.parse(s.reloc, 'le')
         port_init2(d, r, s.data, pc.get((t, sid)) if rec[key] == 'port' else None, xs, K, key, sst, srisk)
+        array_counts(d, xs, sst, srisk, sid)          # after port_init2's restore of structural words
         if rec[key] == 'port': twin_names(d, r, xs, pc[(t, sid)], K, key, sst, srisk)
         if rec[key] == 'port':
             if KNOWN_UT is None: KNOWN_UT = known_user_types([q for q in D.sections if q.type == 8])
@@ -1678,6 +1706,32 @@ def gate_sections(S, pc, PCS, pk, inv, rec, targets, K=None):
     out.append(('ok   ' if not tbad else 'FAIL ') + 'entry userTypes of the ported / new scripts known to the PC: %s, unknown with a PC twin %d %s' % (
         dict(tst), len(tbad), tbad[:8]))
     out += ['WARN userType unknown to the PC (DLC-only entry): ' + x for x in twarn]
+    # (12) structural array counts + start-function lists (crashes 6 / 7, 2026-11-16 22:00 / 22:45, PDA sonar,
+    # tru.exe +0x1a775c): every array count word of a ported / new script = the Xbox count (0x57c1e0 constructs exactly
+    # `count` root +0x30 entries; 3365's 12 of 13 left the ping map widget out of the screen), and every root +0x30
+    # entry within the count names a member at that instance offset whose class (entry +8) is that script id
+    cst = collections.Counter(); cbad = []
+    for key in sorted(tset):
+        v = view(key); xs = pk[inv[key]]
+        if v is None: continue
+        Wx = SC.Walk(xs['data'], R.parse(xs['reloc'], 'be'), 'be').run()
+        for nm, t, n, sz in Wx.arrays:
+            if nm == 'vtable' or t < 4 or t > len(v.d): continue
+            cur = struct.unpack_from('<I', v.d, t - 4)[0]
+            if cur == n: cst['counts = Xbox'] += 1
+            else: cbad.append('%d:%d %s +0x%x count %d, Xbox %d' % (key[0], key[1], nm, t - 4, cur, n))
+        cls = {}
+        for q in MP.entries(v.d, R.write(v.rel, 'le'), 'le')[1]['members']:
+            u = v.it.get(q['a'] + 8)            # tag bit 7: DataType union -> Compound {class script id, DataType *}
+            cls[q['off']] = struct.unpack_from('<I', v.d, q['a'] + 8 if u is None else u)[0]
+        for nm, t, n, sz in v.W.arrays:
+            if nm != 'sfi': continue
+            for k in range(n):
+                c, o = struct.unpack_from('<II', v.d, t + 8 * k)
+                cst['start entries'] += 1
+                if cls.get(o) != c: cbad.append('%d:%d start entry %d: class %d @0x%x, member there: %s' % (key[0], key[1], k, c, o, cls.get(o)))
+    out.append(('ok   ' if not cbad else 'FAIL ') + 'structural array counts = Xbox, start entries name their member: %s, bad %d %s' % (
+        dict(cst), len(cbad), cbad[:8]))
     return out
 
 
@@ -1708,7 +1762,10 @@ def twin_types(d, rel, pc_sec, K, key, st, risk, known):
     code's SetFocus (uiscreen 93 f73 -> 0x5a7730) on that widget read the null list. The converter guesses userTypes
     like names (DlcIds.sym, 40000 + Xbox for DLC-new ones); Q55 twins carry the PC one. Rule: an entry with a PC twin
     (same tag, same name) whose userType the PC does not know takes the twin's userType when the PC knows that one;
-    a known userType is left alone (e.g. 3368 518 / 526 on different names)"""
+    a known userType is left alone (e.g. 3368 518 / 526 on different names).
+    2026-11-16: the PC userTypes are right, but they were NOT the crash cause - the same crash came twice with this
+    step in place; the map widget was never constructed because 3365's start-function list count was 12 of 13
+    (array_counts, gate 12)"""
     import script_member_pairs as MP
     sid = int(key.split(':')[1])
     tw = K['_twins'].get(key, {})

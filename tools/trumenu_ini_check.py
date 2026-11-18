@@ -7492,6 +7492,42 @@ def check_02258():
                      'safe-ground chapter, DLC row) + costume 857 (fix A, DoppelLive %d byte checks)' % (len(cr), len(dg))
 
 
+def check_02260():
+    """0.22.60 (package R1b): (1) kVersion starts with 0.22.60; (2) kMdChecks = the 6 rows (launch 0x70e050, drop
+    0x70e100, the aimed jump's call 0x73f0ce, segment query 0x493330 / 0x49333d, g at 0x85e2b0); (3) the two hooks call
+    the original once each and write nothing into the game; (4) the segment query only from MdProbe with mask
+    0x2c19e7; (5) items trace.arcs / obj.track; MdTick in PadHook's frame block; (6) README section"""
+    problems = []
+    src = read_cpp()
+    ver = src[:src.find('\n', src.find('kVersion = '))]
+    if '"TruMenu 0.22.60 (motion data, package R1b' not in ver and ' - 0.22.60 (motion data' not in ver:
+        problems.append('TruMenu.cpp: kVersion must start with "TruMenu 0.22.60 (motion data, package R1b ..."')
+    at = src.find('const ChCheck kMdChecks[] = {')
+    part = src[at:src.find('};', at)] if at >= 0 else ''
+    rows = {a: h.replace(' ', '') for a, h in re.findall(r'\{0x([0-9a-f]{8}), "([0-9a-f ]+)"\}', part)}
+    want = {'0070e050': '558bec83e4f083ec10f30f10051c118400', '0070e100': '558bec83e4f083ec108b4d08',
+            '0073f0ce': 'e87deffcff', '00493330': '558bec83e4f081ec9400000053', '0049333d': '8b5d08f7c300400000',
+            '0085e2b0': '882eb7c0'}
+    if rows != want:
+        problems.append('TruMenu.cpp: kMdChecks must be the 6 rows of ENGINE 12 (R2b) (got %s)' % rows)
+    for name, orig in (('void __cdecl MdLaunchHook(', 'g_mdLaunch(inst, g, vx, vy, vz);'),
+                       ('void __cdecl MdDropHook(', 'g_mdDrop(inst, g);')):
+        body = re.sub(r'//[^\n]*', '', fn_body(src, name))
+        if body.count(orig) != 1 or re.search(r'\*reinterpret_cast<volatile [A-Za-z]+ \*>\([^)]*\) =(?!=)', body):
+            problems.append('TruMenu.cpp: %s must call the original once and write nothing' % name)
+    code = re.sub(r'//[^\n]*', '', src)
+    if code.count('reinterpret_cast<MdProbeFn>(0x00493330)') != 1 or '0x002c19e7' not in fn_body(src, 'bool MdProbe('):
+        problems.append('TruMenu.cpp: 0x493330 only from MdProbe with mask 0x2c19e7')
+    for item, kind in (('trace.arcs', 'bool'), ('obj.track', 'action')):
+        if '{"%s", "%s",' % (item, kind) not in src: problems.append('TruMenu.cpp: item %s missing' % item)
+    if 'MdTick();' not in fn_body(src, 'DWORD WINAPI PadHook('):
+        problems.append('TruMenu.cpp: PadHook must run MdTick once per game frame')
+    readme = open(os.path.join(ROOT, 'src', 'asi', 'TruMenu', 'README.md'), encoding='utf-8-sig').read()
+    if '## 0.22.60' not in readme or 'TO TEST 0.22.60' not in readme:
+        problems.append('README.md: section "## 0.22.60" with "TO TEST 0.22.60" missing')
+    return problems, 'motion data (%d byte checks; [Jump] / [Throw] / [Push] / [Track], arcs, ground probe)' % len(rows)
+
+
 def check_02259():
     """0.22.59 (package R1): (1) kVersion starts with 0.22.59; (2) the byte checks kPullChecks (3 rows: 0x575fb0 vtable
     lookup, 0x57b380 call, the exe's own use 0x796ea3) and kFlChecks (4 rows: 0x75d080 + its three callers, package R2);
@@ -8298,6 +8334,10 @@ def main(argv):
     for p in cproblems59: print('Q02259 %s' % p)
     if not cproblems59: print('ok: 0.22.59 %s' % csummary59)
     problems += cproblems59
+    cproblems60, csummary60 = check_02260()   # 0.22.60 (motion data, package R1b)
+    for p in cproblems60: print('Q02260 %s' % p)
+    if not cproblems60: print('ok: 0.22.60 %s' % csummary60)
+    problems += cproblems60
     cproblems27, csummary27 = check_02227(ini_path, opt.get('--switches', SWITCHES))   # 0.22.27
     for p in cproblems27: print('Q02227 %s' % p)
     if not cproblems27: print('ok: 0.22.27 %s' % csummary27)

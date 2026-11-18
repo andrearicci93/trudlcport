@@ -2928,6 +2928,63 @@ Reihenfolge fest (Flacker-Test)".
   combos as set now (e.g. `LB + View = weiter . RB + View = 1 Bild . LB + RB + View = Foto`), built from the INI values,
   so it follows any change.
 
+## 0.22.60 - motion data for live tests: jump launch / drop, throws and grenades, pushing, object tracking, flight arcs, ground below Lara (2026-11-18)
+
+Package R1b (the owner 18.11.: jumps, grenades, jumping back / sideways off a ledge, throwing the heavy cubes, pushing -
+shown as arcs, live, with every value in the log). Specs: ENGINE §12 "Lara jump: launch, gravity, aimed parabola
+(R2b)", "Ground probe and catch data (R2b)", "Launch sites by kind (R10)", "Thrown objects and the physics body (R10)".
+Not installed.
+
+- **`[Jump]` lines**: the game's launch **0x70e050**(inst, g, vx, vy, vz) and drop **0x70e100**(inst, g) are wrapped
+  (9 bytes = 4 whole instructions -> jmp, trampoline, pass-through; 6 byte checks incl. the aimed jump's call 0x73f0ce,
+  the segment query 0x493330 / 0x49333d and g = -5.724 at 0x85e2b0). Line `launch` / `drop`: call site by kind (R10:
+  aimed jump, InAirAnimTarget, state 510 simulation, state 230, grapple rope release, state 1001 slot 5, combat manager,
+  let go / tread water, else the address), who, Lara's record `index [state ids]`, p0, v (u / frame), horizontal
+  speed, direction against her heading (forward / back / left / right - the forward vector is unproven), inst+0x2a0, g,
+  T+0xa64 target, T+0xa00 aim (as before this call), T+0x77c, plus a `launch+` line with T+0xa20, T+0xaa0, T+0x610 and
+  dt [0xe7f188]. The aimed jump re-aims every frame of state 510: calls within 250 ms are `re-aim #n` (at most 3 / s).
+  Then `[Jump] arc ...` (landing point or no hit), `[Jump] fly` every 2nd frame (position, inst+0x2a0, T+0x77c, dt; at
+  most 90) until the record has no 510 / 515 / 517, `[Jump] flight end`. With the 0.22.59 `[Fall] land` line.
+- **`[Throw]`**: a portable within 10 m leaving Lara's hands (`release`) or a grenade-named body within ~34 m taking
+  off (`launch (no holder)`): position, body +0x80, v / w per tick, mass, sleep bit, Lara's record; `fly` every 2nd frame
+  (at most 120), `rest` after 0.3 s still or 8 s (flat distance, drop, apex, path, time); once the physics world values
+  (gravity [0xa037f4]+0x20c0, bounce +0x20d8) with the body's mass and damping +0x154 / +0x158. The thrower function is
+  not found (R10) - no hook on the body setters.
+- **`[Push]`**: a body within 3 m moving while Lara does not hold it: `start`, `move` (10 / s, at most 600), `end` (0.5 s
+  still): position, rotation, the first hinge of its multibody (Thor pillar), velocity / angular velocity per tick,
+  sleep bit (body +0x15c bit 0), Lara's record, the way since the start, and the last script print "Overriding Lara pull
+  strength" (only while the script prints are redirected, `log.script 1`). A contact / "blocked" reason is not readable.
+- Each `[Push]` / `[Track]` sample has a second line (R4, `docs/Befund-R4-Halter-1811.md`): Lara's carried object
+  T+0x858 (unproven), her target T+0x854 -> +0xa0 / entry +0xac, the object's component block class (6 holder, 0x32
+  carryable, 0x4f uber) and for a holder its record count B+0x6c with the first accepted object ids - track a hole
+  before / after inserting a pole. The holder rule and "insert the pole" (message 0x165 through 0x5b3750) are not built.
+- **`obj.track <intro> on|off | list`**: `[Track] sample` lines 5 / s for up to 8 objects. Over TruLink:
+  `menu obj.track 4640 on` (no TruLink change; the lines go to TruMenu.log, not TruLink.log).
+- **`trace.arcs`** (default off): Lara's flight arc p0 + v0 t + (0, 0, g t^2 / 2) from the latest launch call (every
+  re-aim of the aimed jump redraws it = the target parabola), 2 frames per point, cut at the first hit of the segment
+  query (mask 0x2c19e7, ignore Lara; hit point = res+0x10, unproven: the first hit's raw bytes go into the log once, a
+  hit outside the segment is refused); yellow, red diamond at the landing, green at T+0xa00 with a target. A flying body:
+  its predicted path orange (per tick v = (v + g3) x clamp(1 - k dt), p += v, no bounces), its real path cyan. No preview before the
+  take-off (without a target there is no fixed launch velocity, R10).
+- **`fall.box`**: + "Boden unter dir" and "Fallhöhe bei Landung" (ground probe every 100 ms on the game thread), air
+  states 510 / 515 / 517, the scale of the last landing (records #1282 0.6 / #1283 0.3, else 1.0, the R2 table).
+
+Not in this build: E Thor pillar areas, F (`chapter.cp`, sonar view, intro table at run time, holder rule), the
+grapple-rope preview.
+
+### TO TEST 0.22.60
+
+| # | Where | Do | Expected |
+|---|---|---|---|
+| 1 | start | `TruMenu.log` | `0.22.60 motion data: 6 byte checks ok; launch 0x70e050 wrapped, drop 0x70e100 wrapped` |
+| 2 | any level | standing jump, running jump, back / sideways off a ledge, let go of a ledge | one `[Jump] launch` / `drop` line each (site, v, direction, record), `fly` lines, `flight end` |
+| 3 | chapel, jump to the pole | jump with a target | `aimed jump ... target=0x...`, `re-aim #n`, `[Jump] arc ... lands at` |
+| 4 | `trace.arcs 1` | jump | yellow arc, red diamond on the ground, green at the target; `ground probe first hit` raw line |
+| 5 | chapel weights | pick up and throw a weight | `[Throw] release`, `fly`, `rest`, `physics:` line; orange prediction, cyan path |
+| 6 | secret chamber, Thor pillar | push / turn it, `log.script 1` | `[Push] start` / `move` / `end` with hinge degrees; `pull: Overriding Lara pull strength ...` |
+| 7 | any | `obj.track <id> on`, `off`, `list` | `[Track] sample` 5 / s |
+| 8 | `fall.box 1` | at a ledge, jump down | "Boden unter dir", "Fallhöhe bei Landung" match the drop (chapel gap ~10.8 m) |
+
 ## 0.22.59 - intro marks mid-chapter, pull a switch through its script, holds that open first and several at once, puzzle help levels with hints, key items for plates / weights / pole holes, landing log (2026-11-18)
 
 Package R1 (live test 17.11., `docs/Pakete-1811.md`). Not installed - the owner installs with the game closed.

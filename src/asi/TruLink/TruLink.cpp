@@ -45,7 +45,8 @@
 
 namespace {
 
-const char kVersion[] = "0.5.2";           // 0.5.2: puzzle.list, hinge 180 wrap in joint.drive, uber.events time text;
+const char kVersion[] = "0.5.3";           // 0.5.3: obj.msg (forwarded to TruMenu 0.22.61's obj.msg, the game's send 0x5b3750);
+                                           // 0.5.2: puzzle.list, hinge 180 wrap in joint.drive, uber.events time text;
                                            // 0.5.1: mark.* (TruMenu notes), TruLinkAct.h shared with TruMenu; 0.5:
                                            // obj.place / obj.refs / hold-until-off; 0.4: obj / uber / sticky / joint
 
@@ -554,6 +555,7 @@ void CmdHelp() {
               "obj.set <id> pos x y z | move dx dy dz | rot x y z (deg) | yaw deg | hide 0|1   (collide / scale: refused)\n"
               "obj.place <id> near-lara [m] | at <x y z> | onto <id> [dz]  [yaw deg] [force]   physics objects (body +0x274)\n"
               "obj.refs <id>                 every instance whose script members hold an instanceref to <id> (block)\n"
+              "obj.msg <id> <msg> [<arg id>|0]   one game message through 0x5b3750 (needs TruMenu 0.22.61; cheat)\n"
               "obj.journal [clear] | obj.undo [all]   every write with its old value; undo the last one / all\n"
               "uber.events <id> [all]        current node (all: every node): transitions, object checks; links; commands\n"
               "uber.send <id> cmd <n> | command <c> | event <v> | broadcast <v> [link k] [force]   the game's path\n"
@@ -796,6 +798,14 @@ void CmdMenu(char **tok, int count) {
     Log(2, "menu %s %s -> %s", tok[1], arg, answer ? answer : "(null)");
 }
 
+// ---- 0.5.3 obj.msg <id> <msg> [<arg id>|0]: TruMenu 0.22.61's item obj.msg (it checks the game's two 0x165 call sites,
+// sends through 0x5b3750 on the game thread and logs) - the same path as "menu obj.msg ..." ----
+void CmdObjMsg(char **tok, int count) {
+    if (count < 3) { g_out.Add("err usage: obj.msg <id> <msg> [<arg id>|0]\n"); return; }
+    char *t[6] = {tok[0], const_cast<char *>("obj.msg"), tok[1], tok[2], count > 3 ? tok[3] : const_cast<char *>("0"), nullptr};
+    Log(1, "obj.msg %s %s %s -> TruMenu obj.msg", tok[1], tok[2], count > 3 ? tok[3] : "0");
+    CmdMenu(t, 5);
+}
 // ---- 0.5.1 mark.*: notes under TruMenu's labels (README "mark.note (needs TruMenu)") ----
 // TruMenu 0.22.56 exports TruMenuNote(intro, text, flags) / TruMenuNoteClear(intro | 0xffffffff) / TruMenuNoteList(out,
 // size); flags bit 0 = shown even when object names are off, bit 1 = kept over a level load. TruMenu locks its table, so
@@ -2741,6 +2751,7 @@ bool HandleLine(char *line) {
     else if (!_stricmp(cmd, "objects")) CmdObjects();
     else if (!_stricmp(cmd, "modules")) CmdModules();
     else if (!_stricmp(cmd, "menu")) CmdMenu(tok, count);
+    else if (!_stricmp(cmd, "obj.msg")) CmdObjMsg(tok, count);   // 0.5.3
     else if (!_stricmp(cmd, "scan")) CmdScan(tok, count);
     else if (!_stricmp(cmd, "watch")) CmdWatch(tok, count, force);
     else if (!_stricmp(cmd, "snapshot")) CmdSnapshot(tok, count, force);

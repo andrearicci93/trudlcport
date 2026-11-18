@@ -10,6 +10,21 @@ Version 0.3 - built and checked with `dumpbin` only, not yet tried in the game (
 `diff`) to find unknown values (health, ammo, walking speed) live without a debugger - see
 [Memory search](#memory-search-03).
 
+## 0.5.3: obj.msg (2026-11-18)
+
+- **`obj.msg <id> <msg> [<arg id>|0]`**: one game message to an instance through the game's send 0x5b3750 (cdecl inst,
+  msg, arg; arg = the instance of `<arg id>`), e.g. `obj.msg <pole> 0x165 <hole>` = Lara's insert (R4). Forwarded to
+  TruMenu 0.22.61's item `obj.msg` (the same as `menu obj.msg ...`): TruMenu byte-checks the game's two 0x165 call sites
+  (0x7179db / 0x717a5a), queues it to the game thread and logs `obj.msg ... sent through 0x5b3750`. Without TruMenu 0.22.61:
+  `err` from the menu path. Cheat - no journal / undo.
+
+### TO TEST 0.5.3
+
+| # | Do | Expected |
+|---|---|---|
+| 1 | `ping` | `pong TruLink 0.5.3` |
+| 2 | `obj.msg <id> 7 <any id>` on a harmless object, then `obj.msg <id> 7 0` (message 7: data != 0 hides, 0 shows, ENGINE 5.2 - here the data is the argument instance 🔶) | `ok queued obj.msg` / the TruMenu line; the object hides and shows again |
+
 ## 0.5.2: puzzle.list, the hinge 180 wrap, the uber.events time (2026-11-17)
 
 Built 2026-11-17 into `work\asi\trulink052` (0 warnings; MD5 `ca2fb61d86f84ae4dc080b265bb322c9`, sha256

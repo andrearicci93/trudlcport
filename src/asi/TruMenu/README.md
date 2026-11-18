@@ -2947,17 +2947,33 @@ Package R1c point 1 (ENGINE §9 "Thor pillar floor positions (R8b)"). Not instal
   "x m daneben", and a white arrow to the nearest valid cell. `[Thor] build ...`, `[Thor] areas ...` and one
   `[Thor] pillar at ...` line per change go into the log. No push action.
 
+- **Holder rule + "Einstecken"** (R1c point 2, R4 `docs/Befund-R4-Halter-1811.md`): a carryable (component block
+  class 0x32) gets the row `Einstecken -> Halter n (rule)` under "Gewichte / Stangen": the holder X names (its
+  instanceref), else a holder whose script names X, else the nearest free holder (block class 6) whose entry lists accept
+  X's object id (free = no other carryable of that id within 150 units, by position). **`puzzle.insert <carryable>
+  [holder]`** puts it onto the holder (as obj.place, unless Lara carries it) and the next frame sends **message 0x165**
+  (arg = the holder) through the game's send 0x5b3750 - Lara's own insert path (0x7179db / 0x717a5a, both byte
+  checked; 0x5b3750 itself is not, another plugin jumps there); log lines before, at the send and 2 s after (pole
+  place / distance, its holder, Lara's carry T+0x858, the hole's block). Whether 0x165 inserts a pole that Lara does
+  not carry is unproven. **`obj.msg <intro> <msg> [<arg intro>|0]`**: one message through 0x5b3750 (TruLink 0.5.3
+  `obj.msg`). "Gewichte -> Platte" takes the weights a counter trigger names first. Uber sockets (artifacts): no insert
+  (the game needs Lara's target / entry, message 0x158); Thor gear sockets, the Mexico seal: no action.
+
 ### TO TEST 0.22.61
 
 | # | Where | Do | Expected |
 |---|---|---|---|
+| 4 | start | log | `insert / obj.msg: 2 byte checks ok` |
+| 5 | a level with a pole hole (R4 list) | Raetsel -> pole -> `Einstecken -> Halter n (...)` right 2x | log `puzzle.insert ... rule ...`, `before`, `message 0x165 sent`, `check after 2 s`: pole at the hole (0 .. 50 units), hole block records; the pole stands in the hole or not (report both) |
+| 6 | same, Lara carries the pole | the same row | `Lara carries it (the game's own case)`; the pole goes in as with her own insert |
+| 7 | TruLink | `obj.msg <pole> 0x165 <hole>` | `obj.msg ... sent through 0x5b3750` |
 | 1 | `l3_secretchamber` | `puzzle.thor 1` | log `[Thor] build: pillar part ... floor ~173 ..., n target ledge(s): exit / artifact A / B / rings`, then `[Thor] areas (relaxed cells): ...`; outlines on the floor red / green / blue / yellow, white circle round the pillar |
 | 2 | same | push the pillar into a red area | text `Ausgang: im Bereich`, log `[Thor] pillar at ...: exit in`; from its top the south gallery is in reach |
 | 3 | same | `puzzle.thorgap 800` | areas grow (rebuild), `[Puzzle] ThorGap=800` written |
 
 ## 0.22.60 - motion data for live tests: jump launch / drop, throws and grenades, pushing, object tracking, flight arcs, ground below Lara (2026-11-18)
 
-Package R1b (the owner 18.11.: jumps, grenades, jumping back / sideways off a ledge, throwing the heavy cubes, pushing -
+Package R1b (owner request 18.11.: jumps, grenades, jumping back / sideways off a ledge, throwing the heavy cubes, pushing -
 shown as arcs, live, with every value in the log). Specs: ENGINE §12 "Lara jump: launch, gravity, aimed parabola
 (R2b)", "Ground probe and catch data (R2b)", "Launch sites by kind (R10)", "Thrown objects and the physics body (R10)".
 Not installed.
@@ -3052,7 +3068,7 @@ Package R1 (live test 17.11., `docs/Pakete-1811.md`). Not installed - the owner 
   0x75d080 is wrapped (7 bytes -> jmp, trampoline; 4 byte checks): `[Fall] land via=enter|tick|exit rec=<record>
   h=<height> (m) z0 / off / z / att / mk thr=a/b/c vz hp before -> after (dmg / max) type DEAD|hurt|no damage`, then
   `[Fall] next rec=<record>` (m+0x510 changing within 5 s). Read only.
-- **Fall height box** (`fall.box`, default off, bottom left; the owner 18.11.): the height since the take-off
+- **Fall height box** (`fall.box`, default off, bottom left; owner request 18.11.): the height since the take-off
   h = z0 + offset - z (R2, without the markup term - "+ Markup" is named) while Lara's current record holds state 515 /
   517, else "am Boden"; the limits a / b / c read at run time from `[0xfad764]` +0x4c / +0x50 / +0x54 (DLC 2's Lara has
   her own), green < a, yellow a .. b, orange b .. c, red > c, and the distance to the next limit in m. The landing scale

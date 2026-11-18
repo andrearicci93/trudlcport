@@ -7517,8 +7517,17 @@ def check_02261():
             problems.append('TruMenu.cpp: the Thor section holds a game id or a position constant')
         if re.search(r'\*reinterpret_cast<volatile [A-Za-z]+ \*>\([^)]*\) =(?!=)', sec) or '0x00493330' in sec:
             problems.append('TruMenu.cpp: the Thor section must not write game memory or call the query directly')
-    for item, kind in (('puzzle.thor', 'bool'), ('puzzle.thorgap', 'int')):
+    for item, kind in (('puzzle.thor', 'bool'), ('puzzle.thorgap', 'int'), ('puzzle.insert', 'action'), ('obj.msg', 'action')):
         if '{"%s", "%s",' % (item, kind) not in src: problems.append('TruMenu.cpp: item %s missing' % item)
+    # (R1c 2) the insert: the two byte checks of the game's 0x165 sends, 0x5b3750 called only from InsTick / RunObjMsg
+    at = src.find('const ChCheck kInsChecks[] = {')
+    part = src[at:src.find('};', at)] if at >= 0 else ''
+    rows = {x: h.replace(' ', '') for x, h in re.findall(r'\{0x([0-9a-f]{8}), "([0-9a-f ]+)"\}', part)}
+    if rows != {'007179db': '8b915808000085d27419576865010000' + '52e85fbde9ff', '00717a5a': '686501000056e8ebbce9ff'}:
+        problems.append('TruMenu.cpp: kInsChecks must be the two 0x165 call sites (got %s)' % rows)
+    code = re.sub(r'//[^\n]*', '', src)
+    if code.count('reinterpret_cast<InsPostFn>(0x005b3750)') != 2:
+        problems.append('TruMenu.cpp: 0x5b3750 only from InsTick and RunObjMsg')
     if 'ThTick();' not in fn_body(src, 'DWORD WINAPI PadHook('):
         problems.append('TruMenu.cpp: PadHook must run ThTick once per game frame')
     readme = open(os.path.join(ROOT, 'src', 'asi', 'TruMenu', 'README.md'), encoding='utf-8-sig').read()

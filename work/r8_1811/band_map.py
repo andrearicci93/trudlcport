@@ -9,7 +9,28 @@ Usage (from the repository root):
 import sys
 
 
+def radial(path, cx, cy, zlo, zhi, step, rmax):
+    """lowest floor height (in [zlo, zhi)) per cell, binned by the distance to (cx, cy): n, mean, min, max per bin"""
+    low = {}
+    for line in open(path).read().splitlines()[1:]:
+        x, y, z = [float(v) for v in line.split(',')]
+        if zlo <= z < zhi and ((x, y) not in low or z < low[(x, y)]): low[(x, y)] = z
+    bins = {}
+    for (x, y), z in low.items():
+        r = ((x - cx) ** 2 + (y - cy) ** 2) ** 0.5
+        if r < rmax: bins.setdefault(int(r // step) * int(step), []).append(z)
+    print('# lowest floor in [%.0f, %.0f) against the distance to (%.0f, %.0f), bins of %.0f' % (zlo, zhi, cx, cy, step))
+    for b in sorted(bins):
+        v = bins[b]
+        print('  r %5d n %3d mean %6.1f min %6.1f max %6.1f' % (b, len(v), sum(v) / len(v), min(v), max(v)))
+    return 0
+
+
 def main(argv):
+    if '--radial' in argv:          # band_map.py CELLS.csv --radial CX,CY [ZLO,ZHI,STEP,RMAX]
+        i = argv.index('--radial'); cx, cy = [float(v) for v in argv[i + 1].split(',')]
+        zlo, zhi, step, rmax = [float(v) for v in (argv[i + 2] if len(argv) > i + 2 else '150,1000,100,1800').split(',')]
+        return radial(argv[0], cx, cy, zlo, zhi, step, rmax)
     pts = []
     while '--pt' in argv:
         i = argv.index('--pt'); n, x, y = argv[i + 1].split(':'); pts.append((n, float(x), float(y))); del argv[i:i + 2]

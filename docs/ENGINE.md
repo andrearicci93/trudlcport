@@ -440,8 +440,16 @@ over every same-size script pair of a whole pipeline tree (Xbox walk `script_con
 Xbox count; vtable has none; `work/q9_1711/count_words_scan.py`, read-only) only **g_pda.drm** differs - DLC 1: 3 of
 61 203 count words in 6 255 scripts (3362 sfi 27 -> 26, 3365 13 -> 12, 3387 22 -> 21), DLC 2: 3 of 104 803 in 11 029
 (3362, 3365, 26428 11 -> 10); g_pda is dropped from the played tree and rebuilt by `gpda_port` (step `array_counts`),
-so the converter leaves no wrong structural count elsewhere ✅ (Q94 trees; the Q9 tree: section "Q9 tree" of the
-workspace finding Befund-Q9-Portkern-1711). Not checked: the 100 + 68 scripts the converter rebuilt in PC layout. 🔶
+so the converter leaves no wrong structural count elsewhere in the DLC trees ✅ (Q94 trees and the Q9 tree, workspace
+finding Befund-Q9-Portkern-1711). Not checked by this scan: the 100 + 68 scripts the converter rebuilt in PC layout 🔶,
+and generalbank (its own step): there Q7 found the same fault in script 8:6 (start list 182 instead of the TU's 193;
+`tools/script_sfi_members.py --scan`, only 8:6 of 400 scripts).
+**Checklist for the next UI / script fault (lesson 2026-11-17):** the sfi start list is stored from the last declared
+member to the first (Xbox and PC, compiler layout), and the engine (0x57c1e0) builds exactly `count` entries from the
+front - so a short count drops the OLDEST members, and TU insertions push original base-game members to the end
+(8:6: base images m7-m12 at sfi 182-187). Before any other theory for "an old widget is gone / never drawn" or "screen
+without child or focus list" (crash at tru+0x1a775c): run `script_sfi_members.py <drm> <script>` (count vs stored
+entries vs Xbox) and the `--scan` gate over the whole tree.
 
 ### 7.2 Natives
 

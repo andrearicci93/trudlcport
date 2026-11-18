@@ -1,0 +1,316 @@
+{
+ "schema": 1,
+ "version": "K20261117-1",
+ "generated": "2026-11-17 20:02:39",
+ "about": "Knowledge package (plan Spielerweg P2): the number tables the developer path learns from the Xbox <-> PC base pairs - ids, learned word classes, rules, render tables - by name, size and md5. Written by tools/knowledge_export.py export; gate tools/knowledge_export.py check. No game bytes except the 172 constant classes K:<PC word> of the type0 / type7 vocabularies (688 bytes, plan 6).",
+ "mask_gate": {
+  "source_md5": "f0712296b449f21a65750f8877271530",
+  "keys": 19538409,
+  "kept": 19538409,
+  "vocabulary": 22,
+  "collisions": 0,
+  "checked": 19538409,
+  "differences": 0,
+  "ok": true
+ },
+ "files": [
+  {
+   "file": "ids/idmap.json",
+   "size": 647998,
+   "md5": "d3a9fa331c3158244df23f0848010ff0",
+   "source": "work/generic/idmap.json",
+   "source_mtime": "2026-10-27 20:39:14",
+   "producer": "Ids / Tables: generic_ids, script_name_match, tex_idmap",
+   "kind": "ids"
+  },
+  {
+   "file": "ids/dlc_idmap.json",
+   "size": 162785,
+   "md5": "22716a8f04d3a75b76f41c3a489c7c1d",
+   "source": "work/generic/dlc_idmap.json",
+   "source_mtime": "2026-11-09 11:19:41",
+   "producer": "Tables / Costumes: dlc_generic, verify_ids extend",
+   "kind": "ids"
+  },
+  {
+   "file": "ids/unit_idmaps.json",
+   "size": 144660,
+   "md5": "77c70e0f2d77a82ebcc2b6d6e6751339",
+   "source": "work/generic/unit_idmaps.json",
+   "source_mtime": "2026-10-27 20:12:49",
+   "producer": "Learn: unit_ids",
+   "kind": "ids"
+  },
+  {
+   "file": "ids/object_id_remap_xbox_to_pc.json",
+   "size": 13464,
+   "md5": "7efa7ff4818202e39b65d832eb0be3a3",
+   "source": "work/generic/merged/object_id_remap_xbox_to_pc.json",
+   "source_mtime": "2026-10-27 12:29:06",
+   "producer": "Ids: objlist_merge",
+   "kind": "ids"
+  },
+  {
+   "file": "ids/locmap_xbox_to_pc.json",
+   "size": 18182,
+   "md5": "57efda313ccc216e8f9b4b37965069a2",
+   "source": "work/rebuild/stage1/locmap_xbox_to_pc.json",
+   "source_mtime": "2026-11-17 19:56:07",
+   "producer": "Media: locals build",
+   "kind": "ids"
+  },
+  {
+   "file": "ids/sym_base_evidence.json",
+   "size": 27041,
+   "md5": "d65e3369147395445f028eb226950067",
+   "source": "work/rebuild/sym_base_evidence.json",
+   "source_mtime": "2026-10-30 00:35:23",
+   "producer": "outside the pipeline (symbol evidence)",
+   "kind": "ids"
+  },
+  {
+   "file": "learn/type0_table_slim.npz",
+   "size": 117933154,
+   "md5": "a900b6dfa4d53e06bf63b9e1dcfa43b1",
+   "source": "work/generic/type0_table_slim.npz",
+   "source_mtime": "2026-10-29 01:26:47",
+   "producer": "Tables / Prep: generic_type0 save07",
+   "kind": "classes"
+  },
+  {
+   "file": "learn/type0_table_slim_vocab.json",
+   "size": 182,
+   "md5": "25aabcd280cbf87975155c4212d6d66b",
+   "source": "work/generic/type0_table_slim_vocab.json",
+   "source_mtime": "2026-10-29 01:26:47",
+   "producer": "Tables / Prep: generic_type0 save07",
+   "kind": "classes"
+  },
+  {
+   "file": "learn/type7_table_slim.npz",
+   "size": 49012066,
+   "md5": "23b5015c5577f53eec2e70b23fe4e51b",
+   "source": "work/generic/type7_table_slim.npz",
+   "source_mtime": "2026-10-29 01:28:01",
+   "producer": "Tables / Prep: generic_type0 save07",
+   "kind": "classes"
+  },
+  {
+   "file": "learn/type7_table_slim_vocab.json",
+   "size": 2635,
+   "md5": "724835418bf01a98b5c0b5c0716fc593",
+   "source": "work/generic/type7_table_slim_vocab.json",
+   "source_mtime": "2026-10-29 01:28:01",
+   "producer": "Tables / Prep: generic_type0 save07",
+   "kind": "classes"
+  },
+  {
+   "file": "learn/script_table.pkl",
+   "size": 63742,
+   "md5": "aafb2b5f3bf985b74a1c810861c7a7dd",
+   "source": "work/script/script_table.pkl",
+   "source_mtime": "2026-10-27 20:16:18",
+   "producer": "Tables: script_learn save",
+   "kind": "classes"
+  },
+  {
+   "file": "learn/script_detail.pkl",
+   "size": 297521,
+   "md5": "e2e18d0262cfafe13155852a91f13030",
+   "source": "work/script/detail.pkl",
+   "source_mtime": "2026-10-27 20:16:18",
+   "producer": "Tables: script_learn save",
+   "kind": "classes"
+  },
+  {
+   "file": "learn/pc_vers.json",
+   "size": 611935,
+   "md5": "b17bb366eafbecb9b5d79b4523f26c49",
+   "source": "work/generic/pc_vers.json",
+   "source_mtime": "2026-10-29 01:28:52",
+   "producer": "Prep: pc_vers_build",
+   "kind": "rules"
+  },
+  {
+   "file": "learn/pc_vers_content.json",
+   "size": 969108,
+   "md5": "f63bb70d04d0402f5912d194dc8fe6b8",
+   "source": "work/generic/pc_vers_content.json",
+   "source_mtime": "2026-10-29 01:28:52",
+   "producer": "Prep: pc_vers_build",
+   "kind": "rules"
+  },
+  {
+   "file": "learn/dtpid_evidence.pkl",
+   "size": 48361,
+   "md5": "929050c45bdb6cd19312c66b159e2750",
+   "source": "work/generic/dtpid_evidence.pkl",
+   "source_mtime": "2026-10-29 01:29:23",
+   "producer": "Prep: dtpid_evidence",
+   "kind": "rules"
+  },
+  {
+   "file": "learn/model_point_rules.pkl",
+   "size": 2081,
+   "md5": "b9873205b9deb31d553b51003c42cf21",
+   "source": "work/chain_aim/model_point_rules.pkl",
+   "source_mtime": "2026-10-29 01:28:55",
+   "producer": "Prep: model_point_fix learn",
+   "kind": "rules"
+  },
+  {
+   "file": "learn/aidata_table.pkl",
+   "size": 1655,
+   "md5": "5bd08ec5f9cb2d1da252839cf3666eef",
+   "source": "work/generic/aidata_table.pkl",
+   "source_mtime": "2026-11-17 19:28:10",
+   "producer": "Prep: aidata_fix learn",
+   "kind": "rules"
+  },
+  {
+   "file": "learn/sf_rules.pkl",
+   "size": 1352688,
+   "md5": "5f7659a174b62ebe14b1cee42c955c7d",
+   "source": "work/generic/sf_rules.pkl",
+   "source_mtime": "2026-10-28 00:30:42",
+   "producer": "outside the pipeline: soundplex_fields learn",
+   "kind": "rules"
+  },
+  {
+   "file": "learn/dtp_audit_rules.pkl",
+   "size": 461814,
+   "md5": "2d7382e8149a5e4847ce02df1bf9a4c5",
+   "source": "work/generic/dtp_audit_rules.pkl",
+   "source_mtime": "2026-11-03 22:58:53",
+   "producer": "outside the pipeline: dtp_audit learn",
+   "kind": "rules"
+  },
+  {
+   "file": "learn/objdata_rec_rules.pkl",
+   "size": 761,
+   "md5": "8bc6af848ffcc67d2236e501ebc41e3a",
+   "source": "work/generic/objdata_rec_rules.pkl",
+   "source_mtime": "2026-11-03 22:53:44",
+   "producer": "outside the pipeline",
+   "kind": "rules"
+  },
+  {
+   "file": "learn/soundplex_nodes_rules.pkl",
+   "size": 188,
+   "md5": "d4d0273cd3aa2565ae24caba18957020",
+   "source": "work/generic/soundplex_nodes_rules.pkl",
+   "source_mtime": "2026-10-27 14:47:04",
+   "producer": "outside the pipeline: soundplex_nodes",
+   "kind": "rules"
+  },
+  {
+   "file": "render/pairnames.json",
+   "size": 30630,
+   "md5": "4ba184af067bcb479d9e02d8a66d37c2",
+   "source": "work/render/pairnames.json",
+   "source_mtime": "2026-11-17 19:56:50",
+   "producer": "Assemble: render_tables_build build",
+   "kind": "render"
+  },
+  {
+   "file": "render/material_x2p.pkl",
+   "size": 13484,
+   "md5": "9d2cca38b1f904eeccbb860436cef7f1",
+   "source": "work/render/material_x2p.pkl",
+   "source_mtime": "2026-11-17 19:56:50",
+   "producer": "Assemble: render_tables_build build",
+   "kind": "render"
+  },
+  {
+   "file": "render/shader_x2p.pkl",
+   "size": 11786,
+   "md5": "6ed60adcc53caf015875bdefea213055",
+   "source": "work/render/shader_x2p.pkl",
+   "source_mtime": "2026-11-17 19:56:50",
+   "producer": "Assemble: render_tables_build build",
+   "kind": "render"
+  },
+  {
+   "file": "render/param_rules.pkl",
+   "size": 9447,
+   "md5": "783c62b2e4df2daa5245f2cba3b00c46",
+   "source": "work/render/param_rules.pkl",
+   "source_mtime": "2026-11-17 19:57:44",
+   "producer": "Assemble: material_rules",
+   "kind": "render"
+  },
+  {
+   "file": "render/dec3n_lut.pkl",
+   "size": 2066,
+   "md5": "927ab82c64d9eca160985e52c9faa231",
+   "source": "work/render/dec3n_lut.pkl",
+   "source_mtime": "2026-11-17 19:58:40",
+   "producer": "Assemble: mesh_tables_build",
+   "kind": "render"
+  },
+  {
+   "file": "render/terrain_yhash.pkl",
+   "size": 3082,
+   "md5": "aa5fa6fb8c009430689ebadad3657f9a",
+   "source": "work/render/terrain_yhash.pkl",
+   "source_mtime": "2026-11-17 19:57:52",
+   "producer": "Assemble: terrain_validate",
+   "kind": "render"
+  },
+  {
+   "file": "render/pc_vdecl_hash.pkl",
+   "size": 1813,
+   "md5": "ddd15980dc07f638ad201597201229bd",
+   "source": "work/render/pc_vdecl_hash.pkl",
+   "source_mtime": "2026-11-17 19:58:40",
+   "producer": "Assemble: mesh_tables_build",
+   "kind": "render"
+  },
+  {
+   "file": "render/dlc_shader_map.json",
+   "size": 118614,
+   "md5": "540ad800be771d4fcfbc4277d6a76c0f",
+   "source": "work/render/dlc_shader_map.json",
+   "source_mtime": "2026-11-17 19:57:37",
+   "producer": "Assemble: shader_map",
+   "kind": "render"
+  },
+  {
+   "file": "render/dlc_material_shaders.json",
+   "size": 97160,
+   "md5": "f3a4e58e53e817139ccfb5be2153d83e",
+   "source": "work/render/dlc_material_shaders.json",
+   "source_mtime": "2026-11-17 19:57:37",
+   "producer": "Assemble: shader_map",
+   "kind": "render"
+  },
+  {
+   "file": "learn/mask_best.npz",
+   "size": 175846171,
+   "md5": "d78b03dd1ea3c3062d05674c6c4332e1",
+   "source": "slim-mask from work/generic/mask_table.pkl",
+   "source_md5": "f0712296b449f21a65750f8877271530",
+   "producer": "Learn: generic_learn save -> knowledge_export slim-mask",
+   "kind": "classes"
+  },
+  {
+   "file": "learn/mask_best_vocab.json",
+   "size": 220,
+   "md5": "ffb4e48a3680ed4ebf3f5644bc0b2db8",
+   "source": "slim-mask from work/generic/mask_table.pkl",
+   "source_md5": "f0712296b449f21a65750f8877271530",
+   "producer": "Learn: generic_learn save -> knowledge_export slim-mask",
+   "kind": "classes"
+  }
+ ],
+ "total_size": 347906494,
+ "over_100mb": [
+  "learn/type0_table_slim.npz",
+  "learn/mask_best.npz"
+ ],
+ "open": [
+  "pickles (.pkl) should become JSON / npz before a player loads them (pickle runs code)",
+  "type0_table_slim.npz (118 MB) and mask_best.npz exceed the 100 MB GitHub file limit: release attachment or keys cut to the ones the DLC inputs use (plan P7)",
+  "store.pkl without xb_store (P3 / P8): Convert still needs the developer store"
+ ]
+}

@@ -231,6 +231,18 @@ class _SlimTable:
 def table():
     global _T
     if _T is None:
+        # 2026-11-17 (plan Spielerweg P2, tools/knowledge_export.py): TRUDLC_MASK_TABLE = the slim mask table of a
+        # knowledge package (PKG/learn/mask_best.npz + mask_best_vocab.json, gate slim-mask: best() equal on every key);
+        # unset = as before. A named file that does not exist stops the converter (no silent fallback to another table)
+        kt = os.environ.get('TRUDLC_MASK_TABLE')
+        if kt:
+            import numpy as np
+            if not (os.path.exists(kt) and os.path.exists(kt[:-4] + '_vocab.json')):
+                raise SystemExit('TRUDLC_MASK_TABLE=%s: file or its _vocab.json not found' % kt)
+            z = np.load(kt, allow_pickle=False)
+            _T = _SlimTable(z['h'], z['c'], json.load(open(kt[:-4] + '_vocab.json', encoding='utf-8')))
+            print('mask table: %d keys from %s' % (len(z['h']), kt), flush=True)
+            return _T
         npz = os.path.join(W, 'mask_best.npz')
         if os.path.exists(npz):
             import numpy as np

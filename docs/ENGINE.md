@@ -441,7 +441,10 @@ Xbox count; vtable has none; `work/q9_1711/count_words_scan.py`, read-only) only
 61 203 count words in 6 255 scripts (3362 sfi 27 -> 26, 3365 13 -> 12, 3387 22 -> 21), DLC 2: 3 of 104 803 in 11 029
 (3362, 3365, 26428 11 -> 10); g_pda is dropped from the played tree and rebuilt by `gpda_port` (step `array_counts`),
 so the converter leaves no wrong structural count elsewhere in the DLC trees ✅ (Q94 trees and the Q9 tree, workspace
-finding Befund-Q9-Portkern-1711). Not checked by this scan: the 100 + 68 scripts the converter rebuilt in PC layout 🔶,
+finding Befund-Q9-Portkern-1711). The installed g_pda built by `gpda_port` with `array_counts` (`af12687`): 0 of 1 189
+count words in 113 same-size scripts differ (28 PC-layout scripts skipped) ✅. The finished Q9 own tree (2026-11-18,
+no kit file, `own_tree.py assemble`): `script_sfi_members.py --scan` over every DRM (`work/q9_1711/sfi_scan_tree.py`) -
+298 DRMs, 17 564 scripts, 0 with a count below its stored start entries ✅. Not checked by this scan: the 100 + 68 scripts the converter rebuilt in PC layout 🔶,
 and generalbank (its own step): there Q7 found the same fault in script 8:6 (start list 182 instead of the TU's 193;
 `tools/script_sfi_members.py --scan`, only 8:6 of 400 scripts).
 **Checklist for the next UI / script fault (lesson 2026-11-17):** the sfi start list is stored from the last declared

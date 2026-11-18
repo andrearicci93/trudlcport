@@ -69,6 +69,20 @@ Run from `work/ws/giro6` after setting paths (all layers read the previous state
 
 ## Stage 5 — executable
 See SETUP.md §2: LAA flag + `fmod_init_guard` + `light_tex_guard` + `soundplex_guard` (`scripts/build_exe.sh`).
+Fork: pipeline step `Exe` (`tools/exe_build.py`, with the fourth guard `combat_lock_guard`; gate md5 = the B138 exe),
+also under `-Player` (2026-11-17: 0 refused accesses).
+
+## Player path: knowledge package (plan Spielerweg P2, 2026-11-17)
+* `tools/knowledge_export.py slim-mask PKG`: the learned mask table (`work/generic/mask_table.pkl`, 778 MB of counters)
+  as `PKG/learn/mask_best.npz` + `mask_best_vocab.json` (per key only the class `Table.best()` gives - the converter calls
+  nothing else); gate in the same run: `best()` equal on every key (19 538 409 / 19 538 409, 0 hash collisions).
+* `export PKG` copies the id maps, learned classes, rules and render tables (32 files, 332 MB; never a source the
+  player-path guard refuses) and writes `PKG/manifest.json` + `docs/data/knowledge_manifest.json` (names, sizes, md5);
+  `check` / `same` re-hash the package / its sources; `place PKG` puts the tables at the work paths the tools read.
+* The converter takes the package's mask table with `TRUDLC_MASK_TABLE=PKG/learn/mask_best.npz` (unset = as before).
+* Open: a pipeline step `Knowledge` (place + skip Cache / Ids / Learn / Tables / Prep under `-Player`), the pickles as
+  JSON / npz, `mask_best.npz` / `type0_table_slim.npz` over 100 MB (cut to the keys the DLC inputs use, P7), and Convert
+  still needs the developer store (`store.pkl` with `xb_store`, P3 / P8).
 
 ## Stage 6 — deployment and testing (VM)
 * `tools/vm_baseline_sync.ps1 -Baseline X -Mode dryrun|apply|verify [-RestoreSave name]`: makes the game's `mods/` byte-identical to a baseline (extra files are quarantined, never deleted); `verify` compares MD5 of everything (non-critical files are size-checked only in `apply`).

@@ -2928,6 +2928,73 @@ Reihenfolge fest (Flacker-Test)".
   combos as set now (e.g. `LB + View = weiter . RB + View = 1 Bild . LB + RB + View = Foto`), built from the INI values,
   so it follows any change.
 
+## 0.22.59 - intro marks mid-chapter, pull a switch through its script, holds that open first and several at once, puzzle help levels with hints, key items for plates / weights / pole holes, landing log (2026-11-18)
+
+Package R1 (live test 17.11., `docs/Pakete-1811.md`). Not installed - the owner installs with the game closed.
+
+- **Mid-chapter keep-state loads** (`chapter.unit`, `chapter.keep`, `level.keep` of a unit that is no level-start
+  intro's own unit): on the loading screen (main state 2) the played marks (sticky int 0:<intro> key 5968) of the table
+  intros whose own unit is loaded and in the **same level group** (`kUnits` group) are kept at 1 - the chapel no longer
+  plays chapter 3.1's intro of the neighbour `l3_caverns_start` (live 17.11. test 5; 5b proved mark 1 = no intro, Lara
+  on CP 4735). Log after the screen: the marks of every loaded table intro (`1+`, `0`, `unbound`).
+- **`puzzle.pull <switch>` "Schalter betaetigen"** (row under every switch, help level 2): the switch's own script as
+  Lara's pull. Switch base 3637: off -> vt 59 (request the on reaction: the lever; the game then runs vt 20 -> vt 55),
+  on (villa switches: +32 = 0 = on before and after a pull) -> vt 55 (the action itself: clock + secret door, house door,
+  pillars command). Called as the exe does it (checkpointbase 0x796e90): entry = 0x575fb0(so, byte [[so+0xc]], vt),
+  then 0x57b380(so, entry, 0, 0, 0), next game frame; the entry must be one of the chain's functions whose prototype has
+  that vtable index. Refused: disabled (+32 == +24, e.g. chapel without the centre plate), used (+0x1c bit 0x200 and a
+  one-shot target). 3 byte checks at the start. Check after: every change of +32 / bit 0x200 / the target's node (or
+  open flag) for 15 s, a summary at 6 s (`marked used`, `the target moved through the switch` or `NO target change`).
+- **Hold open** (`puzzle.hold`): (a) a closed motor door is opened by the same drive first ("Tuer oeffnen + offen
+  halten", the locks of an object check stay the game's); a closed plate gate with exactly one opening set-node record
+  gets "Tor oeffnen + offen halten (Eintrag n)" - the first tick sends it; (b) up to 4 motor holds and 4 gate holds at
+  the same time, a new hold of the same door / gate replaces only that one; `puzzle.hold <intro> off` /
+  `<intro> <joint> off` release one, `off` all, left on a row = release all; (c) the shadow door's turning pedestal is
+  offered closed too (0 -> 170 degrees, the 180 wrap is taken). Node changes of a held gate link are logged.
+- **Puzzle help levels** (`puzzle.help`, `[Puzzle] Help`, first row of "Raetsel in der Naehe"): 0 off (objects and
+  state), 1 hints, 2 solve (hints + every action row, default). Hints are computed from the loaded objects: switch
+  "noch n x ziehen (Figur k)" / "erst Platte x druecken" / "schon benutzt", plate "braucht n Gewichte (eins drueckt nur
+  beim Aufprall)", plate gate "offen solange Platte x unten", motor door "zu in ~n s", timer gate "Restzeit n s", gates
+  "Weg ab CP n (m m)" (nearest checkpoint object), weight "-> Platte x (oben)", pole hole "Stange einstecken". A local
+  `[Puzzle] HintFile` (default `TruMenu.puzzlehints.txt` next to tru.exe, lines `<intro id> <text>`, never in the
+  repository) adds text. Hints show green in the list and at the object in the world (under its label, else a label of
+  its own; the debug view runs for them). Built every 500 ms on the game thread while level >= 1 or the key items layer
+  is on.
+- **Key items** (`dbg.keyitems`): plates, weights / poles and pole holes (`ma_pt_pole_hole`) of the puzzle info table
+  get a label with their state (`oben / unten: Gewicht x`, `auf Platte x`, `Loch leer` / `Stange x daneben (steckt?)` -
+  the pole by position only).
+- **Sonar**: the rows `sonar.loadnb` / `sonar.loadall` say "wirkt beim naechsten Oeffnen".
+- **Landing log line** (package R2, `docs/Befund-R2-Fallschaden-1811.md`): the fall damage check of chart state 1304
+  0x75d080 is wrapped (7 bytes -> jmp, trampoline; 4 byte checks): `[Fall] land via=enter|tick|exit rec=<record>
+  h=<height> (m) z0 / off / z / att / mk thr=a/b/c vz hp before -> after (dmg / max) type DEAD|hurt|no damage`, then
+  `[Fall] next rec=<record>` (m+0x510 changing within 5 s). Read only.
+- **Fall height box** (`fall.box`, default off, bottom left; the owner 18.11.): the height since the take-off
+  h = z0 + offset - z (R2, without the markup term - "+ Markup" is named) while Lara's current record holds state 515 /
+  517, else "am Boden"; the limits a / b / c read at run time from `[0xfad764]` +0x4c / +0x50 / +0x54 (DLC 2's Lara has
+  her own), green < a, yellow a .. b, orange b .. c, red > c, and the distance to the next limit in m. The landing scale
+  (parameter 1315) and a ground probe below Lara are not in this build.
+
+Not in this build (report R1): `chapter.cp` (Q11 spec), the intro table from the archives at run time, the sonar view
+kept over a close, the holder rule from the references.
+
+### TO TEST 0.22.59
+
+Install TruMenu 0.22.59 (game closed). `TruMenu.unitintros.txt` stays next to `tru.exe`.
+
+| # | Where | Do | Expected |
+|---|---|---|---|
+| 1 | start | `TruMenu.log` | version 0.22.59; `puzzle.pull: 3 byte checks ok`; `landing log: 4 byte checks ok, 0x75d080 ... wrapped` |
+| 2 | new game, Prolog done, `l3_chapel` never played | Kapitel -> `l3_chapel` right 2x | log `armed ... (0.22.59: only intros of the same level group)`, `intro 4318 of the loaded unit l3_caverns_start - played mark 0 -> 1`; no intro, Lara on CP 4735 |
+| 3 | villa `l3_chamberrockhall`, switch 4617 unused | Raetsel -> `Schalter betaetigen` right 2x | log `vt 55 ... called`; within 6 s `bit 0x200 0 -> 1`?, secret door 4528 `closed` -> `opening` -> `open`; row `bereits benutzt` |
+| 4 | chapel, centre plate down | wall switch 4819 `Schalter betaetigen` | `vt 59`; lever moves; a pillar steps; log `+32` change |
+| 5 | chapel, reward grate 4836 closed (plate 4833 up) | `Tor oeffnen + offen halten (Eintrag n)` | log `closed at the start, ... sent`, node `... -> ...` lines; the grate opens and stays |
+| 6 | chapel | hold round gate + reward grate + shadow door | all three hold, `3 hold(s) running`; left on a row = release all |
+| 7 | chapel, shadow door closed | `Tuer oeffnen + offen halten (Motor)` | opens to ~170, holds |
+| 8 | chapel | `Raetsel-Hilfe` right 2x until `Hinweise` | no action rows; green hints in the list and at the objects |
+| 9 | chapel, `dbg.keyitems 1` | look at the plates | plate 4834 labelled with `oben` / `unten: ...` |
+| 10 | chapel platform | jump into the gap / onto the pole | `[Fall] land ... h=... DEAD` / `no damage`, then `[Fall] next rec=...` |
+| 11 | any level | `fall.box 1`, jump down a ledge | bottom left: height grows green -> yellow -> orange -> red over a / b / c; on the ground "am Boden" |
+
 ## 0.22.58 - chapter rows by kind, keep-state loads with the intro mark, loading-screen watch, reload last checkpoint, costume 857 outside DLC 2 (2026-11-17)
 
 Build `work\asi\menu02258` (TruMenu.asi MD5 `f932052dbcf3c83f7fe06014dbe20fe7`, sha256

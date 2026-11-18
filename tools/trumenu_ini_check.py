@@ -5477,12 +5477,13 @@ def check_02244(switches_path):
     # 0.22.44 added none, 0.22.45 the three [Sound] wave log keys, 0.22.47 the seven sound monitor / sonar keys, 0.22.48
     # the three [Sonar] keys, 0.22.49 [Sonar] AllFloors + TriangleCap, 0.22.50 the 11 [Sound] keys of W8_KEYS_02250,
     # 0.22.51 the three keys of S5_KEYS_02251, 0.22.53 the six keys of W11_KEYS_02253, 0.22.54 [Sound] ResetAtStart,
-    # 0.22.55 [Cheat] FlightKeepOnLoad, 0.22.58 [Chapter] UnitFresh + [Costume] DoppelLive, 0.22.59 [Puzzle] Help + HintFile
+    # 0.22.55 [Cheat] FlightKeepOnLoad, 0.22.58 [Chapter] UnitFresh + [Costume] DoppelLive, 0.22.59 [Puzzle] Help + HintFile,
+    # 0.22.61 [Puzzle] ThorGap
     if len(opt_rows) != 283 + len(W6_KEYS_02245) + len(W7_KEYS_02247) + len(SO_KEYS_02248) + 2 + len(W8_KEYS_02250) + \
-            len(S5_KEYS_02251) + len(W11_KEYS_02253) + 1 + 1 + 2 + 2:
+            len(S5_KEYS_02251) + len(W11_KEYS_02253) + 1 + 1 + 2 + 2 + 1:
         problems.append('TruMenu.cpp: kOpts has %d keys - 0.22.44 adds no INI key (283), 0.22.45 adds %d, 0.22.47 adds %d, '
                         '0.22.48 adds %d, 0.22.49 adds 2, 0.22.50 adds %d, 0.22.51 adds %d, 0.22.53 adds %d, 0.22.54 adds 1, '
-                        '0.22.55 adds 1, 0.22.58 adds 2, 0.22.59 adds 2' % (
+                        '0.22.55 adds 1, 0.22.58 adds 2, 0.22.59 adds 2, 0.22.61 adds 1' % (
                             len(opt_rows), len(W6_KEYS_02245), len(W7_KEYS_02247), len(SO_KEYS_02248), len(W8_KEYS_02250),
                             len(S5_KEYS_02251), len(W11_KEYS_02253)))
     readme = open(os.path.join(ROOT, 'src', 'asi', 'TruMenu', 'README.md'), encoding='utf-8').read()
@@ -7492,6 +7493,40 @@ def check_02258():
                      'safe-ground chapter, DLC row) + costume 857 (fix A, DoppelLive %d byte checks)' % (len(cr), len(dg))
 
 
+def check_02261():
+    """0.22.61 (package R1c point 1): (1) kVersion starts with 0.22.61; (2) [Puzzle] ThorGap=600; (3) the Thor section
+    holds no game id and no position constant (everything from the loaded objects / markup / floor query); (4) it writes
+    nothing into the game (no reinterpret_cast store) and queries the floor only through MdProbe; (5) items puzzle.thor /
+    puzzle.thorgap; ThTick in PadHook; (6) README section"""
+    problems = []
+    src = read_cpp()
+    ver = src[:src.find('\n', src.find('kVersion = '))]
+    if '"TruMenu 0.22.61 (Thor pillar areas, package R1c' not in ver and ' - 0.22.61 (Thor pillar areas' not in ver:
+        problems.append('TruMenu.cpp: kVersion must start with "TruMenu 0.22.61 (Thor pillar areas, package R1c ..."')
+    header, opt_rows = table(src)
+    d = {(s, k): v for s, k, v, _ in opt_rows}
+    if d.get(('Puzzle', 'ThorGap')) != '600':
+        problems.append('TruMenu.cpp: kOpts [Puzzle] ThorGap=600 missing')
+    a = src.find('// ---- 0.22.61 (package R1c point 1) Thor pillar floor areas')
+    b = src.find('// ---- state log + switch learning', a)
+    sec = re.sub(r'//[^\n]*', '', src[a:b]) if a >= 0 and b > a else ''
+    if not sec:
+        problems.append('TruMenu.cpp: section "Thor pillar floor areas" missing')
+    else:
+        if re.search(r'\b(46[0-9]{2}|9[0-9]{3})\b', sec) or re.search(r'-?\b1[0-3][0-9]{3}\.[0-9]', sec):
+            problems.append('TruMenu.cpp: the Thor section holds a game id or a position constant')
+        if re.search(r'\*reinterpret_cast<volatile [A-Za-z]+ \*>\([^)]*\) =(?!=)', sec) or '0x00493330' in sec:
+            problems.append('TruMenu.cpp: the Thor section must not write game memory or call the query directly')
+    for item, kind in (('puzzle.thor', 'bool'), ('puzzle.thorgap', 'int')):
+        if '{"%s", "%s",' % (item, kind) not in src: problems.append('TruMenu.cpp: item %s missing' % item)
+    if 'ThTick();' not in fn_body(src, 'DWORD WINAPI PadHook('):
+        problems.append('TruMenu.cpp: PadHook must run ThTick once per game frame')
+    readme = open(os.path.join(ROOT, 'src', 'asi', 'TruMenu', 'README.md'), encoding='utf-8-sig').read()
+    if '## 0.22.61' not in readme or 'TO TEST 0.22.61' not in readme:
+        problems.append('README.md: section "## 0.22.61" with "TO TEST 0.22.61" missing')
+    return problems, 'Thor pillar areas (run time, ThorGap %s)' % d.get(('Puzzle', 'ThorGap'))
+
+
 def check_02260():
     """0.22.60 (package R1b): (1) kVersion starts with 0.22.60; (2) kMdChecks = the 6 rows (launch 0x70e050, drop
     0x70e100, the aimed jump's call 0x73f0ce, segment query 0x493330 / 0x49333d, g at 0x85e2b0); (3) the two hooks call
@@ -8338,6 +8373,10 @@ def main(argv):
     for p in cproblems60: print('Q02260 %s' % p)
     if not cproblems60: print('ok: 0.22.60 %s' % csummary60)
     problems += cproblems60
+    cproblems61, csummary61 = check_02261()   # 0.22.61 (Thor pillar areas, package R1c)
+    for p in cproblems61: print('Q02261 %s' % p)
+    if not cproblems61: print('ok: 0.22.61 %s' % csummary61)
+    problems += cproblems61
     cproblems27, csummary27 = check_02227(ini_path, opt.get('--switches', SWITCHES))   # 0.22.27
     for p in cproblems27: print('Q02227 %s' % p)
     if not cproblems27: print('ok: 0.22.27 %s' % csummary27)

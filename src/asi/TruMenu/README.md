@@ -2928,6 +2928,33 @@ Reihenfolge fest (Flacker-Test)".
   combos as set now (e.g. `LB + View = weiter . RB + View = 1 Bild . LB + RB + View = Foto`), built from the INI values,
   so it follows any change.
 
+## 0.22.61 - Thor pillar floor areas (2026-11-18)
+
+Package R1c point 1 (ENGINE §9 "Thor pillar floor positions (R8b)"). Not installed.
+
+- **`puzzle.thor`** (default off): where the pushable Thor pillar in `l3_secretchamber` must stand so that Lara can jump
+  from its top (radius 552, ~1250 above its base) to a ledge - **computed at run time**, nothing built in:
+  - pillar = the instance named `thor_pillar` (link 1 = the turning part), floor = the segment query 0x493330 below it;
+  - targets = unit markup ledge boxes (no owner, box +0x28 bit 30) 1700 .. 2200 above the floor: a closed loop = column
+    ring (yellow), an open ledge within 1500 units of a reward artifact `ma_rw_artifact` = that artifact (lower intro id
+    green, higher blue), else the exit side (red);
+  - floor cells of 150 units: one query per cell centre from floor + 1700 down (ignoring the pillar), within 20 units of
+    the floor = strict, within 130 = relaxed; a cell is a valid pillar centre when every cell within 552 is floor;
+  - area = valid centre whose flat distance to the ledge minus 552 is <= **`[Puzzle] ThorGap`** (default 600,
+    `puzzle.thorgap <n>`).
+  The build runs on the game thread (300 queries per frame, a few seconds), then the areas are drawn as cell outlines on
+  the floor (thick = strict, thin = relaxed), the pillar's 552 circle, above the pillar per target "im Bereich" or
+  "x m daneben", and a white arrow to the nearest valid cell. `[Thor] build ...`, `[Thor] areas ...` and one
+  `[Thor] pillar at ...` line per change go into the log. No push action.
+
+### TO TEST 0.22.61
+
+| # | Where | Do | Expected |
+|---|---|---|---|
+| 1 | `l3_secretchamber` | `puzzle.thor 1` | log `[Thor] build: pillar part ... floor ~173 ..., n target ledge(s): exit / artifact A / B / rings`, then `[Thor] areas (relaxed cells): ...`; outlines on the floor red / green / blue / yellow, white circle round the pillar |
+| 2 | same | push the pillar into a red area | text `Ausgang: im Bereich`, log `[Thor] pillar at ...: exit in`; from its top the south gallery is in reach |
+| 3 | same | `puzzle.thorgap 800` | areas grow (rebuild), `[Puzzle] ThorGap=800` written |
+
 ## 0.22.60 - motion data for live tests: jump launch / drop, throws and grenades, pushing, object tracking, flight arcs, ground below Lara (2026-11-18)
 
 Package R1b (the owner 18.11.: jumps, grenades, jumping back / sideways off a ledge, throwing the heavy cubes, pushing -

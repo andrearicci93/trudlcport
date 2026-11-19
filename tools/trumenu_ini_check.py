@@ -7507,6 +7507,20 @@ def check_02263():
     if 'optLever ? 59 : optOff ? 58 : direct ? 55 : st == 0 ? 59 : 58' not in run:
         problems.append('TruMenu.cpp: RunPzPull: from on vt 58, lever / off / action = vt 59 / 58 / 55')
     done.append('1 vt 58')
+    # (2) bal.nofall: the 4 byte checks of S2, the three immediates, written only through BalWrite
+    def rows_of(start):
+        at = src.find(start)
+        part = src[at:src.find('};', at)] if at >= 0 else ''
+        return {a: h.replace(' ', '') for a, h in re.findall(r'\{0x([0-9a-f]{8}), "([0-9a-f ]+)"\}', part)}
+    want_bal = {'00742eea': 'b801000000eb0233c0884665', '00742f16': 'b801000000eb0233c0884665',
+                '00742f3b': 'b801000000884665eb23', '00764c50': '8a91bd030000'}
+    if rows_of('const ChCheck kBalChecks[] = {') != want_bal:
+        problems.append('TruMenu.cpp: kBalChecks must be the 4 rows of Befund-S2 section 1')
+    if 'const DWORD kBalImm[3] = {0x00742eeb, 0x00742f17, 0x00742f3c};' not in src:
+        problems.append('TruMenu.cpp: kBalImm must be 0x742eeb / 0x742f17 / 0x742f3c')
+    if 'WriteBytes(at, &want, 1)' not in fn_body(src, 'bool BalWrite(') or '{"bal.nofall", "bool",' not in src:
+        problems.append('TruMenu.cpp: bal.nofall item / BalWrite missing')
+    done.append('2 bal.nofall')
     readme = open(os.path.join(ROOT, 'src', 'asi', 'TruMenu', 'README.md'), encoding='utf-8-sig').read()
     if '## 0.22.63' not in readme or 'TO TEST 0.22.63' not in readme:
         problems.append('README.md: section "## 0.22.63" with "TO TEST 0.22.63" missing')

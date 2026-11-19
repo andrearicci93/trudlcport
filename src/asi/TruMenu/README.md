@@ -2938,6 +2938,12 @@ Package S3 (`docs/Befund-S2-1911.md` in the workspace). Not installed.
   58 / 55 in either state for the live comparison. The check after 6 s as before (lever node, +32, bit 0x200,
   target); a "vt n from on / off changed nothing" line for every vt. Whether vt 58 moves the villa lever and what +32
   does then (vt 54 "off state" instead of the door?) is open.
+- **(2) `bal.nofall`** "Balancieren ohne Fallen" (cheat, default off, not kept in the INI; page Figur "Sprung / Fall"):
+  the beam helper's fall flag M+0x3bd (machine M = `[[0xfadb58]+0xf10]`, read by chart condition 512) is set to 1
+  only at three `mov eax, 1` in the balance process (S2). After four byte checks (`0x742eea` / `0x742f16` /
+  `0x742f3b`, reader `0x764c50`) the immediates at 0x742eeb / 0x742f17 / 0x742f3c become 00; off writes 01 back (only
+  where 00 stands). Wobble, blend, timers and direction run as in the game. Without a hook "would have fallen" is not
+  readable: while on, one line per balance stay (state 301) with the highest flag value (must be 0).
 
 ### TO TEST 0.22.63
 
@@ -2945,6 +2951,8 @@ Package S3 (`docs/Befund-S2-1911.md` in the workspace). Not installed.
 |---|---|---|---|
 | 1a | villa, 4617 | `Schalter betaetigen` (= vt 58 from on) | log `-> vt 58 (request the off reaction from on ...)`, check after 6 s: lever node / +32 / bit / door 4528 - report all four |
 | 1b | same | TruLink `menu puzzle.pull 4617 lever` / `action` | vt 59: "changed nothing" expected (S2); vt 55: door opens, lever stays up |
+| 2a | a beam | `bal.nofall 1`, balance, let the stick go / wobble hard | log `4 byte checks ok`, `bal.nofall 1`; Lara wobbles but does not fall; at the end `balance stay ... fall flag max 0` |
+| 2b | same | `bal.nofall 0` | `ValBalNoFall` immediates 01 01 01; falling as in the game |
 
 ## 0.22.62 - fix build after the live test of 18.11. (2026-11-19)
 

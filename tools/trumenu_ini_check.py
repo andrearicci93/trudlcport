@@ -5479,12 +5479,12 @@ def check_02244(switches_path):
     # the three [Sonar] keys, 0.22.49 [Sonar] AllFloors + TriangleCap, 0.22.50 the 11 [Sound] keys of W8_KEYS_02250,
     # 0.22.51 the three keys of S5_KEYS_02251, 0.22.53 the six keys of W11_KEYS_02253, 0.22.54 [Sound] ResetAtStart,
     # 0.22.55 [Cheat] FlightKeepOnLoad, 0.22.58 [Chapter] UnitFresh + [Costume] DoppelLive, 0.22.59 [Puzzle] Help + HintFile,
-    # 0.22.61 [Puzzle] ThorGap, 0.22.62 [Puzzle] Hints + Actions for Help (net 1)
+    # 0.22.61 [Puzzle] ThorGap, 0.22.62 [Puzzle] Hints + Actions for Help (net 1), 0.22.66 [Sonar] KeepView
     if len(opt_rows) != 283 + len(W6_KEYS_02245) + len(W7_KEYS_02247) + len(SO_KEYS_02248) + 2 + len(W8_KEYS_02250) + \
-            len(S5_KEYS_02251) + len(W11_KEYS_02253) + 1 + 1 + 2 + 2 + 1 + 1:
+            len(S5_KEYS_02251) + len(W11_KEYS_02253) + 1 + 1 + 2 + 2 + 1 + 1 + 1:
         problems.append('TruMenu.cpp: kOpts has %d keys - 0.22.44 adds no INI key (283), 0.22.45 adds %d, 0.22.47 adds %d, '
                         '0.22.48 adds %d, 0.22.49 adds 2, 0.22.50 adds %d, 0.22.51 adds %d, 0.22.53 adds %d, 0.22.54 adds 1, '
-                        '0.22.55 adds 1, 0.22.58 adds 2, 0.22.59 adds 2, 0.22.61 adds 1, 0.22.62 adds 1' % (
+                        '0.22.55 adds 1, 0.22.58 adds 2, 0.22.59 adds 2, 0.22.61 adds 1, 0.22.62 adds 1, 0.22.66 adds 1' % (
                             len(opt_rows), len(W6_KEYS_02245), len(W7_KEYS_02247), len(SO_KEYS_02248), len(W8_KEYS_02250),
                             len(S5_KEYS_02251), len(W11_KEYS_02253)))
     readme = open(os.path.join(ROOT, 'src', 'asi', 'TruMenu', 'README.md'), encoding='utf-8').read()

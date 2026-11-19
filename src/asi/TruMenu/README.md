@@ -2928,6 +2928,33 @@ Reihenfolge fest (Flacker-Test)".
   combos as set now (e.g. `LB + View = weiter . RB + View = 1 Bild . LB + RB + View = Foto`), built from the INI values,
   so it follows any change.
 
+## 0.22.66 - build T2: sonar view kept, intro table from the game data (2026-11-19)
+
+Package T2 (R1 (6) and R1 (2) of `docs/Pakete-1811.md`). Not installed (0.22.65 stays in the game until after Saturday).
+
+- **(1) `sonar.keepview`** (bool, **default on**, `[Sonar] KeepView`, page PDA / Sonar row "Sonar-Ansicht merken", info
+  `sonar.keepstate`): the close of the PDA sonar keeps its view - centre `[0xee04e0]` (float4; LT / RT move it along
+  the view, so it holds the zoom too), yaw `[0xee03e4]`, pitch `[0x8aff00]`, floor `[0xedf268]` and a loaded, placed
+  unit of that floor; the next open in the **same unit of the open** (`[0xedf254]`, Lara's map unit) writes centre /
+  yaw / pitch at its first pad poll (mode 1; only 0x6e2290 and the view input 0x6e5040 write them, 0x6e2290 is called by
+  the open and by "back to Lara" only), the pitch clamped to `[0x85d9ec] .. [0x85d9e8]`. A different floor: once the
+  view runs (mode 3, no map load pending, pause byte 6) the game's own floor change of "back to Lara" (0x6e51e7 ..
+  0x6e520e) with that unit: floor byte, 0x6de700, 0x6e4e80(u, 1, 0, 0), `[0xee03b4]` = u, `[0xee03c2]` = 0, mode 4.
+  Another unit = the game's view. 16 byte checks (`kKvChecks`); log lines `sonar.keepview: remembered at the close`,
+  `restored at the open`, `floor change`, `floor restored`, `floor not restored`, `not restored - unit changed`.
+- **(2) intro table at run time:** `TruIntroScan.h` (own code, files only) builds the level-start intro table of
+  `tools/unit_intro_table.py` from `patch.000` / `bigfile.000` next to tru.exe on a background thread (lowest
+  priority, 10 s after the start): the base units of kUnits, `pc-w\<unit>.drm`, only section 0, the scripts and the
+  intro section unpacked (CDRM blocks without them are not read). The game thread takes it over: log `intro table: n
+  from game data` or `intro table: from file (fallback)` (TruMenu.unitintros.txt stays the fallback), then `file vs
+  game data - same / DIFFERENCES`. `chapter.intros` names the source. Offline: `selftest/TruIntroScanTest.cpp` on the
+  PC archives = the Python table (8 / 8, 81 of 84 units, 30 scripts, 7 s, at most 3.8 MB kept).
+
+### TO TEST 0.22.66
+
+- `docs/Testanleitung-T2-1911.md` (sonar view same unit / other unit / other floor / off; intro table log lines with
+  and without the file).
+
 ## 0.22.65 - build S5: evidence instead of guesses (2026-11-19)
 
 Package S5 (the owner's rule 19.11.: every open point gets a log line). Read only - no game write. Not installed.

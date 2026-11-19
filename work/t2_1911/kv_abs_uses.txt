@@ -1,0 +1,60 @@
+0x006dd73c  mov byte ptr [0xee03c2], 1
+0x006dd76e  mov byte ptr [0xee03c2], 0
+0x006ddb0a  test byte ptr [0xedf268], al
+0x006ddb2f  mov byte ptr [0xedf268], al
+0x006ddb46  mov al, byte ptr [0xee03c2]
+0x006de718  mov dl, byte ptr [0xedf268]
+0x006df697  cmp byte ptr [0xedf268], 0
+0x006dfa8e  movaps xmm0, xmmword ptr [0xee04e0]
+0x006e22a9  fstp dword ptr [0x8aff00]
+0x006e22d8  fstp dword ptr [0xee03e4]
+0x006e22f3  movss xmm0, dword ptr [0x8aff00]
+0x006e2300  movss xmm1, dword ptr [0xee03e4]
+0x006e23bb  movaps xmmword ptr [0xee04e0], xmm1
+0x006e2e1c  mov byte ptr [0xedf268], bl
+0x006e2e6f  mov al, byte ptr [0xedf268]
+0x006e2ea3  test byte ptr [0xedf268], cl
+0x006e2fef  movss xmm0, dword ptr [0x8aff00]
+0x006e2ffc  movss xmm1, dword ptr [0xee03e4]
+0x006e30c1  mov byte ptr [0xee03c2], 0
+0x006e30f2  test byte ptr [0xedf268], al
+0x006e3162  subps xmm1, xmmword ptr [0xee04e0]
+0x006e3240  mov al, byte ptr [0xee03c2]
+0x006e326b  test byte ptr [0xedf268], al
+0x006e3c80  movaps xmm1, xmmword ptr [0xee04e0]
+0x006e4082  mov cl, byte ptr [0xedf268]
+0x006e40df  test byte ptr [0xedf268], al
+0x006e416f  movss xmm0, dword ptr [0x8aff00]
+0x006e417d  movss xmm1, dword ptr [0xee03e4]
+0x006e428f  mov dl, byte ptr [0xedf268]
+0x006e42ec  mov dl, byte ptr [0xedf268]
+0x006e4366  mov dl, byte ptr [0xedf268]
+0x006e4806  mov byte ptr [0xee03c2], bl
+0x006e4979  test byte ptr [0xedf268], al
+0x006e499f  mov byte ptr [0xedf268], al
+0x006e4aff  mov al, byte ptr [0xee03c2]
+0x006e4b25  movzx edx, byte ptr [0xedf268]
+0x006e4b3b  mov eax, dword ptr [0xee03b4]
+0x006e4b49  movzx ecx, byte ptr [0xedf268]
+0x006e4c9e  movss xmm1, dword ptr [0xee03e4]
+0x006e4cb6  movss xmm0, dword ptr [0x8aff00]
+0x006e4cd4  push 0xee04e0
+0x006e4fe0  mov al, byte ptr [0xee03c2]
+0x006e5007  test byte ptr [0xedf268], al
+0x006e502f  mov dword ptr [0xee03b4], eax
+0x006e5203  mov dword ptr [0xee03b4], esi
+0x006e5209  mov byte ptr [0xee03c2], al
+0x006e521a  mov al, byte ptr [0xee03c2]
+0x006e5244  test byte ptr [0xedf268], al
+0x006e52a3  fsubr dword ptr [0xee03e4]
+0x006e52a9  fstp dword ptr [0xee03e4]
+0x006e52b5  fsubr dword ptr [0x8aff00]
+0x006e52bb  fstp dword ptr [0x8aff00]
+0x006e52c7  fld dword ptr [0x8aff00]
+0x006e52d8  fstp dword ptr [0x8aff00]
+0x006e52fd  movss xmm1, dword ptr [0xee03e4]
+0x006e5311  movss xmm0, dword ptr [0x8aff00]
+0x006e53d4  movaps xmm1, xmmword ptr [0xee04e0]
+0x006e53df  movaps xmmword ptr [0xee04e0], xmm0
+0x006e5413  mov byte ptr [0xee03c2], bl
+0x006e5419  mov byte ptr [0xedf268], bl

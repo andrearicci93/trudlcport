@@ -2943,6 +2943,12 @@ Package S1 (live test 18.11.). Not installed.
   **`puzzle.actions`** (`[Puzzle] Actions`, default 1), two rows "Hinweise" / "Aktionen (Cheats)" at the top of
   "Raetsel in der Naehe" (right 2x = toggle). An INI without the two keys still reads `Help` (0 = both off, 1 = hints,
   2 = both); `puzzle.help 0|1|2` still sets both.
+- **(c) bar rows** (live 18.11. they were reachable only through TruLink): page **Figur**, group "Sprung / Fall
+  (Anzeige)": `fall.box`, `trace.arcs` (Lara's own motion); page **Kapitel**, group "Raetsel-Anzeigen" above the puzzle
+  list: `puzzle.thor`, `puzzle.thorgap ...` (typed value); page **Debug / Darstellung**, group "Objekt-Daten (Log)":
+  `obj.track ...` (typed `<id> on|off`) and `obj.track list` (a log diagnosis, no display). Page **Leveldaten**: new
+  switch **`dbg.plates`** "Druckplatten / Gewichte / Loecher" (default off) - these are no longer part of
+  "Schluesselgegenstaende" (that one keeps parts, switches, doors, grapple points).
 
 ### TO TEST 0.22.62
 
@@ -2953,6 +2959,8 @@ Package S1 (live test 18.11.). Not installed.
 | a3 | after a "changed nothing" line | TruLink `menu puzzle.pull 4617 action` | the 0.22.59 path (door opens, lever stays up) |
 | b1 | Kapitel -> Raetsel in der Naehe | rows "Hinweise" / "Aktionen (Cheats)": Aktionen right 2x | action rows gone, hint lines stay; again = back; `[Puzzle] Actions=0` / `1` written |
 | b2 | same | Hinweise right 2x | hint lines (list + world) gone, action rows stay |
+| c1 | bar | Figur -> "Sprung / Fall (Anzeige)"; Kapitel -> "Raetsel-Anzeigen"; Debug -> "Objekt-Daten (Log)" | the rows switch / run as through TruLink |
+| c2 | Kapelle, Leveldaten | "Schluesselgegenstaende" on, "Druckplatten / Gewichte / Loecher" off, then on | plates / weights / holes appear only with the new switch |
 
 ## 0.22.61 - Thor pillar floor areas (2026-11-18)
 

@@ -960,7 +960,8 @@ def check_quick(ini_path, radial_path):
         elif kind == 'kQbValue' and item == 'snd.hear' and arg not in W8_CATS + tuple(w11_subs(src)):
             problems.append(where + ': snd.hear needs a kind or a key of kW8Sub')   # 0.22.53 W11
         elif kind == 'kQbAction' and items[item] != 'action' and not (item == 'player.health' and not arg) and \
-                not (item == 'game.vol.music' and arg == '128'):   # 0.22.18: the music volume warning row
+                not (item == 'game.vol.music' and arg == '128') and \
+                not (item == 'puzzle.thorgap' and not arg):   # 0.22.18: music volume warning; 0.22.62: typed gap (kQfLine)
             problems.append(where + ': an action row needs an action item (or player.health without argument)')
         elif kind == 'kQbInfo' and items[item] != 'info': problems.append(where + ': an info row needs an info item')
         elif kind == 'kQbChoice' and items[item] != 'action': problems.append(where + ': a choice row needs an action item')
@@ -7525,6 +7526,21 @@ def check_02262():
     if '"puzzle.hints" : "puzzle.actions"' not in fn_body(src, 'int QbPzRows('):
         problems.append('TruMenu.cpp: QbPzRows must show the two rows Hinweise / Aktionen')
     done.append('b hints / actions')
+    # (c) bar rows on their pages, dbg.plates apart from the key items
+    def rows_in(table_name):
+        at = src.find('const QbRow %s[] = {' % table_name)
+        return src[at:src.find('\n};', at)] if at >= 0 else ''
+    want_rows = {'kQbLara': ('"fall.box"', '"trace.arcs"'), 'kQbChapters': ('"puzzle.thor"', '"puzzle.thorgap"'),
+                 'kQbDebug': ('"obj.track", "list"',), 'kQbLevel': ('"dbg.plates"',)}
+    for tname, ids in want_rows.items():
+        part = rows_in(tname)
+        for i in ids:
+            if i not in part: problems.append('TruMenu.cpp: bar row %s missing on %s' % (i, tname))
+    if '{"dbg.plates", "bool",' not in src:
+        problems.append('TruMenu.cpp: item dbg.plates missing')
+    if 'const bool pzKey = g_kiPlates && !keyItem && PiKeyState(' not in fn_body(src, 'void P5KeyDraw('):
+        problems.append('TruMenu.cpp: P5KeyDraw must draw plates / weights / holes only with dbg.plates')
+    done.append('c bar rows')
     readme = open(os.path.join(ROOT, 'src', 'asi', 'TruMenu', 'README.md'), encoding='utf-8-sig').read()
     if '## 0.22.62' not in readme or 'TO TEST 0.22.62' not in readme:
         problems.append('README.md: section "## 0.22.62" with "TO TEST 0.22.62" missing')

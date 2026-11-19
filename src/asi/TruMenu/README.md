@@ -2949,6 +2949,16 @@ Package S1 (live test 18.11.). Not installed.
   `obj.track ...` (typed `<id> on|off`) and `obj.track list` (a log diagnosis, no display). Page **Leveldaten**: new
   switch **`dbg.plates`** "Druckplatten / Gewichte / Loecher" (default off) - these are no longer part of
   "Schluesselgegenstaende" (that one keeps parts, switches, doors, grapple points).
+- **(d) flight arc fix** (live 18.11.: the arc fell straight down from the take-off - the game hands 0x70e050 /
+  0x70e100 v = 0 almost always): the arc's velocity is **T+0xa20 while a jump target T+0xa64 is set** (re-solved every
+  frame), else the call's own v when it is not 0, else **inst+0x2a0 from the frame after the call** (R11, live
+  22:10:42: T+0xa20 1.09 / -39.91 / 42.54, in flight inst+0x2a0 1.09 / -39.99 / ..). The `[Jump] arc:` line names the
+  source (`T+0xa20 (target)` / `the call` / `inst+0x2a0`) and the frame.
+- **(e) `[Jump]` sites** (R11): 0x766b4f = ground move (state 1303, velocity reset) and 0x71b519 = restart (player
+  set-up) are no jumps - one line at LogLevel 3 only; 0x71f6e4 = pole take-off (was "let go / tread water"), 0x75b12d
+  = tread water. A call with v = 0 is logged (two lines + "flight follows the v = 0 call") only when an air state or a
+  velocity follows within 10 frames, else at LogLevel 3 with "not a jump". A re-aim is counted only for the aim
+  solver's sites 0x73f0d3 / 0x73f2cc (0.22.61 counted the pole take-off as a re-aim).
 
 ### TO TEST 0.22.62
 
@@ -2961,6 +2971,8 @@ Package S1 (live test 18.11.). Not installed.
 | b2 | same | Hinweise right 2x | hint lines (list + world) gone, action rows stay |
 | c1 | bar | Figur -> "Sprung / Fall (Anzeige)"; Kapitel -> "Raetsel-Anzeigen"; Debug -> "Objekt-Daten (Log)" | the rows switch / run as through TruLink |
 | c2 | Kapelle, Leveldaten | "Schluesselgegenstaende" on, "Druckplatten / Gewichte / Loecher" off, then on | plates / weights / holes appear only with the new switch |
+| d1 | Kapelle, `trace.arcs 1` | jump forward without a target, then platform -> pole | yellow arc forward along the jump (not straight down); log `[Jump] arc: ... from inst+0x2a0` resp. `from T+0xa20 (target)` |
+| e1 | walk, land, restart | log at LogLevel 1 | no `[Jump] drop via=0x766b4f` / `0x71b519` lines; a pole take-off shows `pole take-off`, followed by `flight follows the v = 0 call` |
 
 ## 0.22.61 - Thor pillar floor areas (2026-11-18)
 

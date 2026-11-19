@@ -7541,6 +7541,19 @@ def check_02262():
     if 'const bool pzKey = g_kiPlates && !keyItem && PiKeyState(' not in fn_body(src, 'void P5KeyDraw('):
         problems.append('TruMenu.cpp: P5KeyDraw must draw plates / weights / holes only with dbg.plates')
     done.append('c bar rows')
+    # (d) arc velocity source, (e) site kinds and the held v = 0 calls
+    tick = fn_body(src, 'void MdTick(')
+    for want in ('if (tgt && tvl > 0.01f) src = 1;', 'else if (since >= 1 && ivl > 0.5f) src = 3;', 'f.vSrc'):
+        if want not in tick: problems.append('TruMenu.cpp: MdTick arc velocity source: %s missing' % want)
+    note = fn_body(src, 'void MdLaunchNote(')
+    if 'ret == 0x00766b4f || ret == 0x0071b519' not in note or 'Log(3, "[Jump] (no jump)' not in note:
+        problems.append('TruMenu.cpp: MdLaunchNote must log ground moves / restart at LogLevel 3 only')
+    if '(ret == 0x0073f0d3 || ret == 0x0073f2cc)' not in note or 'f.confirm = still;' not in note:
+        problems.append('TruMenu.cpp: MdLaunchNote: re-aim only from the aim solver, v = 0 calls held until a flight follows')
+    site = fn_body(src, 'const char *MdSite(')
+    if 'case 0x0071f6e4: return "pole take-off' not in site or 'case 0x00766b4f:' not in site:
+        problems.append('TruMenu.cpp: MdSite must name 0x71f6e4 pole take-off and 0x766b4f / 0x71b519')
+    done.append('d arc velocity, e jump sites')
     readme = open(os.path.join(ROOT, 'src', 'asi', 'TruMenu', 'README.md'), encoding='utf-8-sig').read()
     if '## 0.22.62' not in readme or 'TO TEST 0.22.62' not in readme:
         problems.append('README.md: section "## 0.22.62" with "TO TEST 0.22.62" missing')

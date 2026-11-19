@@ -2954,6 +2954,19 @@ Package S1 (live test 18.11.). Not installed.
   frame), else the call's own v when it is not 0, else **inst+0x2a0 from the frame after the call** (R11, live
   22:10:42: T+0xa20 1.09 / -39.91 / 42.54, in flight inst+0x2a0 1.09 / -39.99 / ..). The `[Jump] arc:` line names the
   source (`T+0xa20 (target)` / `the call` / `inst+0x2a0`) and the frame.
+- **(d) dashed jump preview `jump.preview`** (default off; page Figur "Sprung / Fall (Anzeige)"): while Lara stands
+  (no air state), about 8 times a second, the arcs of the jump kinds in her target slots **A = T+0xb00** (white, live
+  standing 56) and **B = T+0xc90** (violet, live 8): record X of the player block's jump table (P = `[[0xe7f094]+0x50]`,
+  count P+0xde4, array P+0xde8 of {id, X} - read the way 0x6f1950 reads it; its first 14 bytes are checked, it is not
+  called), v = R(yaw inst+0x38) (X+0x08, -X+0x0c, X+0x10), p(t) = p + v t + (0, 0, -2.862 t^2), dashed for t = 0 .. N
+  (N = X+0xa4, else s16 P+0xbde, else 40), then dotted to the ground (segment query). Target guess: the unit markup
+  lines within 3000 units (boxes without owner, as the Thor areas): the arc's descending time at a segment's height,
+  that point within **300 units** (X+0x78, how the game uses it is unproven) flat of the segment, t <= N, first one
+  reached = green diamond + "du landest auf Markup-Kante / -Linie (x m daneben)"; else "kein Ziel - Fallhoehe x m" with
+  a diamond coloured by the fall limits a / b / c (green / yellow / orange / red). One `[Preview]` log line per change
+  (slot, id, A, N and its source, target box / ground, the unproven parts marked). **`jump.catch`** (default off): a
+  300-unit tube round the markup lines within 2500 units. Not proven: that the slot's kind is the one used at the
+  take-off, the 300-unit rule, owned (moving) markup boxes are left out.
 - **(e) `[Jump]` sites** (R11): 0x766b4f = ground move (state 1303, velocity reset) and 0x71b519 = restart (player
   set-up) are no jumps - one line at LogLevel 3 only; 0x71f6e4 = pole take-off (was "let go / tread water"), 0x75b12d
   = tread water. A call with v = 0 is logged (two lines + "flight follows the v = 0 call") only when an air state or a
@@ -2972,6 +2985,9 @@ Package S1 (live test 18.11.). Not installed.
 | c1 | bar | Figur -> "Sprung / Fall (Anzeige)"; Kapitel -> "Raetsel-Anzeigen"; Debug -> "Objekt-Daten (Log)" | the rows switch / run as through TruLink |
 | c2 | Kapelle, Leveldaten | "Schluesselgegenstaende" on, "Druckplatten / Gewichte / Loecher" off, then on | plates / weights / holes appear only with the new switch |
 | d1 | Kapelle, `trace.arcs 1` | jump forward without a target, then platform -> pole | yellow arc forward along the jump (not straight down); log `[Jump] arc: ... from inst+0x2a0` resp. `from T+0xa20 (target)` |
+| d2 | Kapelle platform, facing the pole, `jump.preview 1` | stand still, turn slowly | log `0.22.62 jump preview: byte check 0x6f1950 ok`; white dashed arc ahead; green "du landest auf Markup-..." when facing the pole, else "kein Ziel - Fallhoehe x m"; `[Preview] slot A id 56 ...` lines |
+| d3 | same | jump forward | where Lara lands / catches vs the preview (report both) |
+| d4 | beam <-> platform | `jump.catch 1` | cyan tubes round the nearby ledges / poles |
 | e1 | walk, land, restart | log at LogLevel 1 | no `[Jump] drop via=0x766b4f` / `0x71b519` lines; a pole take-off shows `pole take-off`, followed by `flight follows the v = 0 call` |
 
 ## 0.22.61 - Thor pillar floor areas (2026-11-18)

@@ -7554,6 +7554,25 @@ def check_02262():
     if 'case 0x0071f6e4: return "pole take-off' not in site or 'case 0x00766b4f:' not in site:
         problems.append('TruMenu.cpp: MdSite must name 0x71f6e4 pole take-off and 0x766b4f / 0x71b519')
     done.append('d arc velocity, e jump sites')
+    # (d) dashed preview: byte check of the jump table lookup 0x6f1950, read only (no call), items + bar rows, JpTick
+    at = src.find('const ChCheck kJpChecks[] = {')
+    part = src[at:src.find('};', at)] if at >= 0 else ''
+    rows = {x: h.replace(' ', '') for x, h in re.findall(r'\{0x([0-9a-f]{8}), "([0-9a-f ]+)"\}', part)}
+    if rows != {'006f1950': 'a194f0e7008b48508b91e40d0000'}:
+        problems.append('TruMenu.cpp: kJpChecks must be the 0x6f1950 row of ENGINE 12 (R11) (got %s)' % rows)
+    jp = src[src.find('// ---- 0.22.62 (package S1 d) jump preview'):src.find('// game frame: the detours (once)')]
+    jpc = re.sub(r'//[^\n]*', '', jp)
+    if not jp or '0x006f1950)(' in jpc or re.search(r'\*reinterpret_cast<volatile [A-Za-z]+ \*>\([^)]*\) =(?!=)', jpc):
+        problems.append('TruMenu.cpp: the jump preview section must read only (no call of 0x6f1950, no store)')
+    for want in ('ReadDword(t + 0xb00, &ids[0]);', 'ReadDword(t + 0xc90, &ids[1]);', 'ReadDword(pb + 0xde4, &cnt)',
+                 'const float lx = r.a[0], ly = -r.a[1], lz = r.a[2]', 'd2 > 300.0f * 300.0f'):
+        if want not in jpc: problems.append('TruMenu.cpp: jump preview: %s missing' % want)
+    for item in ('jump.preview', 'jump.catch'):
+        if '{"%s", "bool",' % item not in src: problems.append('TruMenu.cpp: item %s missing' % item)
+        if '"%s"' % item not in rows_in('kQbLara'): problems.append('TruMenu.cpp: bar row %s missing on kQbLara' % item)
+    if 'JpTick(player, lara, now);' not in tick:
+        problems.append('TruMenu.cpp: MdTick must run JpTick')
+    done.append('d preview')
     readme = open(os.path.join(ROOT, 'src', 'asi', 'TruMenu', 'README.md'), encoding='utf-8-sig').read()
     if '## 0.22.62' not in readme or 'TO TEST 0.22.62' not in readme:
         problems.append('README.md: section "## 0.22.62" with "TO TEST 0.22.62" missing')

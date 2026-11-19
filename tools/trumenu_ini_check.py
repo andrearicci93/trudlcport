@@ -7542,6 +7542,16 @@ def check_02263():
     if '!g_qbOpen && !g_menuOpen && !g_radOpen' not in fn_body(src, 'void PhxTick('):
         problems.append('TruMenu.cpp: photo.shotui waits until bar / menu / ring are closed')
     done.append('3 photo')
+    # (4) [Push] only in state 1477, pushed instance compared with the kind filter
+    if rows_of('const ChCheck kPushChecks[] = {') != {'007306d9': '8b0d04e5fa00',
+                                                      '008b1c24': 'c5050000c0067300c006730010067300' +
+                                                                  '00ac74000000000000000000'}:
+        problems.append('TruMenu.cpp: kPushChecks must be the two rows of Befund-S2 section 7a')
+    objt = fn_body(src, 'void MdObjTick(')
+    if 'if (!MdRecHasState(1477)) continue;' not in objt or 'ReadDword(pbody + 0x148, &pushed)' not in objt or \
+            'if (match != kindOk)' not in objt:
+        problems.append('TruMenu.cpp: MdObjTick: [Push] only in state 1477, pushed instance logged against the kind filter')
+    done.append('4 push 1477')
     readme = open(os.path.join(ROOT, 'src', 'asi', 'TruMenu', 'README.md'), encoding='utf-8-sig').read()
     if '## 0.22.63' not in readme or 'TO TEST 0.22.63' not in readme:
         problems.append('README.md: section "## 0.22.63" with "TO TEST 0.22.63" missing')

@@ -2953,6 +2953,11 @@ Package S3 (`docs/Befund-S2-1911.md` in the workspace). Not installed.
   **`photo.shotui [name]`** - `shot.save ui photo_<n>_ui` once bar, menu and ring have been closed for 2 frames (lines
   and labels in the picture, the panel not). Camera through walls: nothing built (S2: the FreeCamera has no
   collision) - only a live check.
+- **(4) `[Push]` by Lara's push state** (S2 7a): a `[Push] start` only while Lara's machine-1 record holds state
+  **1477** (records #1402 / #1403, by the state id, not the record number - DLC 2 has others). The pushed body
+  `[0xfae504]` (condition 1476) -> its instance `+0x148` (unproven 🔶) is compared with the 0.22.62 kind filter (same
+  instance or same multibody): a `[Push] filter:` line when they disagree; started when either says yes. Byte checks
+  `0x7306d9 8b0d04e5fa00` and the state table entry at `0x8b1c24`; failed = the 0.22.62 kind filter alone.
 
 ### TO TEST 0.22.63
 
@@ -2966,6 +2971,9 @@ Package S3 (`docs/Befund-S2-1911.md` in the workspace). Not installed.
 | 3b | anywhere / photo mode | `photo.hide`, then `photo.show` | Lara (+ weapons / gear) gone, then back; log counts; `photo.off` also shows her |
 | 3c | photo mode with lines on | `Foto mit Overlay` | after closing the bar a PNG `photo_nnn_ui` with lines / labels, without the bar |
 | 3d | photo mode at a wall | fly through the wall | S2: no collision - report what is seen (does the picture "hang"?) |
+| 4a | start | log | `0.22.63 [Push] state 1477: 2 byte checks ok` |
+| 4b | secret chamber | push the Thor pillar | one `[Push] start`, `gate: Lara in state 1477 ..., pushed instance 0x.. = this object`; a `[Push] filter:` line = report it |
+| 4c | fight with debris | walk through moving debris | no `[Push]` lines |
 
 ## 0.22.62 - fix build after the live test of 18.11. (2026-11-19)
 

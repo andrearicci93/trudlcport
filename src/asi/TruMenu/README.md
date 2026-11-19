@@ -2928,6 +2928,24 @@ Reihenfolge fest (Flacker-Test)".
   combos as set now (e.g. `LB + View = weiter . RB + View = 1 Bild . LB + RB + View = Foto`), built from the INI values,
   so it follows any change.
 
+## 0.22.63 - build S3 after the analysis S2 (2026-11-19)
+
+Package S3 (`docs/Befund-S2-1911.md` in the workspace). Not installed.
+
+- **(1) villa switches, corrects 0.22.62 (a):** S2 found vt 59 = switch base 3637 f7 acts only at +32 == +16 ("off");
+  from "on" the static lever path is **vt 58** = f6 ("invoking OFF reaction", only at +32 == +20, then
+  `modifiable.f4(+8)`). `puzzle.pull` from on now sends vt 58; `puzzle.pull <intro> lever|off|action` forces vt 59 /
+  58 / 55 in either state for the live comparison. The check after 6 s as before (lever node, +32, bit 0x200,
+  target); a "vt n from on / off changed nothing" line for every vt. Whether vt 58 moves the villa lever and what +32
+  does then (vt 54 "off state" instead of the door?) is open.
+
+### TO TEST 0.22.63
+
+| # | Where | Do | Expected |
+|---|---|---|---|
+| 1a | villa, 4617 | `Schalter betaetigen` (= vt 58 from on) | log `-> vt 58 (request the off reaction from on ...)`, check after 6 s: lever node / +32 / bit / door 4528 - report all four |
+| 1b | same | TruLink `menu puzzle.pull 4617 lever` / `action` | vt 59: "changed nothing" expected (S2); vt 55: door opens, lever stays up |
+
 ## 0.22.62 - fix build after the live test of 18.11. (2026-11-19)
 
 Package S1 (live test 18.11.). Not installed.

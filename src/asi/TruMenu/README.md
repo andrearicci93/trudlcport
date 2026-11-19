@@ -2944,6 +2944,15 @@ Package S3 (`docs/Befund-S2-1911.md` in the workspace). Not installed.
   `0x742f3b`, reader `0x764c50`) the immediates at 0x742eeb / 0x742f17 / 0x742f3c become 00; off writes 01 back (only
   where 00 stands). Wobble, blend, timers and direction run as in the game. Without a hook "would have fallen" is not
   readable: while on, one line per balance stay (state 301) with the highest flag value (must be 0).
+- **(3) photo mode** (S2 sections 2 - 5; 4 byte checks `0x5c69f1` / `0x5c6b7f` / `0x5b9521 f7461400080000`,
+  `0x5dfe29 e8329bfdff`): **pose visible** - after `photo.pose` Lara's +0x1c gets bit 0x1000 ("processed while
+  paused", read at 0x5b6e5d) for 45 frames, then exactly the old bit (a line when other bits changed meanwhile; not
+  touched when her stamp +0x44 changed; ended by `photo.off` too). **`photo.hide` / `photo.show`** - +0x14 |= 0x800 (not
+  drawn) on Lara and her children (+0x218 / +0x21c, 3 levels, 32 instances), the old bits back on show / `photo.off` /
+  a new player instance, only on unchanged instances; no message 7; also outside the photo mode (page Figur, Fotos).
+  **`photo.shotui [name]`** - `shot.save ui photo_<n>_ui` once bar, menu and ring have been closed for 2 frames (lines
+  and labels in the picture, the panel not). Camera through walls: nothing built (S2: the FreeCamera has no
+  collision) - only a live check.
 
 ### TO TEST 0.22.63
 
@@ -2953,6 +2962,10 @@ Package S3 (`docs/Befund-S2-1911.md` in the workspace). Not installed.
 | 1b | same | TruLink `menu puzzle.pull 4617 lever` / `action` | vt 59: "changed nothing" expected (S2); vt 55: door opens, lever stays up |
 | 2a | a beam | `bal.nofall 1`, balance, let the stick go / wobble hard | log `4 byte checks ok`, `bal.nofall 1`; Lara wobbles but does not fall; at the end `balance stay ... fall flag max 0` |
 | 2b | same | `bal.nofall 0` | `ValBalNoFall` immediates 01 01 01; falling as in the game |
+| 3a | photo mode | `photo.pose 2` | log `run bit ... for 45 frames`, the pose blends in visibly, then `run bit 0x1000 back to 0 after 45 frame(s)` |
+| 3b | anywhere / photo mode | `photo.hide`, then `photo.show` | Lara (+ weapons / gear) gone, then back; log counts; `photo.off` also shows her |
+| 3c | photo mode with lines on | `Foto mit Overlay` | after closing the bar a PNG `photo_nnn_ui` with lines / labels, without the bar |
+| 3d | photo mode at a wall | fly through the wall | S2: no collision - report what is seen (does the picture "hang"?) |
 
 ## 0.22.62 - fix build after the live test of 18.11. (2026-11-19)
 

@@ -7521,6 +7521,27 @@ def check_02263():
     if 'WriteBytes(at, &want, 1)' not in fn_body(src, 'bool BalWrite(') or '{"bal.nofall", "bool",' not in src:
         problems.append('TruMenu.cpp: bal.nofall item / BalWrite missing')
     done.append('2 bal.nofall')
+    # (3) photo extras: byte checks, the bits set / put back only through InterlockedOr / InterlockedAnd, items, rows
+    want_phx = {'005c69f1': 'f7461400080000', '005c6b7f': 'f7461400080000', '005b9521': 'f7461400080000',
+                '005dfe29': 'e8329bfdff'}
+    if rows_of('const DvCheck kPhxChecks[] = {') != want_phx:
+        problems.append('TruMenu.cpp: kPhxChecks must be the 4 rows of Befund-S2 sections 3 / 4')
+    if 'InterlockedOr(Word32(player + 0x1c), 0x1000L);' not in fn_body(src, 'void PrStart(') or \
+            'if (!(r.old & 0x1000)) InterlockedAnd(Word32(r.inst + 0x1c), ~0x1000L);' not in fn_body(src, 'void PrEnd('):
+        problems.append('TruMenu.cpp: photo.pose run bit +0x1c 0x1000: set in PrStart, exactly back in PrEnd')
+    if 'if (!(e.old & 0x800)) InterlockedAnd(Word32(e.inst + 0x14), ~0x800L);' not in fn_body(src, 'void LhShow(') or \
+            'tlobj::D(e.inst + 0x44) != e.stamp' not in fn_body(src, 'void LhShow('):
+        problems.append('TruMenu.cpp: photo.show must put 0x800 back exactly, only on unchanged instances')
+    if 'PrEnd(reason);' not in fn_body(src, 'void PmLeave(') or 'LhShow(reason);' not in fn_body(src, 'void PmLeave('):
+        problems.append('TruMenu.cpp: photo.off must end the run bit and show Lara')
+    for item in ('photo.shotui', 'photo.hide', 'photo.show'):
+        if '{"%s", "action",' % item not in src: problems.append('TruMenu.cpp: item %s missing' % item)
+        if '"%s"' % item not in fn_body(src, 'const QbRow kQbLara[] = {') and \
+                '"%s"' % item not in src[src.find('const QbRow kQbLara[] = {'):src.find('const QbRow kQbDebug[] = {')]:
+            problems.append('TruMenu.cpp: bar row %s missing on kQbLara' % item)
+    if '!g_qbOpen && !g_menuOpen && !g_radOpen' not in fn_body(src, 'void PhxTick('):
+        problems.append('TruMenu.cpp: photo.shotui waits until bar / menu / ring are closed')
+    done.append('3 photo')
     readme = open(os.path.join(ROOT, 'src', 'asi', 'TruMenu', 'README.md'), encoding='utf-8-sig').read()
     if '## 0.22.63' not in readme or 'TO TEST 0.22.63' not in readme:
         problems.append('README.md: section "## 0.22.63" with "TO TEST 0.22.63" missing')

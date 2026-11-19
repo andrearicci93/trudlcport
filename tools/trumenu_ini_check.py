@@ -7573,6 +7573,13 @@ def check_02262():
     if 'JpTick(player, lara, now);' not in tick:
         problems.append('TruMenu.cpp: MdTick must run JpTick')
     done.append('d preview')
+    # (f) fading throw path, [Push] gate, one multibody once
+    if 'g_mdTrailRest' not in fn_body(src, 'void MdDrawArcs(') or 'age >= 3000' not in fn_body(src, 'void MdDrawArcs('):
+        problems.append('TruMenu.cpp: MdDrawArcs must fade the throw path out 3 s after the rest')
+    objt = fn_body(src, 'void MdObjTick(')
+    if 'MdPushable(o.inst)' not in objt or 'MdLaraAir()' not in objt or 'if (!o.dup) MdObjLine("Push", "end", o);' not in objt:
+        problems.append('TruMenu.cpp: MdObjTick: [Push] only for pushable objects, Lara on the ground, multibody once')
+    done.append('f paths / push')
     readme = open(os.path.join(ROOT, 'src', 'asi', 'TruMenu', 'README.md'), encoding='utf-8-sig').read()
     if '## 0.22.62' not in readme or 'TO TEST 0.22.62' not in readme:
         problems.append('README.md: section "## 0.22.62" with "TO TEST 0.22.62" missing')

@@ -2972,6 +2972,12 @@ Package S1 (live test 18.11.). Not installed.
   = tread water. A call with v = 0 is logged (two lines + "flight follows the v = 0 call") only when an air state or a
   velocity follows within 10 frames, else at LogLevel 3 with "not a jump". A re-aim is counted only for the aim
   solver's sites 0x73f0d3 / 0x73f2cc (0.22.61 counted the pole take-off as a re-aim).
+- **(f) throw paths and `[Push]`** (live 18.11. fight with the thrall panther: the light blue paths stayed, 16 panther
+  chunks were logged as "pushed", the Thor pillar's 2 parts twice): the light blue real path fades out within 3 s after
+  the body's rest; `[Push]` only for an object Lara can push - an uber (push-block) graph or a multibody with joints,
+  no names with chunk / doll / debris / grenade - while Lara is not in the air and within 3 m; of one multibody only the
+  first moving part is logged. Lara's own push state is not known yet: the gate is by object kind (marked in the log),
+  the `[Push] start` line carries her record for the next build.
 
 ### TO TEST 0.22.62
 
@@ -2988,6 +2994,8 @@ Package S1 (live test 18.11.). Not installed.
 | d2 | Kapelle platform, facing the pole, `jump.preview 1` | stand still, turn slowly | log `0.22.62 jump preview: byte check 0x6f1950 ok`; white dashed arc ahead; green "du landest auf Markup-..." when facing the pole, else "kein Ziel - Fallhoehe x m"; `[Preview] slot A id 56 ...` lines |
 | d3 | same | jump forward | where Lara lands / catches vs the preview (report both) |
 | d4 | beam <-> platform | `jump.catch 1` | cyan tubes round the nearby ledges / poles |
+| f1 | fight (thrall panther, grenades), `trace.arcs 1` | wait after a throw / a kill | light blue paths fade out ~3 s after the rest; no `[Push]` lines for chunks |
+| f2 | secret chamber | push the Thor pillar | one `[Push] start` (not two), the gate line, `lara rec=` = her push record (note it) |
 | e1 | walk, land, restart | log at LogLevel 1 | no `[Jump] drop via=0x766b4f` / `0x71b519` lines; a pole take-off shows `pole take-off`, followed by `flight follows the v = 0 call` |
 
 ## 0.22.61 - Thor pillar floor areas (2026-11-18)

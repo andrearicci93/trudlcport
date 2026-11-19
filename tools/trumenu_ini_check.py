@@ -7493,6 +7493,30 @@ def check_02258():
                      'safe-ground chapter, DLC row) + costume 857 (fix A, DoppelLive %d byte checks)' % (len(cr), len(dg))
 
 
+def check_02262():
+    """0.22.62 (package S1, fix build after the live test 18.11.): (1) kVersion starts with 0.22.62; (a) puzzle.pull:
+    vt 59 from off and on ('action' = vt 55 from on only), the lever node in the check after and the "changed nothing"
+    line; README section"""
+    problems = []
+    done = []
+    src = read_cpp()
+    ver = src[:src.find('\n', src.find('kVersion = '))]
+    if '"TruMenu 0.22.62 (fix build S1' not in ver and ' - 0.22.62 (fix build S1' not in ver:
+        problems.append('TruMenu.cpp: kVersion must start with "TruMenu 0.22.62 (fix build S1 ..."')
+    # (a) vt 59 also from on
+    run = fn_body(src, 'bool RunPzPull(')
+    tick = fn_body(src, 'void PzPullTick(')
+    if 'st == 0 ? 59 : st == 1 ? (direct ? 55 : 59) : -1' not in run or 'strstr(arg, " action")' not in run:
+        problems.append('TruMenu.cpp: RunPzPull must use vt 59 from off and on, vt 55 only with "action" from on')
+    if 'PzTargetState(p.inst, ls, sizeof(ls));' not in tick or 'vt 59 from on changed nothing' not in tick:
+        problems.append('TruMenu.cpp: PzPullTick must follow the lever node and log "vt 59 from on changed nothing"')
+    done.append('a vt 59')
+    readme = open(os.path.join(ROOT, 'src', 'asi', 'TruMenu', 'README.md'), encoding='utf-8-sig').read()
+    if '## 0.22.62' not in readme or 'TO TEST 0.22.62' not in readme:
+        problems.append('README.md: section "## 0.22.62" with "TO TEST 0.22.62" missing')
+    return problems, 'fix build S1 (%s)' % ', '.join(done)
+
+
 def check_02261():
     """0.22.61 (package R1c point 1): (1) kVersion starts with 0.22.61; (2) [Puzzle] ThorGap=600; (3) the Thor section
     holds no game id and no position constant (everything from the loaded objects / markup / floor query); (4) it writes
@@ -7607,7 +7631,8 @@ def check_02259():
     if 'known = cand[i] == entry' not in tick:
         problems.append('TruMenu.cpp: PzPullTick must check the vtable entry against the chain functions first')
     run = fn_body(src, 'bool RunPzPull(')
-    if 'st == 0 ? 59 : st == 1 ? 55 : -1' not in run or 'if (st == 2) {' not in run or 'PzSwUsed(inst) && !reusable' not in run:
+    vts = ('st == 0 ? 59 : st == 1 ? 55 : -1', 'st == 0 ? 59 : st == 1 ? (direct ? 55 : 59) : -1')   # 0.22.62: vt 59 from on
+    if not any(v in run for v in vts) or 'if (st == 2) {' not in run or 'PzSwUsed(inst) && !reusable' not in run:
         problems.append('TruMenu.cpp: RunPzPull must use vt 59 (off) / 55 (on) and refuse disabled / used switches')
     hook = re.sub(r'//[^\n]*', '', fn_body(src, 'void __cdecl FlHook('))
     if hook.count('g_flOrig(m);') != 1 or re.search(r'\*reinterpret_cast<volatile [A-Za-z]+ \*>\([^)]*\) =(?!=)', hook):
@@ -8386,6 +8411,10 @@ def main(argv):
     for p in cproblems61: print('Q02261 %s' % p)
     if not cproblems61: print('ok: 0.22.61 %s' % csummary61)
     problems += cproblems61
+    cproblems62, csummary62 = check_02262()   # 0.22.62 (fix build S1 after the live test 18.11.)
+    for p in cproblems62: print('Q02262 %s' % p)
+    if not cproblems62: print('ok: 0.22.62 %s' % csummary62)
+    problems += cproblems62
     cproblems27, csummary27 = check_02227(ini_path, opt.get('--switches', SWITCHES))   # 0.22.27
     for p in cproblems27: print('Q02227 %s' % p)
     if not cproblems27: print('ok: 0.22.27 %s' % csummary27)

@@ -2928,6 +2928,25 @@ Reihenfolge fest (Flacker-Test)".
   combos as set now (e.g. `LB + View = weiter . RB + View = 1 Bild . LB + RB + View = Foto`), built from the INI values,
   so it follows any change.
 
+## 0.22.62 - fix build after the live test of 18.11. (2026-11-19)
+
+Package S1 (live test 18.11.). Not installed.
+
+- **(a) `puzzle.pull` with the lever also at the villa:** live 18.11. vt 59 (request the on reaction) at the chapel
+  switch 4819 moved the lever and ran the action without Lara's animation; vt 55 at the villa switches 4617 / 4525
+  (+32 = 0 = "on" before and after) opened the door but left the lever up and bit 0x200 at 0. Now vt 59 from off **and
+  from on**; `puzzle.pull <intro> action` keeps the 0.22.59 direct action (vt 55, only from on) for a comparison. The
+  check after (log) now also follows the switch's own node (the lever) and says when vt 59 from on changed nothing
+  (ENGINE §9 reads vt 58 / 59 as acting only from on / off - the live test decides; no other path is tried by itself).
+
+### TO TEST 0.22.62
+
+| # | Where | Do | Expected |
+|---|---|---|---|
+| a1 | villa, switch 4617 (clock) | Raetsel -> `Schalter betaetigen` right 2x | log `-> vt 59 (request the on reaction from on ...)`, then `check after 6 s (vt 59 from on)`: lever node changes, bit 0x200 0 -> 1, secret door 4528 opens; or the line `vt 59 from on changed nothing` |
+| a2 | villa, switch 4525 | the same | house door 4520 open, lever down, bit 0x200 1 (or the "changed nothing" line) |
+| a3 | after a "changed nothing" line | TruLink `menu puzzle.pull 4617 action` | the 0.22.59 path (door opens, lever stays up) |
+
 ## 0.22.61 - Thor pillar floor areas (2026-11-18)
 
 Package R1c point 1 (ENGINE §9 "Thor pillar floor positions (R8b)"). Not installed.

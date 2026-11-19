@@ -7494,6 +7494,66 @@ def check_02258():
                      'safe-ground chapter, DLC row) + costume 857 (fix A, DoppelLive %d byte checks)' % (len(cr), len(dg))
 
 
+def check_02265():
+    """0.22.65 (package S5, evidence instead of guesses): (1) kVersion starts with 0.22.65; log.perch default on, read
+    only (no write in its section), the record set 826 / 840 / 841 / 849 / 860..867 + states 420 / 603, the DROP
+    threshold 100, PchTick once per game frame; (2) Thor obstacle extents + floor ray kinds, [Cam] geometry / water
+    readers read only; README section"""
+    problems = []
+    done = []
+    src = read_cpp()
+    ver = src[:src.find('\n', src.find('kVersion = '))]
+    if '"TruMenu 0.22.65 (build S5' not in ver and ' - 0.22.65 (build S5' not in ver:
+        problems.append('TruMenu.cpp: kVersion must start with "TruMenu 0.22.65 (build S5 ..."')
+    at = src.find('// ---- 0.22.65 (package S5 1) [Perch] log')
+    end = src.find('\nvoid MdTick() {', at)
+    part = src[at:end] if at >= 0 and end > at else ''
+    if not part:
+        problems.append('TruMenu.cpp: section "0.22.65 (package S5 1) [Perch] log" before MdTick missing')
+    for bad in ('WriteBytes', 'WriteDword', 'WriteFloat', 'VirtualProtect'):
+        if bad in part:
+            problems.append('TruMenu.cpp: the [Perch] section must only read (found %s)' % bad)
+    if 'volatile LONG g_pchOn = 1;' not in part:
+        problems.append('TruMenu.cpp: log.perch must default to on (g_pchOn = 1)')
+    act = fn_body(src, 'bool PchActive(')
+    if 'idx == 826 || idx == 840 || idx == 841 || idx == 849 || (idx >= 860 && idx <= 867)' not in act or \
+            'PchRecHas(rec, 420, 603)' not in act:
+        problems.append('TruMenu.cpp: PchActive must take records 826 / 840 / 841 / 849 / 860..867 and states 420 / 603 (R9 2.1)')
+    tick = fn_body(src, 'void PchTick(')
+    if 'fabsf(dz) > 100.0f' not in tick or '[Perch] DROP' not in tick or 'PchDiff(' not in tick:
+        problems.append('TruMenu.cpp: PchTick must log DROP with the field diffs on > 100 units z in one frame')
+    box = fn_body(src, 'void PchBoxText(')
+    if 't + 0xc94' not in box or 'flags & 0x20000' not in box or 'flags & 0x10' not in box or 'ROTATED' not in box:
+        problems.append('TruMenu.cpp: PchBoxText must show the box gt+0xc94, PERCH 0x20000 / PILLAR 0x10 and the matrix rotation')
+    if 'PchTick(copy.sThumbLX, copy.sThumbLY);' not in fn_body(src, 'DWORD WINAPI PadHook('):
+        problems.append('TruMenu.cpp: PadHook must run PchTick once per game frame')
+    if '{"log.perch", "bool",' not in src:
+        problems.append('TruMenu.cpp: item log.perch missing')
+    lara = src[src.find('const QbRow kQbLara[] = {'):src.find('const QbRow kQbDebug[] = {')]
+    if '"log.perch", "", kQbBool' not in lara:
+        problems.append('TruMenu.cpp: bar row log.perch missing on kQbLara')
+    done.append('1 log.perch')
+    ext = fn_body(src, 'void ThObsExtent(')
+    if 'MdProbe(a, o.pos, hit, 0, words)' not in ext or 'default 100' not in ext:
+        problems.append('TruMenu.cpp: ThObsExtent must measure by queries and fall back to "default 100"')
+    fin = fn_body(src, 'void ThFinish(')
+    if 'floor rays:' not in fin or 's.hitKind[i]' not in fin:
+        problems.append('TruMenu.cpp: ThFinish must summarise the floor ray kinds in the [Thor] areas line')
+    geo = fn_body(src, 'void CnwGeoTick(')
+    if not geo or 'WriteBytes' in geo or 'kCnwCam + 0x150' not in geo or 'CnwWaterNow(' not in geo:
+        problems.append('TruMenu.cpp: CnwGeoTick must read cam+0x150 and the water state only')
+    wat = fn_body(src, 'int CnwWaterNow(')
+    if 't + 0x8dc' not in wat or 't + 0x8e0' not in wat:
+        problems.append('TruMenu.cpp: CnwWaterNow must read gt+0x8dc / gt+0x8e0 (0x5ea200)')
+    if 'if (g_cnwHave == 2) CnwGeoTick(now);' not in fn_body(src, 'void CnwTick('):
+        problems.append('TruMenu.cpp: CnwTick must run CnwGeoTick at level 2 only')
+    done.append('2 Thor / Cam evidence')
+    readme = open(os.path.join(ROOT, 'src', 'asi', 'TruMenu', 'README.md'), encoding='utf-8-sig').read()
+    if '## 0.22.65' not in readme or 'TO TEST 0.22.65' not in readme:
+        problems.append('README.md: section "## 0.22.65" with "TO TEST 0.22.65" missing')
+    return problems, 'build S5 (%s)' % ', '.join(done)
+
+
 def check_02264():
     """0.22.64 (package S4, Befund-S2 "S2b Spielkamera", ENGINE 22): (1) kVersion starts with 0.22.64; cam.nowall: the
     three sites with the game's / the own bytes, the three target checks, written only in CnwTick (game thread, follow
@@ -8633,6 +8693,10 @@ def main(argv):
     for p in cproblems64: print('Q02264 %s' % p)
     if not cproblems64: print('ok: 0.22.64 %s' % csummary64)
     problems += cproblems64
+    cproblems65, csummary65 = check_02265()   # 0.22.65 (build S5, evidence logs)
+    for p in cproblems65: print('Q02265 %s' % p)
+    if not cproblems65: print('ok: 0.22.65 %s' % csummary65)
+    problems += cproblems65
     cproblems27, csummary27 = check_02227(ini_path, opt.get('--switches', SWITCHES))   # 0.22.27
     for p in cproblems27: print('Q02227 %s' % p)
     if not cproblems27: print('ok: 0.22.27 %s' % csummary27)

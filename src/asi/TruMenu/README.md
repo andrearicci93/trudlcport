@@ -2928,6 +2928,43 @@ Reihenfolge fest (Flacker-Test)".
   combos as set now (e.g. `LB + View = weiter . RB + View = 1 Bild . LB + RB + View = Foto`), built from the INI values,
   so it follows any change.
 
+## 0.22.65 - build S5: evidence instead of guesses (2026-11-19)
+
+Package S5 (the owner's rule 19.11.: every open point gets a log line). Read only - no game write. Not installed.
+
+- **(1) `log.perch`** (bool, **default on**, page Figur row "Pfosten-Log (W5 Holzsaeulen)"): `[Perch]` lines while
+  Lara's machine-1 record is one of the perch / post records 826 / 840 / 841 / 849 / 860..867 of the base Lara chart
+  or holds state 420 / 603 (R9 2.1). Per record change (`enter`, `A -> B`, `leave`): time since enter, Lara x y z,
+  yaw (+0x38), pad stick, jump target gt+0xa64, t gt+0xc98 and the attach box gt+0xc94: MarkUp record id / type,
+  markup2 item id / type, flags (0x20000 PERCH = type 13, 0x10 PILLAR = type 15, from 0x5d6f90 / table 0x5d704c),
+  owner instance (intro, name) or "unit markup", the matrix as the getter 0x5be360 returns it (owner bone / the item
+  itself / 0xa038a0) with **ROTATED / straight** (row 2 against world z) and the box's first two live points. Every
+  frame in these records: z jumps more than 100 units in one frame -> `[Perch] DROP` (z before / after, records,
+  stick, yaw, box), the last 8 frames (record, z, yaw, t, box, target, stick) and the changed dwords of gt+0xa00..+0xcff
+  and Lara +0x000..+0x2ff for the two frame steps up to the drop. `leave` closes with frames, yaw first / last, z
+  range and the drop count (M5: standing without stick -> 0 drops). Caps: 4000 lines, 200 drops.
+- **(2a) Thor obstacles:** each obstacle at the build and each new / moved one: name and its extent from four
+  horizontal segment queries from 1000 units out to its centre (object hits, res +0 = 2; "measured" only when a
+  result word names the instance or its body, else marked; no object hit -> "default 100"). Blocking still uses 100.
+- **(2b) Thor floor rays:** the `[Thor] areas` line adds how many cells the terrain query (res +0 = 1) or the object
+  query (res +0 = 2) answered, and up to 6 distinct object result words with the loaded instance they name.
+  `MdProbe` hands out res +0 / +4 / +8 / +0xc (0x493330: kind 1 at 0x49344a, kind 2 at 0x493518).
+- **(2c) `[Cam]` for `cam.nowall 2`:** once a second while the follow camera is current: query Lara + 150 -> camera
+  (cam+0x150); hit or occlusion counter cam+0x1dc >= 1 -> a line with camera / Lara position, cam+0x1d4, the length,
+  counter and water; `camera free again after x s` when it clears. Water as 0x5ea200 reads it: instance gt+0x8dc,
+  level gt+0x8e0 (wave term 0x69da80 only with [[[W+0x2d0]]+0x2ec]+0x7c & 2, not read, marked); a change of
+  below / above is logged on its frame.
+
+### TO TEST 0.22.65
+
+| # | Where | Do | Expected |
+|---|---|---|---|
+| 1a | `dlc_dungeon`, slanted post (2170 / 2174) | land on top, stand without stick, jump off | `[Perch] enter 840/841 ...` with `flags 0x...(PERCH...)`, `matrix item ROTATED 7.00 deg`; `leave ... 0 drop(s)` |
+| 1b | same | land on top, turn with the stick | `[Perch] 841 -> 863 / 865 ...`; if Lara sinks: `[Perch] DROP z 2469.9 -> 2128.3` + frame ring + diff lines |
+| 1c | straight posts 2171 / 2172 | land on top, turn | `matrix item straight 0.00 deg`; DROP or not |
+| 2a | `l3_secretchamber`, `puzzle.thor 1` | build | one `[Thor] obstacle ... extent ...` line per obstacle; areas line ends with `floor rays: ...` |
+| 2b | Figur -> "Kamera: durch Waende", walk at a wall / into water | wait | `[Cam] ... in / behind geometry` once a second, `camera water state above -> below` |
+
 ## 0.22.64 - build S4: the follow camera and walls (2026-11-19)
 
 Package S4 (`docs/Befund-S2-1911.md` section "S2b Spielkamera", ENGINE §22). Not installed.

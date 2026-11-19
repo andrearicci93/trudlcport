@@ -48,6 +48,15 @@ Each is small, evidence-driven, and listed in LINEAGE.md. Examples:
   list - pillory reload hang). Proof + gate (step Fixes): `tools/cellstream_fix.py proof` / `check TREE --pack PACK`
   (also index + 1 < record count of the named unit's streamgroup table). Old trees:
   `tools/cellstream_fix.py fix OUT SRC name.drm ...`.
+* Generalbank (pipeline step `Generalbank`, kit-free): `tools/generalbank_pc_build.py build` (PC patch.000 + the
+  player's TitleUpdate.000 + `docs/data/generalbank_pc.json`), then by default the loading-screen start-list count
+  (`tools/script_word_set.py`, script 6 +0x11b20 182 -> 193, Q10) and, since 2026-11-19 (T1, live-checked 2026-11-17),
+  the title update's dark panel behind the DLC mission screen (`tools/dlc_screen_panel.py build`, script 104;
+  `-NoDlcPanel` leaves it out). Gates: `tools/script_sfi_members.py --scan`, `tools/script_count_gate.py DRM tu: --map
+  10=9,38=37` (every structural count word of a script in the title update's layout = the TU's; three known code counts
+  of script 6 allowed, ENGINE §7.1 "Why count words get lost"), `menu_ring_layout.py --expect-p14`,
+  `menu_quit_slot_check.py --expect f15`, `input_map_tu_fix.py --verify`. Result md5 53f43332... (= the installed
+  file), with `-NoDlcPanel` 219aad62...
 
 ## Stage 3 — shaders and materials (the long tail)
 PC pixel shaders cannot be copied from Xbox microcode, so the Xbox shader libs are **translated**:

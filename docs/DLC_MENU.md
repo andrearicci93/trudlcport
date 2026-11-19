@@ -84,8 +84,9 @@ offset (680, no other offset moves), entry first in the member list and start-fu
 update's order), init = the TU's 240 bytes as u32 values (the three other `uibitmap` inits of the screen are equal
 TU / PC word for word), its 16 property path pointers on the PC screen's own shared path. Self-verify (only script
 104 changes, every old word except the instance size and the two list pointers unchanged, the new init = the TU
-words); the pipeline gates of step Generalbank pass. Pipeline: `Invoke-TruPipeline.ps1 -Step Generalbank -DlcPanel`
-(opt-in until the live test). Not combined with `generalbank_pc_build.py --tailoring` (that rule checks the md5 of
+words); the pipeline gates of step Generalbank pass. Pipeline: step Generalbank adds it by default since 2026-11-19
+(T1, after the live test of 2026-11-17: Xbox-equal, order right; result md5 53f43332... = the installed file),
+`-NoDlcPanel` leaves it out (219aad62...); until then opt-in `-DlcPanel`. Not combined with `generalbank_pc_build.py --tailoring` (that rule checks the md5 of
 script 104 before it). Draw order: kept as on the Xbox, the exe rule (member order, construction order or z) is not
 traced - the live test decides (panel behind the texts, texts not dimmed).
 

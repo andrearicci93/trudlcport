@@ -192,15 +192,18 @@
                (2026-11-17, Q7 / Q10, default) tools\script_word_set.py sets the loading screen's start-list count
                (script 6 +0x11b20) from the PC's 182 to the title update's 193 in place (the ported TU entries 182-192
                were never constructed: black base loading backgrounds; docs Befund-Q7-Ladebild-1711.md); then
-               -DlcPanel (2026-11-17, Q5, opt-in until the live test): tools\dlc_screen_panel.py build adds the title
+               (2026-11-17, Q5; default since 2026-11-19, T1, after the live test of 2026-11-17; -NoDlcPanel leaves it
+               out) tools\dlc_screen_panel.py build adds the title
                update's dark translucent panel (uibitmap member of TU script 134) to mission screen script 104 in place
                (docs\DLC_MENU.md "The panel behind the screen"; other section than the count word, the order of the
                two does not change the result); then the gates script_sfi_members --scan (no script with entries after
-               its start-list count), menu_ring_layout --expect-p14, menu_quit_slot_check --expect f15,
+               its start-list count), script_count_gate (T1: count words of the TU-layout scripts = the TU's, three
+               known code counts of script 6 allowed), menu_ring_layout --expect-p14, menu_quit_slot_check --expect f15,
                input_map_tu_fix --verify
                -> work\rebuild\generalbank_pc\mods\generalbank.drm + build_report.json (-FixesOut DIR:
                DIR\generalbank_pc). Docs: Befund-Generalbank-PC-Basis-1111.md. Not installed by anything yet.
-               md5 of the result: 219aad62... (default), 53f43332... (-DlcPanel); before Q10 810711f1...
+               md5 of the result: 53f43332... (default since T1 = the installed file), 219aad62... (-NoDlcPanel);
+               before Q10 810711f1...
                -GeneralbankKit = the old chain (developer; the source of the knowledge):
                our generalbank.drm alone (after Repair's snapshot): B138's + mission screen style + the title
                update's loading screen (script 6, DLC titles) and hint box (script 10 -> 9), 21 steps with the
@@ -305,7 +308,10 @@ param(
     [ValidateSet('Report', 'Enforce')][string]$ShaderGate = 'Report',
     # step Generalbank: the old chain on B138's generalbank (+ two generic-store converter runs) instead of the PC build
     [switch]$GeneralbankKit,
-    # step Generalbank: + the title update's dark panel behind the DLC mission screen (tools\dlc_screen_panel.py, Q5)
+    # step Generalbank: leave out the title update's dark panel behind the DLC mission screen (tools\dlc_screen_panel.py,
+    # Q5; added by default since 2026-11-19, T1)
+    [switch]$NoDlcPanel,
+    # obsolete since 2026-11-19 (T1): the panel is the default; kept so older command lines still run (no effect)
     [switch]$DlcPanel,
     # player-path access guard (plan Spielerweg P0): Off / Report (log only) / Enforce; -Player = Enforce
     [ValidateSet('Off', 'Report', 'Enforce')][string]$PlayerMode = 'Off',
@@ -381,11 +387,12 @@ if ($FixesOut) {
 $exeOut = if ($FixesOut) { "$fixRoot/exe" } else { 'work/rebuild/exe' }
 # step Generalbank (2026-11-11): our generalbank.drm from the PC patch.000 original + recorded knowledge + ring P14
 $gbPcOut = if ($FixesOut) { "$fixRoot/generalbank_pc" } else { 'work/rebuild/generalbank_pc' }
-# -DlcPanel (2026-11-17, Q5): the title update's dark panel behind the DLC mission screen, added in place to the
-# Generalbank result (tools\dlc_screen_panel.py; opt-in until the live test); runs after the default script 6 count
-# fix and before the gates (Q10: both orders give the same file, only script 104 + one word of script 6 change)
+# DLC panel (2026-11-17, Q5): the title update's dark panel behind the DLC mission screen, added in place to the
+# Generalbank result (tools\dlc_screen_panel.py; default since 2026-11-19, T1, after the live test of 2026-11-17,
+# -NoDlcPanel leaves it out); runs after the default script 6 count fix and before the gates (Q10: both orders give
+# the same file, only script 104 + one word of script 6 change)
 $gbPanel = @()
-if ($DlcPanel) { $gbPanel = ,@('tools\dlc_screen_panel.py', 'build', "$gbPcOut/mods/generalbank.drm", "$gbPcOut/mods/generalbank.drm") }
+if (!$NoDlcPanel) { $gbPanel = ,@('tools\dlc_screen_panel.py', 'build', "$gbPcOut/mods/generalbank.drm", "$gbPcOut/mods/generalbank.drm") }
 # step Globalsound (2026-11-10): our globalsoundinfo.drm from the PC original + the recorded title-update edit
 $gsOut = if ($FixesOut) { "$fixRoot/globalsound" } else { 'work/rebuild/globalsound' }
 # step Lang (2026-11-11, R10): the 60 language variants of the DLC cinematics / DLC 1 radio lines
@@ -653,6 +660,12 @@ $steps = @{
     ) + $gbPanel + @(
         # gate: no script of the result has start-list entries after its count (exit 1 on a finding)
         @('tools\script_sfi_members.py', '--scan', "$gbPcOut/mods/generalbank.drm"),
+        # gate (2026-11-19, T1): every structural count word of the scripts that keep the title update's layout = the
+        # TU count (exit 1 otherwise; it finds the old 182). Allowed: the three code counts of script 6 (f3 / f5 /
+        # f19: 117 / 1044 / 269, TU 120 / 1115 / 284) that script_init_from_pc copied from the PC in the kit chain -
+        # in every played file since test 38, open until a live test (docs\Befund-T1-1911.md, workspace)
+        @('tools\script_count_gate.py', "$gbPcOut/mods/generalbank.drm", 'tu:', '--map', '10=9,38=37', '--allow',
+          '6:7920,6:8550,6:2460', '--report', "$gbPcOut/count_gate.json"),
         @('tools\menu_ring_layout.py', "$gbPcOut/mods/generalbank.drm", '--expect-p14'),
         @('tools\menu_quit_slot_check.py', "$gbPcOut/mods/generalbank.drm", '--expect', 'f15'),
         @('tools\input_map_tu_fix.py', '--verify', "$gbPcOut/mods/generalbank.drm", '--report', "$gbPcOut/input_map_check.json")

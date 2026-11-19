@@ -2957,7 +2957,8 @@ Package T2 (R1 (6) and R1 (2) of `docs/Pakete-1811.md`). Not installed (0.22.65 
 
 ## 0.22.65 - build S5: evidence instead of guesses (2026-11-19)
 
-Package S5 (the owner's rule 19.11.: every open point gets a log line). Read only - no game write. Not installed.
+Package S5 (the owner's rule 19.11.: every open point gets a log line). Read only - no game write. Installed
+2026-11-19 (holds 0.22.62 - 0.22.64); live results of that evening below each TO TEST table 0.22.62 - 0.22.65.
 
 - **(1) `log.perch`** (bool, **default on**, page Figur row "Pfosten-Log (W5 Holzsaeulen)"): `[Perch]` lines while
   Lara's machine-1 record is one of the perch / post records 826 / 840 / 841 / 849 / 860..867 of the base Lara chart
@@ -2992,9 +2993,16 @@ Package S5 (the owner's rule 19.11.: every open point gets a log line). Read onl
 | 2a | `l3_secretchamber`, `puzzle.thor 1` | build | one `[Thor] obstacle ... extent ...` line per obstacle; areas line ends with `floor rays: ...` |
 | 2b | Figur -> "Kamera: durch Waende", walk at a wall / into water | wait | `[Cam] ... in / behind geometry` once a second, `camera water state above -> below` |
 
+Live 2026-11-19: **1b** caught once (`[Perch] DROP` -341.6 on 841 -> 865, pillar markup #2175 active, climb end 1191
+-> 846); about ten more tries went 1191 -> 827 without a drop (ENGINE §14 "Perch drop on the slanted posts (W5)").
+**1a** standing still: no drop. **1c** not tried. **2a** obstacle lines ok; the floor stones are terrain (2925 terrain /
+53 object rays), so they are no obstacles. **2b** `[Cam]` lines ok (camera behind the wall for 45 s); the jerk on
+stick input is not in the once-a-second line.
+
 ## 0.22.64 - build S4: the follow camera and walls (2026-11-19)
 
-Package S4 (`docs/Befund-S2-1911.md` section "S2b Spielkamera", ENGINE §22). Not installed.
+Package S4 (`docs/Befund-S2-1911.md` section "S2b Spielkamera", ENGINE §22). Not installed on its own; part of 0.22.65
+(installed 2026-11-19).
 
 - **(1) `cam.nowall 0|1|2`** (default 0, page Figur, group "Kamera hinter Lara"; no argument = the next level): the
   follow camera LaraCameraRewrite (0xe83860) keeps itself out of walls in 0x600200 by sliding (block A), a move after
@@ -3017,9 +3025,13 @@ Package S4 (`docs/Befund-S2-1911.md` section "S2b Spielkamera", ENGINE §22). No
 | 1c | same | "Kamera: wie im Spiel" | `2 -> 0: 3 site(s) written`; camera as before (may jump to its distance) |
 | 1d | photo mode / a cutscene | switch level | `current camera ... is not the follow camera - kept`, written once the follow camera is back |
 
+Live 2026-11-19 (villa corridor): **1b** holds while Lara stands (distance 1264.2 for 45 s), but on every stick move
+the camera first moves in towards Lara, then goes back through the wall - a turn / orbit path still pulls it in (next
+build: per-frame `[Cam]` during stick input, then that path).
+
 ## 0.22.63 - build S3 after the analysis S2 (2026-11-19)
 
-Package S3 (`docs/Befund-S2-1911.md` in the workspace). Not installed.
+Package S3 (`docs/Befund-S2-1911.md` in the workspace). Not installed on its own; part of 0.22.65 (installed 2026-11-19).
 
 - **(1) villa switches, corrects 0.22.62 (a):** S2 found vt 59 = switch base 3637 f7 acts only at +32 == +16 ("off");
   from "on" the static lever path is **vt 58** = f6 ("invoking OFF reaction", only at +32 == +20, then
@@ -3079,9 +3091,17 @@ Package S3 (`docs/Befund-S2-1911.md` in the workspace). Not installed.
 | 5b | same | `puzzle.thorloose 1` | thin relaxed outlines appear; state / arrow unchanged |
 | 5c | same | push a loose stone / break a breakable | `[Thor] obstacle ... moved / gone`, areas rebuilt round it; grey crosses |
 
+Live 2026-11-19: **1a** two presses needed - the first (vt 58 from on) lifts the lever and leaves the door shut, the
+second (vt 59 from off) sets bit 0x200 and opens door 4528 (4525: house door 4520); **1b** not needed any more.
+**2a** ok (`fall flag max 0`). **3a** fail: poses 1-5 requested, bit 0x1000 set and back, nothing visible; the pose row
+is greyed outside photo mode. **3b** ok (a third state "outline" is wished). **3c / 3d** not tried. **4a / 4b** ok
+(one `[Push] start` with state 1477 per push). **5a** galleries right (exit 1, A 4643, B 4644), strict areas small
+(8 / 10 / 14 / 23 cells) but not reachable for the pillar; proven pillar spots exit -11986 / 2484 (area shown 14.8 m
+off) and artifact via a ring -10625 / 3940. **5b** ok. **5c** not tried.
+
 ## 0.22.62 - fix build after the live test of 18.11. (2026-11-19)
 
-Package S1 (live test 18.11.). Not installed.
+Package S1 (live test 18.11.). Not installed on its own; part of 0.22.65 (installed 2026-11-19).
 
 - **(a) `puzzle.pull` with the lever also at the villa:** live 18.11. vt 59 (request the on reaction) at the chapel
   switch 4819 moved the lever and ran the action without Lara's animation; vt 55 at the villa switches 4617 / 4525
@@ -3156,6 +3176,13 @@ Package S1 (live test 18.11.). Not installed.
 | g1 | chapel, fire lit, centre plate down, a figure off target | Raetsel -> switch -> `Figur aufs Ziel` right 2x | log `puzzle.pullto <id>: ... needs n pull(s)`, `pull 1 ..`, .. `figure on its target`; the figure stands on its target |
 | g2 | same, centre plate up | the same row | row shows "gesperrt"; TruLink `menu puzzle.pullto <id>` -> refused "locked" |
 | e1 | walk, land, restart | log at LogLevel 1 | no `[Jump] drop via=0x766b4f` / `0x71b519` lines; a pole take-off shows `pole take-off`, followed by `flight follows the v = 0 call` |
+
+Live 2026-11-19 (0.22.65): **a1 / a2** superseded by 0.22.63 1a (two presses). **d1** the arc now takes the real
+velocity (beam jump launch 0x752ea6, v = (0, -74.32, 42.54)). **d2 / d3** fail on the chapel beam: the preview showed
+jump kind 66 / 67 (a step-down, straight down onto the edges below), the real jump was the forward jump, 128 deg off
+Lara's facing; "you land ... 8.7 m off" breaks the 300-unit rule (display fault). The fall-height box showed "on the
+ground" in that flight (record 294 is not in the air list). **e1** the pole take-off line 0x71f6e4 also comes about
+every 40 ms while Lara pulls on the grapple; wall back-jumps give no launch line at all. Not tried: b, c, d4, f, g.
 
 ## 0.22.61 - Thor pillar floor areas (2026-11-18)
 

@@ -2928,6 +2928,31 @@ Reihenfolge fest (Flacker-Test)".
   combos as set now (e.g. `LB + View = weiter . RB + View = 1 Bild . LB + RB + View = Foto`), built from the INI values,
   so it follows any change.
 
+## 0.22.64 - build S4: the follow camera and walls (2026-11-19)
+
+Package S4 (`docs/Befund-S2-1911.md` section "S2b Spielkamera", ENGINE §22). Not installed.
+
+- **(1) `cam.nowall 0|1|2`** (default 0, page Figur, group "Kamera hinter Lara"; no argument = the next level): the
+  follow camera LaraCameraRewrite (0xe83860) keeps itself out of walls in 0x600200 by sliding (block A), a move after
+  5 occluded frames (block B) and pulling its distance cam+0x1d4 in (block C). **1 = no pull-in:** 0x600598
+  `0f845f010000` -> `e96001000090` (block C skipped; it still slides along walls). **2 = through walls:** also
+  0x60037c `0f842c010000` -> `e92d01000090` (always the hint path = the wanted place directly) and 0x6004e3
+  `0f85a8000000` -> `e9a900000090` (block B never). Byte checks first: the three sites (game bytes or the own patch)
+  and 0x6004ae `8b4c2420`, 0x6006fd `5f5e5b`, 0x600754 `e8a7faffff`. Written on the game thread only, and only while
+  the current camera `[0xe804f0+0x44]` is 0xe83860 (else kept and done on a later frame); back = the old 6 bytes only
+  where the own patch stands. One log line per change with cam+0x1d4 before and 0.5 s after. Not touched: combat
+  camera, cutscenes, free camera, camera hint volumes. Risks (S2b): view into the next room / void behind walls,
+  Lara hidden behind geometry; on switching back the camera jumps to its old distance.
+
+### TO TEST 0.22.64
+
+| # | Where | Do | Expected |
+|---|---|---|---|
+| 1a | start, a level | Figur -> "Kamera: nicht heranziehen" | log `6 byte checks ok`, `cam.nowall 0 -> 1: 1 site(s) written ... distance`; at a wall behind Lara the camera no longer moves in close |
+| 1b | same | "Kamera: durch Waende" | `1 -> 2: 2 site(s) written`; the camera stays at its distance inside / behind the wall |
+| 1c | same | "Kamera: wie im Spiel" | `2 -> 0: 3 site(s) written`; camera as before (may jump to its distance) |
+| 1d | photo mode / a cutscene | switch level | `current camera ... is not the follow camera - kept`, written once the follow camera is back |
+
 ## 0.22.63 - build S3 after the analysis S2 (2026-11-19)
 
 Package S3 (`docs/Befund-S2-1911.md` in the workspace). Not installed.

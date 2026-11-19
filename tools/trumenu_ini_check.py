@@ -7494,6 +7494,49 @@ def check_02258():
                      'safe-ground chapter, DLC row) + costume 857 (fix A, DoppelLive %d byte checks)' % (len(cr), len(dg))
 
 
+def check_02264():
+    """0.22.64 (package S4, Befund-S2 "S2b Spielkamera", ENGINE 22): (1) kVersion starts with 0.22.64; cam.nowall: the
+    three sites with the game's / the own bytes, the three target checks, written only in CnwTick (game thread, follow
+    camera current), item + bar rows; README section"""
+    problems = []
+    done = []
+    src = read_cpp()
+    ver = src[:src.find('\n', src.find('kVersion = '))]
+    if '"TruMenu 0.22.64 (build S4' not in ver and ' - 0.22.64 (build S4' not in ver:
+        problems.append('TruMenu.cpp: kVersion must start with "TruMenu 0.22.64 (build S4 ..."')
+    at = src.find('const CnwSite kCnwSites[3] = {')
+    part = src[at:src.find('};', at)] if at >= 0 else ''
+    sites = re.findall(r'\{0x([0-9a-f]{8}), \{([^}]*)\}, \{([^}]*)\}, (\d)\}', part)
+    hexs = {a: (o.replace('0x', '').replace(', ', ''), p.replace('0x', '').replace(', ', ''), lv) for a, o, p, lv in sites}
+    want = {'00600598': ('0f845f010000', 'e96001000090', '1'), '0060037c': ('0f842c010000', 'e92d01000090', '2'),
+            '006004e3': ('0f85a8000000', 'e9a900000090', '2')}
+    if hexs != want:
+        problems.append('TruMenu.cpp: kCnwSites must be the three sites of Befund-S2 S2b (got %s)' % hexs)
+    at = src.find('const ChCheck kCnwTargets[] = {')
+    part = src[at:src.find('};', at)] if at >= 0 else ''
+    rows = {a: h.replace(' ', '') for a, h in re.findall(r'\{0x([0-9a-f]{8}), "([0-9a-f ]+)"\}', part)}
+    if rows != {'006004ae': '8b4c2420', '006006fd': '5f5e5b', '00600754': 'e8a7faffff'}:
+        problems.append('TruMenu.cpp: kCnwTargets must be 0x6004ae / 0x6006fd / 0x600754 (got %s)' % rows)
+    tick = fn_body(src, 'void CnwTick(')
+    if 'cur != kCnwCam' not in tick or 'WriteBytes(s.at, to, 6)' not in tick or 'memcmp(b, from, 6)' not in tick:
+        problems.append('TruMenu.cpp: CnwTick must write only with the follow camera current and only over the expected bytes')
+    if 'WriteBytes' in fn_body(src, 'bool RunCamNoWall('):
+        problems.append('TruMenu.cpp: RunCamNoWall must not write (game thread only)')
+    if 'CnwTick();' not in fn_body(src, 'DWORD WINAPI PadHook('):
+        problems.append('TruMenu.cpp: PadHook must run CnwTick once per game frame')
+    if '{"cam.nowall", "action",' not in src:
+        problems.append('TruMenu.cpp: item cam.nowall missing')
+    lara = src[src.find('const QbRow kQbLara[] = {'):src.find('const QbRow kQbDebug[] = {')]
+    for arg in ('0', '1', '2'):
+        if '"cam.nowall", "%s", kQbAction' % arg not in lara:
+            problems.append('TruMenu.cpp: bar row cam.nowall %s missing on kQbLara' % arg)
+    done.append('1 cam.nowall')
+    readme = open(os.path.join(ROOT, 'src', 'asi', 'TruMenu', 'README.md'), encoding='utf-8-sig').read()
+    if '## 0.22.64' not in readme or 'TO TEST 0.22.64' not in readme:
+        problems.append('README.md: section "## 0.22.64" with "TO TEST 0.22.64" missing')
+    return problems, 'build S4 (%s)' % ', '.join(done)
+
+
 def check_02263():
     """0.22.63 (package S3 after the analysis S2, docs Befund-S2-1911.md): (1) kVersion starts with 0.22.63; puzzle.pull
     from on = vt 58, lever / off / action; README section"""
@@ -8586,6 +8629,10 @@ def main(argv):
     for p in cproblems63: print('Q02263 %s' % p)
     if not cproblems63: print('ok: 0.22.63 %s' % csummary63)
     problems += cproblems63
+    cproblems64, csummary64 = check_02264()   # 0.22.64 (build S4, follow camera)
+    for p in cproblems64: print('Q02264 %s' % p)
+    if not cproblems64: print('ok: 0.22.64 %s' % csummary64)
+    problems += cproblems64
     cproblems27, csummary27 = check_02227(ini_path, opt.get('--switches', SWITCHES))   # 0.22.27
     for p in cproblems27: print('Q02227 %s' % p)
     if not cproblems27: print('ok: 0.22.27 %s' % csummary27)

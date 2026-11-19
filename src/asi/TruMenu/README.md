@@ -2958,6 +2958,18 @@ Package S3 (`docs/Befund-S2-1911.md` in the workspace). Not installed.
   `[0xfae504]` (condition 1476) -> its instance `+0x148` (unproven 🔶) is compared with the 0.22.62 kind filter (same
   instance or same multibody): a `[Push] filter:` line when they disagree; started when either says yes. Byte checks
   `0x7306d9 8b0d04e5fa00` and the state table entry at `0x8b1c24`; failed = the 0.22.62 kind filter alone.
+- **(5) Thor pillar areas** (S2 section 6): **strict** = the first floor hit within **6 units** over the whole 552 disc
+  (was 20; 0.22.61 also took the relaxed cells for state / arrow / log) - areas, "im Bereich / x m daneben", arrow
+  and `[Thor]` lines from strict cells only; the relaxed cells (<= 130) only as thin lines with **`puzzle.thorloose`**
+  (default off, page Kapitel "Raetsel-Anzeigen"). **Obstacles:** instances of the pillar's unit (intro record in the
+  unit's intro array) with a physics body / multibody or named `ma_ei_breakable_*`, not hidden, not Lara, not the
+  pillar, within 400 units of the floor height (grey crosses); a cell is blocked when one lies closer than 552 + 100
+  (radius unproven) to its centre; every second a moved (> 20 u), new or gone obstacle re-queries the cells within 700
+  units and the areas are rebuilt (`[Thor] obstacle ...` lines). **Artifacts** from the unit's intro list (object
+  name `ma_rw_artifact`, also unborn = "(gefunden?)"), live position = data + the unit's offset measured at run time
+  from born trigger instances (`inst+0x20 - [inst+0x100]+0x10`, logged, S2 expects about (17209, 8, 2069)). **Open
+  ledges chained into galleries** (end points < 300 flat, < 100 height); a gallery within 1500 units of an artifact is
+  that artifact's, of the rest the one nearest a trigger of the unit is the **exit**, other open galleries no target.
 
 ### TO TEST 0.22.63
 
@@ -2974,6 +2986,9 @@ Package S3 (`docs/Befund-S2-1911.md` in the workspace). Not installed.
 | 4a | start | log | `0.22.63 [Push] state 1477: 2 byte checks ok` |
 | 4b | secret chamber | push the Thor pillar | one `[Push] start`, `gate: Lara in state 1477 ..., pushed instance 0x.. = this object`; a `[Push] filter:` line = report it |
 | 4c | fight with debris | walk through moving debris | no `[Push]` lines |
+| 5a | secret chamber, `puzzle.thor 1` | log | `[Thor] unit offset data -> live ...` (about 17209 / 8 / 2069?), `artifact A / B: intro ...`, `build: ... in n open galler(ies): exit 1 ...`, `areas (strict cells ...)` - far fewer red cells than 18.11. |
+| 5b | same | `puzzle.thorloose 1` | thin relaxed outlines appear; state / arrow unchanged |
+| 5c | same | push a loose stone / break a breakable | `[Thor] obstacle ... moved / gone`, areas rebuilt round it; grey crosses |
 
 ## 0.22.62 - fix build after the live test of 18.11. (2026-11-19)
 

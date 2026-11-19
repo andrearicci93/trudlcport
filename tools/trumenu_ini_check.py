@@ -7500,6 +7500,10 @@ def check_02263():
     problems = []
     done = []
     src = read_cpp()
+
+    def rows_in(table_name):
+        at = src.find('const QbRow %s[] = {' % table_name)
+        return src[at:src.find('\n};', at)] if at >= 0 else ''
     ver = src[:src.find('\n', src.find('kVersion = '))]
     if '"TruMenu 0.22.63 (build S3' not in ver and ' - 0.22.63 (build S3' not in ver:
         problems.append('TruMenu.cpp: kVersion must start with "TruMenu 0.22.63 (build S3 ..."')
@@ -7552,6 +7556,23 @@ def check_02263():
             'if (match != kindOk)' not in objt:
         problems.append('TruMenu.cpp: MdObjTick: [Push] only in state 1477, pushed instance logged against the kind filter')
     done.append('4 push 1477')
+    # (5) Thor: strict 6 units for areas / state, relaxed only drawn with puzzle.thorloose, obstacles, artifacts from the
+    # unit intro list with the measured offset, galleries chained
+    tick5 = fn_body(src, 'void ThTick(')
+    if tick5.count('f = dz <= 6.0f ? 1 : dz <= 130.0f ? 2 : 0;') != 2 or 'ThObsTick(s, now);' not in tick5:
+        problems.append('TruMenu.cpp: ThTick: strict |dz| <= 6 in both probe passes, ThObsTick')
+    if 's.inRelaxed' in fn_body(src, 'int ThPillarState('):
+        problems.append('TruMenu.cpp: ThPillarState must use the strict cells only')
+    if 'stone = ox * ox + oy * oy < 652.0f * 652.0f;' not in fn_body(src, 'void ThFinish('):
+        problems.append('TruMenu.cpp: ThFinish must block cells near obstacles (552 + 100)')
+    if 'ReadFloats(rec + 0x10, data, 3)' not in fn_body(src, 'void ThOffset(') or \
+            'PzNameHas(name, "ma_rw_artifact")' not in fn_body(src, 'void ThArtifacts('):
+        problems.append('TruMenu.cpp: artifacts from the unit intro list with the measured data -> live offset')
+    if 'joined = dx * dx + dy * dy < 300.0f * 300.0f && fabsf(pa[2] - pb[2]) < 100.0f;' not in fn_body(src, 'bool ThStart('):
+        problems.append('TruMenu.cpp: ThStart must chain open ledges into galleries')
+    if '{"puzzle.thorloose", "bool",' not in src or '"puzzle.thorloose"' not in rows_in('kQbChapters'):
+        problems.append('TruMenu.cpp: item / bar row puzzle.thorloose missing')
+    done.append('5 thor')
     readme = open(os.path.join(ROOT, 'src', 'asi', 'TruMenu', 'README.md'), encoding='utf-8-sig').read()
     if '## 0.22.63' not in readme or 'TO TEST 0.22.63' not in readme:
         problems.append('README.md: section "## 0.22.63" with "TO TEST 0.22.63" missing')

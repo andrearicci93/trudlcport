@@ -2938,6 +2938,11 @@ Package S1 (live test 18.11.). Not installed.
   from on**; `puzzle.pull <intro> action` keeps the 0.22.59 direct action (vt 55, only from on) for a comparison. The
   check after (log) now also follows the switch's own node (the lever) and says when vt 59 from on changed nothing
   (ENGINE §9 reads vt 58 / 59 as acting only from on / off - the live test decides; no other path is tried by itself).
+- **(b) Hinweise / Aktionen:** live 18.11. help level 1 hid the action rows and they were not found. The level
+  `[Puzzle] Help` (0 / 1 / 2) is replaced by two switches: **`puzzle.hints`** (`[Puzzle] Hints`, default 1) and
+  **`puzzle.actions`** (`[Puzzle] Actions`, default 1), two rows "Hinweise" / "Aktionen (Cheats)" at the top of
+  "Raetsel in der Naehe" (right 2x = toggle). An INI without the two keys still reads `Help` (0 = both off, 1 = hints,
+  2 = both); `puzzle.help 0|1|2` still sets both.
 
 ### TO TEST 0.22.62
 
@@ -2946,6 +2951,8 @@ Package S1 (live test 18.11.). Not installed.
 | a1 | villa, switch 4617 (clock) | Raetsel -> `Schalter betaetigen` right 2x | log `-> vt 59 (request the on reaction from on ...)`, then `check after 6 s (vt 59 from on)`: lever node changes, bit 0x200 0 -> 1, secret door 4528 opens; or the line `vt 59 from on changed nothing` |
 | a2 | villa, switch 4525 | the same | house door 4520 open, lever down, bit 0x200 1 (or the "changed nothing" line) |
 | a3 | after a "changed nothing" line | TruLink `menu puzzle.pull 4617 action` | the 0.22.59 path (door opens, lever stays up) |
+| b1 | Kapitel -> Raetsel in der Naehe | rows "Hinweise" / "Aktionen (Cheats)": Aktionen right 2x | action rows gone, hint lines stay; again = back; `[Puzzle] Actions=0` / `1` written |
+| b2 | same | Hinweise right 2x | hint lines (list + world) gone, action rows stay |
 
 ## 0.22.61 - Thor pillar floor areas (2026-11-18)
 

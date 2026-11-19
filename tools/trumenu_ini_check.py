@@ -5478,12 +5478,12 @@ def check_02244(switches_path):
     # the three [Sonar] keys, 0.22.49 [Sonar] AllFloors + TriangleCap, 0.22.50 the 11 [Sound] keys of W8_KEYS_02250,
     # 0.22.51 the three keys of S5_KEYS_02251, 0.22.53 the six keys of W11_KEYS_02253, 0.22.54 [Sound] ResetAtStart,
     # 0.22.55 [Cheat] FlightKeepOnLoad, 0.22.58 [Chapter] UnitFresh + [Costume] DoppelLive, 0.22.59 [Puzzle] Help + HintFile,
-    # 0.22.61 [Puzzle] ThorGap
+    # 0.22.61 [Puzzle] ThorGap, 0.22.62 [Puzzle] Hints + Actions for Help (net 1)
     if len(opt_rows) != 283 + len(W6_KEYS_02245) + len(W7_KEYS_02247) + len(SO_KEYS_02248) + 2 + len(W8_KEYS_02250) + \
-            len(S5_KEYS_02251) + len(W11_KEYS_02253) + 1 + 1 + 2 + 2 + 1:
+            len(S5_KEYS_02251) + len(W11_KEYS_02253) + 1 + 1 + 2 + 2 + 1 + 1:
         problems.append('TruMenu.cpp: kOpts has %d keys - 0.22.44 adds no INI key (283), 0.22.45 adds %d, 0.22.47 adds %d, '
                         '0.22.48 adds %d, 0.22.49 adds 2, 0.22.50 adds %d, 0.22.51 adds %d, 0.22.53 adds %d, 0.22.54 adds 1, '
-                        '0.22.55 adds 1, 0.22.58 adds 2, 0.22.59 adds 2, 0.22.61 adds 1' % (
+                        '0.22.55 adds 1, 0.22.58 adds 2, 0.22.59 adds 2, 0.22.61 adds 1, 0.22.62 adds 1' % (
                             len(opt_rows), len(W6_KEYS_02245), len(W7_KEYS_02247), len(SO_KEYS_02248), len(W8_KEYS_02250),
                             len(S5_KEYS_02251), len(W11_KEYS_02253)))
     readme = open(os.path.join(ROOT, 'src', 'asi', 'TruMenu', 'README.md'), encoding='utf-8').read()
@@ -7511,6 +7511,20 @@ def check_02262():
     if 'PzTargetState(p.inst, ls, sizeof(ls));' not in tick or 'vt 59 from on changed nothing' not in tick:
         problems.append('TruMenu.cpp: PzPullTick must follow the lever node and log "vt 59 from on changed nothing"')
     done.append('a vt 59')
+    # (b) two switches instead of the level, Help still read
+    header, opt_rows = table(src)
+    d = {(s, k): v for s, k, v, _ in opt_rows}
+    if (d.get(('Puzzle', 'Hints')), d.get(('Puzzle', 'Actions'))) != ('1', '1') or ('Puzzle', 'Help') in d:
+        problems.append('TruMenu.cpp: kOpts [Puzzle] Hints=1 / Actions=1 (no Help row) missing')
+    for item, kind in (('puzzle.hints', 'bool'), ('puzzle.actions', 'bool'), ('puzzle.help', 'int')):
+        if '{"%s", "%s",' % (item, kind) not in src: problems.append('TruMenu.cpp: item %s missing' % item)
+    if 'g_pzHelp' in re.sub(r'//[^\n]*', '', src):
+        problems.append('TruMenu.cpp: g_pzHelp is gone (0.22.62) - use g_pzHints / g_pzActions')
+    if 'GetPrivateProfileIntA("Puzzle", "Help", -1, ini)' not in src:
+        problems.append('TruMenu.cpp: the 0.22.59 key [Puzzle] Help must still be read when Hints / Actions are missing')
+    if '"puzzle.hints" : "puzzle.actions"' not in fn_body(src, 'int QbPzRows('):
+        problems.append('TruMenu.cpp: QbPzRows must show the two rows Hinweise / Aktionen')
+    done.append('b hints / actions')
     readme = open(os.path.join(ROOT, 'src', 'asi', 'TruMenu', 'README.md'), encoding='utf-8-sig').read()
     if '## 0.22.62' not in readme or 'TO TEST 0.22.62' not in readme:
         problems.append('README.md: section "## 0.22.62" with "TO TEST 0.22.62" missing')
@@ -7645,7 +7659,8 @@ def check_02259():
         problems.append('TruMenu.cpp: PzCounterOf opens a closed gate only with exactly one opening record')
     header, opt_rows = table(src)
     d = {(s, k): v for s, k, v, _ in opt_rows}
-    if d.get(('Puzzle', 'Help')) != '2' or d.get(('Puzzle', 'HintFile')) != 'TruMenu.puzzlehints.txt':
+    helped = d.get(('Puzzle', 'Help')) == '2' or (d.get(('Puzzle', 'Hints')), d.get(('Puzzle', 'Actions'))) == ('1', '1')
+    if not helped or d.get(('Puzzle', 'HintFile')) != 'TruMenu.puzzlehints.txt':   # 0.22.62: Help -> Hints + Actions
         problems.append('TruMenu.cpp: kOpts [Puzzle] Help=2 / HintFile=TruMenu.puzzlehints.txt missing')
     info = src[src.find('// ---- 0.22.59 puzzle info'):src.find('// ---- 0.22.59 (R1 point 7) landing log line')]
     if not info or re.search(r'\b(48[0-9]{2}|45[0-9]{2}|46[0-9]{2}|47[0-9]{2})\b', re.sub(r'//[^\n]*', '', info)):

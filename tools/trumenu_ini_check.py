@@ -7580,6 +7580,15 @@ def check_02262():
     if 'MdPushable(o.inst)' not in objt or 'MdLaraAir()' not in objt or 'if (!o.dup) MdObjLine("Push", "end", o);' not in objt:
         problems.append('TruMenu.cpp: MdObjTick: [Push] only for pushable objects, Lara on the ground, multibody once')
     done.append('f paths / push')
+    # (g) Figur aufs Ziel: pulls only through RunPzPull, waits for the figure, stops when locked
+    ptt = fn_body(src, 'void PzPullToTick(')
+    if 'RunPzPull(arg, out, sizeof(out))' not in ptt or 'tlobj::D(lb + 0x80) != 0' not in ptt or 'st == 2' not in ptt:
+        problems.append('TruMenu.cpp: PzPullToTick must pull through RunPzPull, wait for the figure, stop when locked')
+    if re.search(r'0x0057b380|0x00575fb0', re.sub(r'//[^\n]*', '', ptt + fn_body(src, 'bool RunPzTo('))):
+        problems.append('TruMenu.cpp: puzzle.pullto must not call the script path itself (only puzzle.pull)')
+    if '{"puzzle.pullto", "action",' not in src or 'PzPullToTick();' not in fn_body(src, 'void PzGameTick('):
+        problems.append('TruMenu.cpp: item puzzle.pullto / PzPullToTick in PzGameTick missing')
+    done.append('g figure to target')
     readme = open(os.path.join(ROOT, 'src', 'asi', 'TruMenu', 'README.md'), encoding='utf-8-sig').read()
     if '## 0.22.62' not in readme or 'TO TEST 0.22.62' not in readme:
         problems.append('README.md: section "## 0.22.62" with "TO TEST 0.22.62" missing')

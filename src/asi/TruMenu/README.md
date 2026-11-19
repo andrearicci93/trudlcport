@@ -2978,6 +2978,12 @@ Package S1 (live test 18.11.). Not installed.
   no names with chunk / doll / debris / grenade - while Lara is not in the air and within 3 m; of one multibody only the
   first moving part is logged. Lara's own push state is not known yet: the gate is by object kind (marked in the log),
   the `[Push] start` line carries her record for the next build.
+- **(g) "Figur aufs Ziel"** (wish 18.11.): under each chapel wall switch whose ring figure is not on its target a row
+  `Figur aufs Ziel` (right 2x, "n Zuege"); **`puzzle.pullto <switch>|stop`** pulls it the n times one after the other
+  through `puzzle.pull` (vt 59, the game's reaction): the next pull only when the figure stands (uber +0x80 = 0), the
+  switch is back off (or 6 s after the last pull) and 1.5 s have passed; it stops when the figure is on target, the
+  switch is locked (no centre plate, as in the game), a pull is refused, after 8 pulls or 60 s. Each pull and the end
+  in the log (`puzzle.pullto ...`).
 
 ### TO TEST 0.22.62
 
@@ -2996,6 +3002,8 @@ Package S1 (live test 18.11.). Not installed.
 | d4 | beam <-> platform | `jump.catch 1` | cyan tubes round the nearby ledges / poles |
 | f1 | fight (thrall panther, grenades), `trace.arcs 1` | wait after a throw / a kill | light blue paths fade out ~3 s after the rest; no `[Push]` lines for chunks |
 | f2 | secret chamber | push the Thor pillar | one `[Push] start` (not two), the gate line, `lara rec=` = her push record (note it) |
+| g1 | chapel, fire lit, centre plate down, a figure off target | Raetsel -> switch -> `Figur aufs Ziel` right 2x | log `puzzle.pullto <id>: ... needs n pull(s)`, `pull 1 ..`, .. `figure on its target`; the figure stands on its target |
+| g2 | same, centre plate up | the same row | row shows "gesperrt"; TruLink `menu puzzle.pullto <id>` -> refused "locked" |
 | e1 | walk, land, restart | log at LogLevel 1 | no `[Jump] drop via=0x766b4f` / `0x71b519` lines; a pole take-off shows `pole take-off`, followed by `flight follows the v = 0 call` |
 
 ## 0.22.61 - Thor pillar floor areas (2026-11-18)

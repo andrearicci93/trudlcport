@@ -1,0 +1,33 @@
+native_extract v3 | mods=C:\Program Files (x86)\Steam\steamapps\common\Tomb Raider Underworld\mods
+DRM read: 294 (unreadable: 0)   unique shaders: 3110   new PS 954  new VS 0  PC PS 1593  PC VS 563   texture combos: 103
+PC reference tables: yes (5594 md5, 162 forms)
+Static findings (the D3D9 runtime will very likely reject ABS_CONST and SINCOS_SAME):
+  ABS_CONST       0 blobs (0 in new shaders)
+  SINCOS_SAME     0 blobs (0 in new shaders)
+  LONG          202 blobs (202 in new shaders)
+      lib 2877 slot 2 new_ps_2877_2_79013dfe.bin | instr 60: rsq r17.x, |r5.z| | from co_dlc2_uo_natlapod_broken.drm, co_natla_pod.drm, dlc2_uo_capsuleadren_switch.drm
+      lib 2877 slot 3 new_ps_2877_3_3cf0ce2a.bin | instr 60: rsq r16.x, |r5.z| | from co_dlc2_uo_natlapod_broken.drm, co_natla_pod.drm, dlc2_uo_capsuleadren_switch.drm
+      lib 2877 slot 5 new_ps_2877_5_e3b95199.bin | instr 62: rsq r16.x, |r5.z| | from co_dlc2_uo_natlapod_broken.drm, co_natla_pod.drm, dlc2_uo_capsuleadren_switch.drm
+      lib 2723 slot 2 new_ps_2723_2_1ab72949.bin | instr 71: rsq r19.x, |r15.y| | from co_dlc_knight_thrall.drm, co_dlc_knight_thrall_pieces.drm, knight_thrall.drm
+      lib 2723 slot 3 new_ps_2723_3_83c98332.bin | instr 72: rsq r19.x, |r15.y| | from co_dlc_knight_thrall.drm, co_dlc_knight_thrall_pieces.drm, knight_thrall.drm
+  NEW_FORM      946 blobs (946 in new shaders)
+      lib 2877 slot 0 new_ps_2877_0_fa64eacd.bin | instr 53: rsq r17.x, |r5.z| | from co_dlc2_uo_natlapod_broken.drm, co_natla_pod.drm, dlc2_uo_capsuleadren_switch.drm
+      lib 2877 slot 1 new_ps_2877_1_cbf844fc.bin | instr 53: rsq r16.x, |r5.z| | from co_dlc2_uo_natlapod_broken.drm, co_natla_pod.drm, dlc2_uo_capsuleadren_switch.drm
+      lib 2877 slot 2 new_ps_2877_2_79013dfe.bin | instr 60: rsq r17.x, |r5.z| | from co_dlc2_uo_natlapod_broken.drm, co_natla_pod.drm, dlc2_uo_capsuleadren_switch.drm
+      lib 2877 slot 3 new_ps_2877_3_3cf0ce2a.bin | instr 60: rsq r16.x, |r5.z| | from co_dlc2_uo_natlapod_broken.drm, co_natla_pod.drm, dlc2_uo_capsuleadren_switch.drm
+      lib 2877 slot 4 new_ps_2877_4_26eb8288.bin | instr 62: rsq r17.x, |r5.z| | from co_dlc2_uo_natlapod_broken.drm, co_natla_pod.drm, dlc2_uo_capsuleadren_switch.drm
+  ERR             0 blobs (0 in new shaders)
+NEW_FORM detail (form: blobs). Only ABS_CONST (src:cmp/add/mad:c:abs*) and SINCOS_SAME were rejected on the AMD test of 20/10;
+  rsq/rcp with |r| and the other forms below passed there: they are listed only to compare with a new rejection.
+  src:rsq:r:abs                  945
+  dst:rcp:r:1                    936
+  dst:mad:oC:0                   931
+  dst:max:r:1                    919
+  src:add:r:abs                  442
+  src:rcp:r:abs                  104
+  src:max:c:neg                  100
+  src:max:r:neg                   24
+  dst:max:oC:0                    20
+  src:mov:misc:-                   7
+  src:mad:r:abs                    6
+  src:mad:r:abs_neg                1

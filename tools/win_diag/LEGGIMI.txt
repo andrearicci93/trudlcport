@@ -1,0 +1,91 @@
+TRU DLC port - strumento di diagnostica per Windows
+===================================================
+
+A cosa serve
+------------
+In VM (Windows ARM + dgVoodoo2, lenta) il port funzionava; su un PC Windows reale compaiono due difetti nuovi:
+wall-run sulla vena (DLC2) che non parte, e pantaloni del doppelganger beige. Questo strumento raccoglie in
+pochi minuti i dati che servono per capire se la causa e':
+  - i FILE installati (diversi dalla build provata, exe non patchato, Steam che ha ripristinato l'exe);
+  - gli FPS (in VM erano pochi; qui senza blocco il gioco puo' girare a 144+ fps e fisica/wall-run si rompono);
+  - il BACKEND grafico (in VM dgVoodoo2 -> D3D11; qui Direct3D 9 nativo del driver: shader/texture si comportano diversamente);
+  - altro (mod extra, overlay, compatibilita', crash di Windows).
+Non modifica il gioco ne' il registro, tranne le opzioni 4 e 5 del menu, che chiedono e si possono annullare.
+
+Come si usa
+-----------
+Decomprimi la cartella dove vuoi (NON dentro "Program Files") e fai doppio clic su DIAG.bat.
+Alla fine ogni passo crea/aggiorna  trudlcport_diag_result.zip  (nella stessa cartella): mandami quello.
+
+PASSO 1 - Check COMPLETO (3-6 minuti, gioco chiuso)   [menu 1]
+  Fa il check offline qui sotto E il test Direct3D 9 nativo (shader/texture sulla GPU) e mette tutto in un solo zip.
+  (Menu 6 = solo il check offline veloce.) La cartella del gioco e' preimpostata:
+  C:\Program Files (x86)\Steam\steamapps\common\Tomb Raider Underworld
+  Controlla Windows, GPU e driver, schermo (Hz), backend d3d9 (nativo/dgVoodoo/DXVK), exe (MD5 e firme del port),
+  tutti i 484 file installati contro la build B270_acqua, file extra in mods\, impostazioni del gioco,
+  crash e reset del driver degli ultimi 30 giorni, dxdiag. Al fondo c'e' una SINTESI con i riscontri [!] / [i].
+
+PASSO 2 - Check LIVE (gioco aperto)   [menu 2]
+  1. Scegli 2 e lascia la finestra aperta. 2. Avvia il gioco da Steam (DLC2). 3. Gioca fino alla vena.
+  Lo strumento SOLO LEGGE la memoria del gioco (nessuna iniezione) e scrive ogni 5 secondi una riga di stato:
+  fps reali, "vena trovata", "agganciata". Tasti:
+     F6   marcatore: premilo nel momento in cui provi il wall-run (corsa + Maiusc + Spazio verso la vena),
+          o quando vedi i pantaloni beige. Fa anche uno screenshot della finestra. Se il gioco e' a schermo intero
+          lo screenshot puo' venire nero: premi ANCHE F12 (screenshot di Steam; li copio io al check offline).
+     F7   come F6 ma con dump completo del gioco (si blocca 10-60 s, file da 1-3 GB). Usalo UNA volta sul difetto.
+     (F9, F8, F5, F11, F2... sono gia' usati dal menu di debug del ModLoader: per questo uso F6/F7.)
+  Se il gioco crasha, il dump parte da solo (se Windows mostra la finestra di errore, NON chiuderla subito).
+  Per finire: chiudi il gioco (lo strumento si ferma da solo dopo 20 s) oppure Ctrl+C nella finestra.
+  Controprova degli fps: attiva anche il contatore di Steam (Impostazioni > In gioco > Contatore FPS) e annota il valore.
+  Ti chiede una nota libera: scrivi cosa hai visto (es. "pantaloni beige gia' dal menu", "vena nella stanza X").
+  I dump grandi NON entrano nello zip: li comprime a parte (*.dmp.zip nella cartella trudlcport_diag_out):
+  mandameli con Drive/WeTransfer.
+
+PASSO 3 - Prove A/B (le piu' veloci per capire la causa)   [menu 4]
+  Dopo il passo 2, ripeti la stessa prova (pantaloni + vena) cambiando UNA cosa per volta e annota l'esito:
+   a) opzione b (dgVoodoo2 come in VM, FPS bloccati a 60):  se qui i pantaloni sono OK e la vena funziona,
+      la causa e' il backend nativo e/o gli fps. Poi prova a) senza blocco per separare le due cose.
+   b) torna al nativo con "c" e blocca a 60 fps col limitatore del driver (NVIDIA: Frequenza massima fotogrammi;
+      AMD: Frame Rate Target Control) oppure RTSS = 60: se la vena ora funziona, era la fisica legata agli fps.
+   c) "r" ripristina tutto come prima (rimette i tuoi d3d9.dll / dgVoodoo.conf originali).
+  Esito da riportare per ogni prova: pantaloni (ok/beige), vena (aggancia/no), fps letti nel riepilogo LIVE.
+
+FIX dell'exe   [menu 3]   (fa tutto da solo)
+  Se il check dice che tru.exe e' quello ORIGINALE di Steam (MD5 b36da327...), il port non e' completo: wall-run e altri fix
+  non possono funzionare. Il menu 3:
+   1. se tru.exe.unpacked.exe manca o non ha l'MD5 giusto (56d1ce2d...: tipico quando Steamless e' stato usato senza
+      l'opzione "Realign sections"), lo RIFA con Steamless (incluso in backends\steamless\sl.zip) usando --realign;
+   2. applica la patch del port e verifica l'MD5 finale (2b7ee74c...);
+   3. salva il backup (tru.exe.steam_original), aggiorna trudlcport_install.json e rilancia il check offline.
+  Serve Python 3 (bsdiff4 lo installa da solo se c'e' internet). Se la cartella richiede i diritti di amministratore, si
+  rilancia da sola chiedendoli (oppure avvia DIAG.bat come amministratore). Annulla: python fix_exe.py --restore.
+  Se Steam verifica i file rimette l'exe originale: rilancia il fix. Se l'antivirus blocca Steamless (lo segnala spesso come
+  "HackTool"), consenti il file o esclui la cartella: serve solo a togliere la protezione SteamStub del TUO tru.exe.
+  Steamless e' di atom0s (github.com/atom0s/Steamless, uso personale, non ridistribuire lo zip).
+
+Opzionale
+  Menu 5: attiva i dump automatici di Windows per tru.exe in C:\TRU_dumps\wer (serve amministratore; "off" per toglierli).
+
+Cosa guardare nel riepilogo (se vuoi anticipare)
+  - "FPS reali ... SOPRA 60": blocca a 60 prima di giudicare il wall-run.
+  - "Exe IN MEMORIA ... ASSENTE": l'exe in esecuzione non e' quello patchato -> reinstalla (Steam puo' averlo ripristinato).
+  - "BACKEND D3D9": nativo / dgVoodoo / DXVK.
+  - "vena mai TROVATA" o "trovata ma mai AGGANCIATA": dove si ferma il wall-run.
+
+Antivirus / SmartScreen
+-----------------------
+Lo strumento legge la memoria del processo tru.exe e compila una piccola libreria in memoria (TruLive.cs):
+alcuni antivirus lo segnalano come sospetto. Se Windows Defender blocca DIAG.bat/PowerShell: tasto destro sulla cartella ->
+Proprieta' -> Sblocca (file scaricati), oppure aggiungi la cartella alle esclusioni. Il codice e' in chiaro
+(trudlcport_diag.ps1, TruLive.cs, DIAG.bat). Se non vuoi usare il passo 2, i passi 1 e 4 funzionano lo stesso.
+
+File dello strumento
+--------------------
+DIAG.bat                 menu
+fix_exe.py + tru.exe.bsdiff   fix dell'exe (patch binaria, nessun dato di gioco)
+trudlcport_diag.ps1      logica (offline, backend, crash dump, zip)
+TruLive.cs               lettore live del gioco (sola lettura)
+expected_B270_acqua.tsv  MD5 dei 484 file della build di riferimento
+backends\steamless\sl.zip   Steamless 3.1 (atom0s) per il fix dell'exe
+backends\dgvoodoo_vm     D3D9.dll + dgVoodoo.conf identici alla VM (uso personale di prova, non ridistribuire)
+native_test\             test Direct3D 9 nativo (versione 3)

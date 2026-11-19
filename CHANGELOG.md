@@ -2,6 +2,20 @@
 
 "Played" means the project owner ran it in game (Windows 11 VM). "Offline" means it was checked only with static gates and data comparisons against the Xbox/PC originals and has **not yet been seen in game**.
 
+## B271–B275 — Nov 2026 (Windows, native D3D9; kit not published)
+
+Work moved from the VM to a Windows PC with the real game (native Direct3D 9). The exe chain was rebuilt byte for byte on Windows (`work/ws/exe_chain`, `CATENA.md`). New diagnostics run next to the game (`tools/win_diag`: TruLive recorder, game control, apitrace capture).
+
+| Build | Area | Change | Status |
+|---|---|---|---|
+| B271_cmp2c | Shaders | B270 + 56 DRM with the pixel-shader forms rejected by native D3D9 rewritten | Played |
+| B272_typelist | DLC2 rock veins | 9 u8 markup-type lists in the movement-mode filters of doppelganger DTP 20212 had been converted as 32/16-bit words, so type 22 (vein) was read as 0. Restored to the Xbox bytes (`work/ws/dlc2_tuport/data_fix/typelist_fix.py`) | Played |
+| B273_typelist2 | DLC2 rock veins | Same fault in the profile-level list of the fall modes 44/46/106/117 (`typelist_fix2.py`). **Dropping onto a vein with the shadow now grabs it, as on Xbox** | Played, fixed |
+| B274 (exe stage `tu616`) | Ledges grabbed while falling | The title update changed the "floor below the ledge" threshold of the ledge band test (PC `0x7260b0`, constant `0x85e4ac`): retail −628.94, TU −616.30. In goo_room the eitr pool is 625.9 below the ledge under the vein, so the PC rejected it. One float in `.rdata` (`work/ws/b274_tu616/patch_tu616.py`). A scan of all TU float constants against retail found no other value change (`tu_fconst_scan3.py`) | Played, fixed |
+| B275_tgflag | DLC2 machine_room | Terrain-group mask of group 14 (one tier of the central structure) converted as raw bytes (0x00200000 instead of 0x2000). Only case in the 190 DLC DRMs (`work/ws/machine_room/tgflag_scan.py`) | Played |
+
+Still open: the "transparent wall" in machine_room (a collision-only rectangle with no geometry in the data, identical on Xbox; an apitrace capture shows nothing is drawn there, so it is probably by design — see `work/ws/machine_room/REPORT.md`), the incomplete goo columns, and the shadow "teleport" between ledges (A19).
+
 ## B270 — Nov 2026 (release build `B270_acqua`; kit not published)
 
 B270_acqua is B269_nativo plus two fixes to how a vertex shader feeds a pixel shader (COLOR0). Both are verified offline only; B270_acqua was installed in the VM and the dungeon water is no longer black; the rest of the build is as B269_nativo (not played through yet).

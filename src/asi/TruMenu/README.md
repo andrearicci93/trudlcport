@@ -3008,6 +3008,14 @@ Package B2 of the owner's queue (workspace `docs/Pakete-2111.md` row 6; specs in
   every search logged with the counts), its wait thread+8 read when > 0.5 s (inside the 8.5 s pause - a request in the
   0.5 s window waits) and written back every game frame, read back (a line every 5 s, a failed write stops); off = no
   more writes. Off at a unit / stamp change or when the thread is gone. 7 byte checks.
+- **(6) `photo.pose` evidence + re-request** (A4 d, ENGINE 22 "Photo pose still invisible (A4)"): during the 45-frame
+  run (Lara +0x1c bit 0x1000) one `[Pose] frame n: processor +0x44 .., record #.., Lara +0x1c ..` line per frame and,
+  the first frame, the processor's words +0 .. +0x7c. +0x44 is -1 after TruMenu's mode-0 pose and the slot of the
+  chart's request after a mode-1 one (0x444c89 / 0x442d1a); when it shows a slot, the pose is requested again (mode
+  0) - at most once a frame and 30 times a run, never while it shows -1 (unproven reading; Present = after the
+  instance loop, unproven); `[Pose] re-request n` / `end of the run` lines. `photo.pose <n> test` = the same request
+  outside the photo mode (no pause) for the comparison. Lara's outline (a third state of `photo.hide`): no proven way
+  in the code yet - not built.
 
 ### TO TEST 0.22.68
 

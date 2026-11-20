@@ -7790,6 +7790,16 @@ def check_02268():
     if 'RbTick();' not in fn_body(src, 'void PzGameTick('):
         problems.append('TruMenu.cpp: PzGameTick must run RbTick')
     done.append('5 rune blocks')
+    # (6) photo pose: a [Pose] line per frame, re-request only while +0x44 shows a chart slot, at most 30, in PhxTick
+    pf = fn_body(src, 'void PpFrameTick(')
+    if 'slot != 0xffffffff && g_ppRe < 30' not in pf or '[Pose] frame %d: processor +0x44' not in pf or \
+            'reinterpret_cast<PpRequestFn>(kPpRequest)(g_ppProc, 0, rq, 0)' not in pf:
+        problems.append('TruMenu.cpp: PpFrameTick must log every frame and request the pose again only on a chart slot')
+    if 'PpFrameTick();' not in fn_body(src, 'void PhxTick('):
+        problems.append('TruMenu.cpp: PhxTick must run PpFrameTick')
+    if 'if (!g_pmActive && !test)' not in fn_body(src, 'bool RunPhotoPose('):
+        problems.append('TruMenu.cpp: photo.pose "<n> test" must be the only way outside the photo mode')
+    done.append('6 pose')
     readme = open(os.path.join(ROOT, 'src', 'asi', 'TruMenu', 'README.md'), encoding='utf-8-sig').read()
     if '## 0.22.68' not in readme or 'TO TEST 0.22.68' not in readme:
         problems.append('README.md: section "## 0.22.68" with "TO TEST 0.22.68" missing')

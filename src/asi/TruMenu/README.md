@@ -2928,6 +2928,48 @@ Reihenfolge fest (Flacker-Test)".
   combos as set now (e.g. `LB + View = weiter . RB + View = 1 Bild . LB + RB + View = Foto`), built from the INI values,
   so it follows any change.
 
+## 0.22.69 - build B4: chapter from a checkpoint, checkpoint labels in the sonar (2026-11-20)
+
+Package B4 of the owner's queue (workspace `docs/Pakete-2111.md` row 8; spec ENGINE 6.4 "TruMenu 'Kapitel ab
+Checkpoint' spec (Q11)"). Built on 0.22.68, not installed (0.22.65 stays in the game until the owner's test).
+
+- **(1) `chapter.cp <unit> <checkpoint id>` - "Chapter from checkpoint"** (page Chapters: open a unit with left, the
+  rows "From checkpoint <id>" below its old CP rows, right twice): Lara at that checkpoint through the game's own
+  checkpoint restart, without the intro. Gate on the game thread: 20 byte checks `kCcChecks` (the Q11 list; offline
+  `work/b4_2011/precheck_02269.txt` 26 / 26 with `kCrChecks` against the PC exe), experimental, main state 1, a
+  player, no cutscene, no level change, restart bit 0x80000 clear, the pause bit not the game's, both game blocks
+  version 0x0c2c with word +0x1f4 = 0, the unit loadable, the 0.22.67 K1 reload guard, the same game part as Lara's
+  unit (base game / DLC 1 / DLC 2 - a DLC change is refused), the id a checkpoint of the unit. Then `save.backup
+  kapitel` and
+  - **loaded checkpoint instance** (object word `[[inst+0x50]+8]` 0xb / 0xc): `INSTANCE_Post(inst, 0x196, 1)` - the
+    game's own set and snapshot (0x5b3750 calls `[inst+0x120]` at once); the player tracker / live / snapshot records
+    must then name (unit, id), else nothing more happens;
+  - **otherwise** (unit not loaded): the record {unit[128], id} written into the snapshot game block `[0xc59268]+0x10`,
+    the live one `[0xc59264]+0x10` and the tracker `[0xfadb58]+0x648`, read back (the old record put back when a write
+    did not hold);
+  - then the restart request of `cp.reload` (in place when the record's unit is loaded, else the full reload into the
+    snapshot state). On the loading screen the played marks of the level-start intros of the target's level group
+    (0.22.66 table, the target's own intro included) are kept at 1 - as after a death, so no intro plays. After the
+    landing: one line with Lara's place against the checkpoint instance, the record watched for 10 s and set back once
+    with 0x196(1) when the game moved it (the post-intro branch of a level-start script sets its own checkpoint).
+  - **checkpoints at run time**: `TruIntroScan.h` `ScanCheckpoints` reads every unit of the level list (`mods\<unit>.drm`
+    first, then `patch.000` / `bigfile.000`; lean read of section 0 and the intro section) in the background after the
+    intro table: placed intros of the objects `checkpoint`, `invis_checkpoint`, `dlc2_checkpoint`,
+    `checkpoint_l1_going_in` / `_out` (ids from the game's object list), with position and Level+0x80. Offline selftest
+    `selftest/TruCpScanTest.cpp`: 303 / 303 base checkpoints equal to `tools/unit_checkpoint_table.py` (positions too);
+    on the installed game 401 rows in 104 units (22 from mods). `chapter.cplist` = the count per unit.
+- **(2) `sonar.cplabels` - "Sonar: checkpoint labels"** (session only, default off; page of the sonar rows): in the
+  open PDA sonar the checkpoints of map units the sonar loaded only as a map (no instances) as "CP <id> (<unit>)" at
+  data position - Level+0x80 (FinishLoad 0x5d1cd0) + the sonar unit's shift `+0xa0` (0x6dde00 adds every placing
+  offset there and sets +0xb3). The formula is not proven before: every open compares it (and "data + shift") with the
+  live checkpoint instances of the loaded sonar units; labels are drawn only while every compared one lies within 100
+  units ("proven" in the top line and `0.22.69 sonar.cplabels` log line), else the top line says why and nothing is
+  drawn. Load areas are not labelled.
+
+### TO TEST 0.22.69
+
+- workspace `docs/Testanleitung-B4-2011.md`.
+
 ## 0.22.68 - build B2: Thor pillar reach from the terrain mesh (2026-11-20)
 
 Package B2 of the owner's queue (workspace `docs/Pakete-2111.md` row 6; specs in the analyses A2 / A3 / A4 of

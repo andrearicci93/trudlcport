@@ -774,6 +774,144 @@ inline bool LoadDrm(const Archive *arcs, int nArcs, const char *unit, Drm &m, Sc
     return false;
 }
 
+// ---- TruMenu 0.22.69 (B4 point 1, chapter.cp): the checkpoints of every unit from the same files (a port of
+// tools/unit_checkpoint_table.py) - placed intros whose object id is one of the caller's checkpoint objects (resolved by
+// name in the game's object list: checkpoint, invis_checkpoint, dlc2_checkpoint, checkpoint_l1_going_*), with the
+// unit-data position (+0x10, before FinishLoad) and section 0's vector Level+0x80 (FinishLoad 0x5d1cd0 subtracts it from
+// every intro position, ENGINE 4.2 step 6). A unit is read from <dir>mods\<unit>.drm when that file exists (the DLC
+// units, an own base-unit file), else from patch.000 / bigfile.000.
+struct CpScanRow { DWORD intro; WORD obj; WORD unit; float pos[3]; float l80[3]; };
+struct CpScanStats {
+    int units = 0, read = 0, fromMods = 0, missing = 0, faults = 0, noIntros = 0, rows = 0, dropped = 0;
+    DWORD ms = 0;
+    char err[200] = "";
+};
+// a DRM file (CDRM container or a plain DRM) through the lean read; false = no file / broken
+inline bool LoadDrmFile(const char *path, Drm &m, ScanStats &st, int *found) {
+    *found = 0;
+    HANDLE f = CreateFileA(path, GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, OPEN_EXISTING,
+                           FILE_FLAG_SEQUENTIAL_SCAN, nullptr);
+    if (f == INVALID_HANDLE_VALUE) return false;
+    *found = 1;
+    LARGE_INTEGER size;
+    char magic[4] = {};
+    bool ok = GetFileSizeEx(f, &size) && size.QuadPart >= 24 && size.QuadPart < 0x7fffffffLL && FileRead(f, 0, magic, 4);
+    if (ok && memcmp(magic, "CDRM", 4) == 0) {
+        ok = LeanCdrm(f, 0, static_cast<DWORD>(size.QuadPart), m, st);
+    } else if (ok) {
+        const DWORD n = static_cast<DWORD>(size.QuadPart);
+        ok = BufReserve(m.raw, n) && FileRead(f, 0, m.raw.p, n);
+        if (ok) m.raw.n = n;
+        ok = ok && DrmParse(m);
+    }
+    CloseHandle(f);
+    return ok;
+}
+// the placed intros of a unit DRM with object id and position (puzzle_switch_scan.intros_of); -1 = no intro section
+struct IntroRec { DWORD uid; WORD obj; float pos[3]; };
+inline float F32(const unsigned char *d, size_t len, size_t o) {
+    const DWORD v = U32(d, len, o);
+    float f;
+    memcpy(&f, &v, 4);
+    return f;
+}
+inline int IntroRecords(Drm &m, IntroRec *out, int maxOut) {
+    if (!m.nSecs) return -1;
+    Rel r0;
+    if (!RelParse(m.raw.p + m.secs[0].relocOff, m.secs[0].relocLen, r0)) return -1;
+    DWORD si = 0xffffffffUL;
+    for (DWORD k = 0; k < r0.nEx && si == 0xffffffffUL; ++k)
+        if (r0.ex[k].src == 0x74) si = r0.ex[k].si;
+    RelFree(r0);
+    if (si >= m.nSecs) return -1;
+    const Sec &s = m.secs[si];
+    Rel r;
+    if (!RelParse(m.raw.p + s.relocOff, s.relocLen, r)) return -1;
+    const unsigned char *d = m.raw.p + s.dataOff;
+    DWORD a = 0;
+    const bool ok = RelInt(r, 0x10, &a) && s.size >= 0x14;
+    RelFree(r);
+    if (!ok) return -1;
+    const DWORD n = U32(d, s.size, 0xc);
+    int no = 0;
+    for (DWORD k = 0; k < n && k < 8192 && no < maxOut; ++k) {
+        const size_t o = static_cast<size_t>(a) + 0x90 * static_cast<size_t>(k);
+        if (o + 0x90 > s.size) break;
+        IntroRec &q = out[no++];
+        q.uid = U32(d, s.size, o + 0x58);
+        q.obj = U16(d, s.size, o + 0x50);
+        for (int c = 0; c < 3; ++c) q.pos[c] = F32(d, s.size, o + 0x10 + 4 * static_cast<size_t>(c));
+    }
+    return no;
+}
+// rows for every unit of units (names without .drm); -1 = no archive and no mods folder (st.err), else the row count
+inline int ScanCheckpoints(const char *gameDir, const char *const *units, int nUnits, const WORD *objs, int nObjs,
+                           CpScanRow *rows, int maxRows, CpScanStats &cs) {
+    const DWORD t0 = GetTickCount();
+    Archive arcs[2];
+    int nArcs = 0;
+    const char *files[2] = {"patch.000", "bigfile.000"};
+    for (const char *f : files) {
+        char path[MAX_PATH];
+        _snprintf_s(path, sizeof(path), _TRUNCATE, "%s%s", gameDir, f);
+        if (ArcOpen(arcs[nArcs], path)) ++nArcs;
+    }
+    IntroRec *recs = static_cast<IntroRec *>(malloc(sizeof(IntroRec) * 8192));
+    if (!recs) {
+        for (int k = 0; k < nArcs; ++k) ArcFree(arcs[k]);
+        _snprintf_s(cs.err, sizeof(cs.err), _TRUNCATE, "no memory for the intro list");
+        return -1;
+    }
+    ScanStats st;
+    int nr = 0;
+    for (int u = 0; u < nUnits; ++u) {
+        ++cs.units;
+        Drm m;
+        char path[MAX_PATH];
+        _snprintf_s(path, sizeof(path), _TRUNCATE, "%smods\\%s.drm", gameDir, units[u]);
+        int found = 0;
+        bool ok = LoadDrmFile(path, m, st, &found);
+        if (found) {
+            if (ok) ++cs.fromMods;
+        } else {
+            ok = nArcs > 0 && LoadDrm(arcs, nArcs, units[u], m, st, &found);
+        }
+        if (!ok) {
+            if (found) ++cs.faults;
+            else ++cs.missing;
+            DrmFree(m);
+            continue;
+        }
+        ++cs.read;
+        float l80[3] = {0.0f, 0.0f, 0.0f};
+        if (m.nSecs && m.secs[0].size >= 0x8c)
+            for (int c = 0; c < 3; ++c) l80[c] = F32(m.raw.p + m.secs[0].dataOff, m.secs[0].size, 0x80 + 4 * static_cast<size_t>(c));
+        const int ni = IntroRecords(m, recs, 8192);
+        if (ni < 0) ++cs.noIntros;
+        for (int k = 0; k < ni; ++k) {
+            bool cp = false;
+            for (int q = 0; q < nObjs && !cp; ++q) cp = objs[q] && recs[k].obj == objs[q];
+            if (!cp) continue;
+            if (nr >= maxRows) { ++cs.dropped; continue; }
+            CpScanRow &r = rows[nr++];
+            r.intro = recs[k].uid;
+            r.obj = recs[k].obj;
+            r.unit = static_cast<WORD>(u);
+            for (int c = 0; c < 3; ++c) { r.pos[c] = recs[k].pos[c]; r.l80[c] = l80[c]; }
+        }
+        DrmFree(m);
+    }
+    free(recs);
+    for (int k = 0; k < nArcs; ++k) ArcFree(arcs[k]);
+    cs.rows = nr;
+    cs.ms = GetTickCount() - t0;
+    if (!cs.read) {
+        _snprintf_s(cs.err, sizeof(cs.err), _TRUNCATE, "no unit readable (%d archives, %d units listed)", nArcs, nUnits);
+        return -1;
+    }
+    return nr;
+}
+
 // the table: rows of {intro, own unit} for the base units in units (names without .drm); -1 = no archive / no
 // generalbank (st.err says which), else the number of rows (intros without an own unit are counted in st.withoutOwn)
 inline int ScanIntros(const char *gameDir, const char *const *units, int nUnits, IntroRow *rows, int maxRows,

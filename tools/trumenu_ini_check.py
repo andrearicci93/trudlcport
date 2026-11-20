@@ -7806,6 +7806,63 @@ def check_02268():
     return problems, 'build B2 (%s)' % ', '.join(done)
 
 
+def check_02269():
+    """0.22.69 (package B4, docs Pakete-2111.md row 8): kVersion starts with 0.22.69; (1) chapter.cp: 20 byte checks
+    kCcChecks (= work/b4_2011/precheck_02269.txt), the gate (K1 guard, DLC refusal, game-block version / +0x1f4), backup
+    before any write, the 0x196 path checks the three records, the record path reads back and puts the old record back,
+    the restart only through RunCpReload, the mark keeper in CcTick, the run-time table from TruIntroScan.h
+    ScanCheckpoints (selftest TruCpScanTest.cpp), page Chapters rows kQdChapGcp; (2) sonar.cplabels draws only while
+    g_cslProven; items + bar row; README section"""
+    problems = []
+    done = []
+    src = read_cpp()
+    ver = src[:src.find('\n', src.find('kVersion = '))]
+    if '"TruMenu 0.22.69 (build B4' not in ver and ' - 0.22.69 (build B4' not in ver:
+        problems.append('TruMenu.cpp: kVersion must start with "TruMenu 0.22.69 (build B4 ..."')
+    at = src.find('const ChCheck kCcChecks[] = {')
+    rows = src[at:src.find('\n};', at)].count('{0x00') if at >= 0 else 0
+    if rows != 20:
+        problems.append('TruMenu.cpp: kCcChecks must hold the 20 rows of ENGINE 6.4 (found %d)' % rows)
+    run = fn_body(src, 'bool RunChapCp(')
+    order = ['CcOk() || !CrOk()', 'K1Gate("chapter.cp", o, n)', 'lv != 0x0c2c || sv != 0x0c2c', 'la || sa', 'dl != dt',
+             'RunSaveBackup("kapitel"', 'reinterpret_cast<CcPostFn>(kInstancePost)(inst, 0x196, 1)',
+             'CcWriteRecord(sn + 0x10, unit, id)', 'RunCpReload(nullptr, ro, sizeof(ro))']
+    pos = [run.find(f) for f in order]
+    if any(p < 0 for p in pos) or pos != sorted(pos):
+        problems.append('TruMenu.cpp: RunChapCp must hold, in this order: %s' % ' / '.join(order))
+    if 'CcRecIs(t1, unit, id) && CcRecIs(l1, unit, id) && CcRecIs(s1, unit, id)' not in run or \
+            'if (s0.ok) CcWriteRecord(sn + 0x10, s0.unit, s0.id);' not in run:
+        problems.append('TruMenu.cpp: RunChapCp must check all three records and put the old record back on a failed write')
+    if '_InterlockedOr' in run:
+        problems.append('TruMenu.cpp: RunChapCp sets the restart bit only through RunCpReload')
+    tick = fn_body(src, 'void CcTick(')
+    if 'UiMarkSet(h, 1)' not in tick or 'state == 2' not in tick or 'CcScanTick();' not in tick:
+        problems.append('TruMenu.cpp: CcTick must keep the intro marks at 1 in main state 2 and run CcScanTick')
+    if 'CcTick(state);' not in fn_body(src, 'void UiTick('):
+        problems.append('TruMenu.cpp: UiTick must run CcTick')
+    scan = open(os.path.join(ROOT, 'src', 'asi', 'TruMenu', 'TruIntroScan.h'), encoding='utf-8').read()
+    if 'inline int ScanCheckpoints(' not in scan or 'mods\\\\%s.drm' not in scan:
+        problems.append('TruIntroScan.h: ScanCheckpoints (mods\\<unit>.drm first) missing')
+    if not os.path.exists(os.path.join(ROOT, 'src', 'asi', 'TruMenu', 'selftest', 'TruCpScanTest.cpp')):
+        problems.append('selftest/TruCpScanTest.cpp missing')
+    if 'cy.kind = kQdChapGcp;' not in fn_body(src, 'int QbChapRows(') or 'case kQdChapGcp:' not in src:
+        problems.append('TruMenu.cpp: page Chapters must list the game-data checkpoints as kQdChapGcp rows')
+    for item in ('{"chapter.cp", "action"', '{"chapter.cplist", "info"', '{"sonar.cplabels", "bool"'):
+        if item not in src:
+            problems.append('TruMenu.cpp: item %s missing' % item)
+    done.append('1 chapter.cp')
+    draw = fn_body(src, 'void DrawSonarCp(')
+    if 'if (!g_cslProven) return;' not in draw or 'kLblMatrix' not in draw:
+        problems.append('TruMenu.cpp: DrawSonarCp must draw labels only while g_cslProven, with the sonar camera 0xe804a0')
+    if '"sonar.cplabels", "", kQbBool' not in src:
+        problems.append('TruMenu.cpp: bar row sonar.cplabels missing')
+    done.append('2 sonar.cplabels')
+    readme = open(os.path.join(ROOT, 'src', 'asi', 'TruMenu', 'README.md'), encoding='utf-8-sig').read()
+    if '## 0.22.69' not in readme or 'TO TEST 0.22.69' not in readme:
+        problems.append('README.md: section "## 0.22.69" with "TO TEST 0.22.69" missing')
+    return problems, 'build B4 (%s)' % ', '.join(done)
+
+
 def check_02264():
     """0.22.64 (package S4, Befund-S2 "S2b Spielkamera", ENGINE 22): (1) kVersion starts with 0.22.64; cam.nowall: the
     three sites with the game's / the own bytes, the three target checks, written only in CnwTick (game thread, follow
@@ -8967,6 +9024,10 @@ def main(argv):
     for p in cproblems68: print('Q02268 %s' % p)
     if not cproblems68: print('ok: 0.22.68 %s' % csummary68)
     problems += cproblems68
+    cproblems69, csummary69 = check_02269()   # 0.22.69 (build B4: chapter.cp, sonar.cplabels)
+    for p in cproblems69: print('Q02269 %s' % p)
+    if not cproblems69: print('ok: 0.22.69 %s' % csummary69)
+    problems += cproblems69
     cproblems27, csummary27 = check_02227(ini_path, opt.get('--switches', SWITCHES))   # 0.22.27
     for p in cproblems27: print('Q02227 %s' % p)
     if not cproblems27: print('ok: 0.22.27 %s' % csummary27)

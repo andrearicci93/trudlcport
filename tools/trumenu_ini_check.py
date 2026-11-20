@@ -7715,6 +7715,28 @@ def check_02268():
         if '"%s"' % item not in rows_in('kQbChapters'):
             problems.append('TruMenu.cpp: bar row %s missing on kQbChapters' % item)
     done.append('1 Thor')
+    # (2) jump preview: the kind from the press transitions of Lara's record (A2), 7 chart byte checks, read only
+    jp = src[src.find('const ChCheck kJp2Checks[] = {'):]
+    jp = jp[:jp.find('};')]
+    for a, h in (('0x007875ca', '66397b0e 7646'), ('0x007875d7', '8b4b1c 0fb7c7 0fb70441'), ('0x007875ed', '8b4504 8b4810 8b3491'),
+                 ('0x00787616', '0fb74306 6685c0'), ('0x00787626', '8b4504 8b480c 8b0491'), ('0x0078592a', '8b700c 33db 66395804'),
+                 ('0x00766ec4', '8b4104 85c0 7e35 6681392202')):
+        if '{%s, "%s"}' % (a, h) not in jp:
+            problems.append('TruMenu.cpp: kJp2Checks row %s "%s" missing' % (a, h))
+    jtick = fn_body(src, 'void JpTick(')
+    if 'cn = JpPressCands(m, rec, st, cand, 8);' not in jtick or 'r.id = cand[k].k541;' not in jtick or \
+            '< 10.0f) { ++skipped; continue; }' not in jtick:
+        problems.append('TruMenu.cpp: JpTick must take the kinds of the press candidates (541) and skip |A| < 10')
+    if '(id == 101 && val == 3) || (id == 152 && val == 52)' not in fn_body(src, 'int JpCondEval(') or \
+            'id == 405 && st.ok' not in fn_body(src, 'int JpCondEval('):
+        problems.append('TruMenu.cpp: JpCondEval must know the press (101 / 152) and the stick enum 405')
+    if 'fabsf(JpWrapRad(h - yaw)) * 57.29578f <= catchDeg' not in fn_body(src, 'float JpHeading('):
+        problems.append('TruMenu.cpp: JpHeading must catch onto the yaw within X+0xac degrees')
+    for fn in ('void JpTick(', 'int JpPressCands(', 'int JpCondEval(', 'float JpHeading(', 'DWORD JpRecAct('):
+        for bad in ('WriteBytes', 'WriteDword', 'WriteFloat', 'VirtualProtect'):
+            if bad in fn_body(src, fn):
+                problems.append('TruMenu.cpp: %s) must only read (found %s)' % (fn.strip('('), bad))
+    done.append('2 preview')
     readme = open(os.path.join(ROOT, 'src', 'asi', 'TruMenu', 'README.md'), encoding='utf-8-sig').read()
     if '## 0.22.68' not in readme or 'TO TEST 0.22.68' not in readme:
         problems.append('README.md: section "## 0.22.68" with "TO TEST 0.22.68" missing')

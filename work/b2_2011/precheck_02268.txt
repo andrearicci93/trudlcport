@@ -1,0 +1,11 @@
+# TruMenu 0.22.68 B2: the byte checks of TruMenu.cpp in order - kJp2Checks (7, point 2), kCnwChecks2 (2, point 3).
+# Run: ../bin/pyt -t 120 tools/pe_bytes_check.py ../data/pc/tru.exe --file work/b2_2011/precheck_02268.txt
+007875ca 66397b0e 7646
+007875d7 8b4b1c 0fb7c7 0fb70441
+007875ed 8b4504 8b4810 8b3491
+00787616 0fb74306 6685c0
+00787626 8b4504 8b480c 8b0491
+0078592a 8b700c 33db 66395804
+00766ec4 8b4104 85c0 7e35 6681392202
+0060090c 84db89470c742c578d4c2444
+00600924 e8e7fefeff

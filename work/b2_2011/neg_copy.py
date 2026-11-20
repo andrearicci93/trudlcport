@@ -9,6 +9,7 @@ CASES = [
     ('pushend', 'ThNotePushEnd(o.inst);', ''),
     ('index', 'ix[0] >= nv || ix[1] >= nv || ix[2] >= nv', 'ix[0] >= nv'),
     ('mismatch', '[Thor] MISMATCH pillar at ', '[Thor] pillar mismatch at '),
+    ('small', '< 10.0f) { ++skipped; continue; }', '< 0.0f) { ++skipped; continue; }'),   # point 2: |A| < 10 drawn
 ]
 
 

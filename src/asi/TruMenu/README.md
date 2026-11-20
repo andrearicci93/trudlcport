@@ -2970,6 +2970,19 @@ Package B2 of the owner's queue (workspace `docs/Pakete-2111.md` row 6; specs in
     (-10625, 3940) in the area of ring NE981 -> artifact A (negative case foot 325: the exit spot fails).
   - Items `puzzle.thorstep` / `puzzle.thorfoot` (int) / `puzzle.thordirect` / `puzzle.thormap` (bool), bar rows under
     "Puzzle displays", INI keys `[Puzzle] ThorStep=10`, `ThorFoot=290`, `ThorGalleryDirect=0`.
+- **(2) `jump.preview` with the kind of the press** (A2 a, ENGINE 12 "Jump press: kind and take-off heading (A2)"):
+  no longer the slots T+0xb00 / T+0xc90 (the kind of the record entered last - 66 / 67 on the beam), but the press
+  transitions of Lara's machine-1 record and its parents in the game's order (0x787570, 7 byte checks of the chart
+  walk and of the activity handler 0x766ec0; failed = the 0.22.62 slots): a transition holding condition 101 value 3 or
+  152 value 52; its other conditions evaluated - 405 = the stick enum I+0x24 (code), 401 "stick at rest" = I+0x24 ==
+  454 and 404 side 412 / 413 = sign of I+0x10 (both unproven), everything else unknown (candidate marked "unsicher");
+  kind = activity 541 of the target record or its nearest parent, else one level further (911 -> 909 / 910).
+  Heading by the kind's mode X+0xa0 (1 - 4 yaw + 0 / 90 / -90 / 180, 5 - 8 stick I+8 + ..., 9 / 10 stick or yaw, 11 /
+  14 - 17 to the markup point T+0xcc0, 13 stick, others yaw - unproven ones named in the log), caught onto the yaw
+  within X+0xac degrees; v = R(h) (A.x, -A.y, A.z). Kinds with |A| < 10 are not drawn as a jump. Up to three
+  candidates: the first solid, the others dashed, label "[Kandidat n]" (+ "Stick-Regel unbelegt" / "unsicher");
+  "du landest ... / kein Ziel ..." as before. `[Preview] record #n: k press candidate(s): #from -> #to {conditions}
+  kind A .. (from #..) B ..` and one line per drawn candidate with mode, heading and catch.
 
 ### TO TEST 0.22.68
 

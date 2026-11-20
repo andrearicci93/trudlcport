@@ -2983,6 +2983,12 @@ Package B2 of the owner's queue (workspace `docs/Pakete-2111.md` row 6; specs in
   candidates: the first solid, the others dashed, label "[Kandidat n]" (+ "Stick-Regel unbelegt" / "unsicher");
   "du landest ... / kein Ziel ..." as before. `[Preview] record #n: k press candidate(s): #from -> #to {conditions}
   kind A .. (from #..) B ..` and one line per drawn candidate with mode, heading and catch.
+- **(3) `cam.nowall 2` without the turn pull-in** (A2 d, ENGINE 22 "Orbit pull-in on look input (A2)"): level 2 also
+  writes 0x600911 `74 2c` -> `eb 2c` (the look step 0x600710 skips the physics check 0x5f0810 of the rebuilt orbit at
+  0x600924). Byte checks `0x60090c 84db89470c742c578d4c2444` (or the own `eb 2c`) and `0x600924 e8e7fefeff`; written
+  with the three 0.22.64 sites on the game thread while the follow camera is current, back only where `eb 2c` stands,
+  a line `cam.nowall: orbit check 0x600924 skipped / back on (0x600911 now ..)` after each write; the value text
+  counts level 2 only with this site patched too.
 
 ### TO TEST 0.22.68
 

@@ -7737,6 +7737,20 @@ def check_02268():
             if bad in fn_body(src, fn):
                 problems.append('TruMenu.cpp: %s) must only read (found %s)' % (fn.strip('('), bad))
     done.append('2 preview')
+    # (3) cam.nowall 2 also skips the orbit check 0x5f0810 (0x600911 74 2c -> eb 2c), the two byte checks, game thread
+    oc = src[src.find('const ChCheck kCnwOrbitChecks[] = {'):]
+    oc = oc[:oc.find('};')]
+    if '{0x0060090c, "84db89470c742c578d4c2444"}' not in oc or '{0x00600924, "e8e7fefeff"}' not in oc:
+        problems.append('TruMenu.cpp: kCnwOrbitChecks must pin 0x60090c and 0x600924')
+    if 'kCnwOrbitAt = 0x00600911' not in src or 'kCnwOrbitOrig[2] = {0x74, 0x2c}, kCnwOrbitPatch[2] = {0xeb, 0x2c}' not in src:
+        problems.append('TruMenu.cpp: the orbit site must be 0x600911 74 2c -> eb 2c')
+    ctick = fn_body(src, 'void CnwTick(')
+    if 'const bool on = want >= 2;' not in ctick or 'WriteBytes(kCnwOrbitAt, to, 2)' not in ctick or \
+            'memcmp(ob, from, 2)' not in ctick:
+        problems.append('TruMenu.cpp: CnwTick must write the orbit site at level 2 only over the expected bytes')
+    if 'HexBytesAt(0x0060090c, "84db89470ceb2c578d4c2444")' not in fn_body(src, 'bool CnwOk('):
+        problems.append('TruMenu.cpp: CnwOk must accept the own jmp at 0x600911')
+    done.append('3 orbit')
     readme = open(os.path.join(ROOT, 'src', 'asi', 'TruMenu', 'README.md'), encoding='utf-8-sig').read()
     if '## 0.22.68' not in readme or 'TO TEST 0.22.68' not in readme:
         problems.append('README.md: section "## 0.22.68" with "TO TEST 0.22.68" missing')

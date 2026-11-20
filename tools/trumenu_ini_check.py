@@ -7751,6 +7751,28 @@ def check_02268():
     if 'HexBytesAt(0x0060090c, "84db89470ceb2c578d4c2444")' not in fn_body(src, 'bool CnwOk('):
         problems.append('TruMenu.cpp: CnwOk must accept the own jmp at 0x600911')
     done.append('3 orbit')
+    # (4) pull out: 7 byte checks, 0x186 with Lara's record then 0x1af, only for a carryable in a holder, the row
+    po = src[src.find('const ChCheck kPoChecks[] = {'):]
+    po = po[:po.find('};')]
+    for a in ('0x00717a8c', '0x00717993', '0x006b6036', '0x006b5e48', '0x006b5da7', '0x006b60e6', '0x005c0b50'):
+        if '{%s, "' % a not in po:
+            problems.append('TruMenu.cpp: kPoChecks row %s missing' % a)
+    ptk = fn_body(src, 'void PoTick(')
+    if 'reinterpret_cast<PoRecFn>(0x005c0b50)(0.0f, 0.0f, 0, player, 0)' not in ptk or \
+            'reinterpret_cast<InsPostFn>(0x005b3750)(g_pk.pole, 0x186, rec)' not in ptk or \
+            'reinterpret_cast<InsPostFn>(0x005b3750)(g_pk.pole, 0x1af, 0)' not in ptk:
+        problems.append('TruMenu.cpp: PoTick must send 0x186 with Lara\'s record (0x5c0b50), then 0x1af')
+    rpo = fn_body(src, 'bool RunPoPull(')
+    if 't + 0x858, &carry) && carry' not in rpo or 'CinematicNow()' not in rpo or 'hp <= 0.0f' not in rpo:
+        problems.append('TruMenu.cpp: RunPoPull must refuse while Lara carries something, is dead or a cutscene runs')
+    if '(st & 4) ? p : 0' not in fn_body(src, 'DWORD PoInHolder(') or \
+            'if (pole && PoInHolder(pole)) return RunPoPull(pole, pi, o, n);' not in fn_body(src, 'bool RunPzPull('):
+        problems.append('TruMenu.cpp: puzzle.pull must take the pull-out only for a carryable with P+0x50 & 4')
+    if 'if (PoInHolder(o.inst)) {' not in fn_body(src, 'void PzNewRows('):
+        problems.append('TruMenu.cpp: PzNewRows must offer "Pull out" under a carryable in a holder')
+    if 'PoTick();' not in fn_body(src, 'void InsTick('):
+        problems.append('TruMenu.cpp: InsTick must run PoTick')
+    done.append('4 pull out')
     readme = open(os.path.join(ROOT, 'src', 'asi', 'TruMenu', 'README.md'), encoding='utf-8-sig').read()
     if '## 0.22.68' not in readme or 'TO TEST 0.22.68' not in readme:
         problems.append('README.md: section "## 0.22.68" with "TO TEST 0.22.68" missing')
@@ -8029,8 +8051,10 @@ def check_02261():
     if rows != {'007179db': '8b915808000085d27419576865010000' + '52e85fbde9ff', '00717a5a': '686501000056e8ebbce9ff'}:
         problems.append('TruMenu.cpp: kInsChecks must be the two 0x165 call sites (got %s)' % rows)
     code = re.sub(r'//[^\n]*', '', src)
-    if code.count('reinterpret_cast<InsPostFn>(0x005b3750)') != 2:
-        problems.append('TruMenu.cpp: 0x5b3750 only from InsTick and RunObjMsg')
+    # 0.22.68 (B2 4): + the two sends of PoTick (0x186 take-out, 0x1af drop; checked in check_02268)
+    sends = 2 + (2 if 'void PoTick() {' in src else 0)
+    if code.count('reinterpret_cast<InsPostFn>(0x005b3750)') != sends:
+        problems.append('TruMenu.cpp: 0x5b3750 only from InsTick and RunObjMsg (0.22.68: and PoTick)')
     if 'ThTick();' not in fn_body(src, 'DWORD WINAPI PadHook('):
         problems.append('TruMenu.cpp: PadHook must run ThTick once per game frame')
     readme = open(os.path.join(ROOT, 'src', 'asi', 'TruMenu', 'README.md'), encoding='utf-8-sig').read()

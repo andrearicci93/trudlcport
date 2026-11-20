@@ -2989,6 +2989,15 @@ Package B2 of the owner's queue (workspace `docs/Pakete-2111.md` row 6; specs in
   with the three 0.22.64 sites on the game thread while the follow camera is current, back only where `eb 2c` stands,
   a line `cam.nowall: orbit check 0x600924 skipped / back on (0x600911 now ..)` after each write; the value text
   counts level 2 only with this site patched too.
+- **(4) "Herausziehen" / "Pull out"** (A4 b, ENGINE 9 "Portable messages: take out, drop, stow (A4)"): a row under
+  every carryable whose state P+0x50 holds bit 4 (in a holder; P = `[[[inst+0x2d0]]+0x2ec]`) in Puzzles nearby;
+  `puzzle.pull <carryable>` then does the game's own take-out instead of a switch pull: frame 1 message **0x186** with
+  a record made like Lara's pull 0x717a72 (`0x5c0b50(0.0, 0.0, 0, Lara, 0)`, cdecl) through 0x5b3750, frame 2 **0x1af**
+  (drop: body woken, pick-up lock 1.5 s). Refused while Lara carries something, is dead or a cutscene runs, or when
+  P+0x54 names no holder. `[Pole] <intro> before / message 0x186 ... sent / message 0x1af ... / 2 s later` lines with
+  P+0x50 (in holder / in hands / stowed), P+0x54 raw and resolved, Lara's carry +0x858, body awake / asleep, position.
+  Then "Stange zu mir" / "Einstecken" as before (insert places the pole on the hole marker before 0x165); the
+  `puzzle.insert` lines now also show P+0x50 and whether P+0x54 resolves to the hole. 7 byte checks.
 
 ### TO TEST 0.22.68
 

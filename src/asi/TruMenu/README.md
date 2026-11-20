@@ -2928,6 +2928,61 @@ Reihenfolge fest (Flacker-Test)".
   combos as set now (e.g. `LB + View = weiter . RB + View = 1 Bild . LB + RB + View = Foto`), built from the INI values,
   so it follows any change.
 
+## 0.22.67 - build B1: reload guard after a costume switch, one-press villa switches, pull-out doors, evidence logs (2026-11-20)
+
+Package B1 of the owner's queue (workspace `docs/Pakete-2111.md` row 5; specs in the analyses A1 / A2 / A4 of
+2026-11-20). Not installed (0.22.65 stays in the game until the owner's test).
+
+- **(1) K1 reload guard** (A4 a, ENGINE 20 "Live costume switch and the reload (A4)"): after every live switch
+  (`costume.set` / `costume.next`, the 0.22.58 option B way back) TruMenu reads the checkpoint costume
+  `s = (s16)[[0xc59264]+0x20c]`; when it is not the new costume and its object tracker entry is not at status 2, it is
+  requested once with a reference through the game's own `0x5c1760(s)`. Until it is loaded, `cp.reload`, every
+  `level.load` / `level.reload` / `level.keep`, the in-level `level.start` and the `chapter.*` rows are refused
+  ("checkpoint costume ... not loaded yet - try again in a moment"); only after a live switch (a costume choice +
+  reload is the game's normal level load). Info `costume.keep`. Log: `[Costume] <what>: now ...; checkpoint costume
+  ...`, once a second `[Costume] checkpoint costume ... status / references` until a checkpoint takes the new costume,
+  and `[Costume] stand +t` (record, time in it, control byte 0x8ab4e6, gd+0x390, slot 0, waiting table, Lara
+  +0x14 / +0x18 / +0x1c) every frame for 3 s, then once a second for 10 s. 7 byte checks (`kK1Checks`).
+- **(2) V1 villa switches in one press:** `puzzle.pull` from "on" with bit 0x200 = 0 sends vt 58 and, as soon as +32
+  reads "off" (at most 2 s), vt 59 - the two presses that opened 4617 / 4525 on 19.11.; the check after 6 s as before.
+  Not inside `puzzle.pullto`; `lever` / `off` / `action` keep their forced kind.
+- **(3) N5 "Tuer herausziehen" / "Pull the door out"** (Puzzles nearby, under the target): a link whose current node has
+  a "joint range left" transition (condition 15) while its hinge / rail is inside the range (4526: hinge 0, [-47.41,
+  31.61)). `puzzle.pullout <anchor> <joint> [target]` drives the joint with its own motor (the TruLinkAct drive of
+  `puzzle.hold`, limits kept, nothing else written) 8 degrees / 20 units past the nearer edge the limits allow, 60
+  deg/s; it ends at the first node change of any link (the game reacts), and every link's node change of the next 4 s
+  is logged by name. Not for a lock of an object check.
+- **(4) logs** (read only):
+  - `[Death]`: detours on 0x6f5030 (damage: amount, kind, source) and 0x6f55a0 (DeathState's instant death), 9 byte
+    checks; a ring of 16 hits (LogLevel 2 `[Death] hit ...`), the death line `[Death] unit ... pos ... rec ... cause
+    <kind> amount ... by <source> via <site> | last hits ...`, the first hit record of each hit-record caller dumped once.
+  - `log.perch` W5 P1-P5: `[Perch] P1 pending [m+0x514] ...`, `P2 jump PRESSED`, `P3 leave 1191 -> ... FROM THE
+    BUFFER`, `P4 WARNING: pillar box held on the perch stand`, `P5 first frame / pillar point ... dz`; DROP only
+    downwards, upwards `[Perch] LIFT`.
+  - `log.vein` (new, default on, page Figur row "Felsader-Log (N10)"): `[Vein] V1` (action-52 bits, raw pad A,
+    [m+0x514] / [m+0x53c], gt+0x78, record) on every change, `V2` per record change in 1460..1517, `V3` take-off 455 ->
+    260 and docking 311 -> 1477; from 455 until 3 s after the vein records.
+  - `[Press]` (the jump press: kinds, mode / catch of the kind, stick I+8 .. I+0x24, camera yaw, T+0xa60, yaw; 10 frames
+    record + yaw + T+0x248, then LogLevel 2 until the landing); `[Flight]` (a flight without a launch line: per frame
+    record, position, step, inst+0x2a0 local + world, inst+0x2b0, T+0xa84 / T+0xb00, "motion not from inst+0x2a0",
+    "ended by death"); the 0x71f6e4 calls (message 0x1c7) are only counted (`[Jump] 0x1c7 drops: n in 1 s`).
+  - `[Jump] launch / arc`: the velocity is turned from Lara's frame into the world (yaw inst+0x38) before the direction
+    text and the arc (A2: the "128 deg" was this log's error); the line names the flight heading and the yaw 10 frames
+    before.
+  - `[Tempo]` with the shadow power (X23): once a second while the meter is active - world / player time scale, ramp
+    targets, request slots, meter, HUD, runs / stands.
+  - `[Cam]` on look input (right stick): cam+0x90 / +0x150 / +0x1d4 / Lara distance every frame for 2 s (LogLevel 1
+    while `cam.nowall` is on, else 2).
+- **(5) small:** `fall.box` counts record 294 and a running flight with vertical velocity as "in the air";
+  `jump.catch` tubes only for segments within 1500 units and 60 degrees ahead; `dbg.flatedges` counts its edge draws
+  (state line), logs the depth bias caps and the game's ZFUNC once and tests LESSEQUAL (reason of 19.11. unproven).
+- Not built: N2 shadow gate cheat (needs the action-12 / 13 values of the gate's 'unlocked' / 'turn' nodes - see the
+  workspace test guide).
+
+### TO TEST 0.22.67
+
+- workspace `docs/Testanleitung-B1-2011.md` (K1 costume switch + reload, V1 villa switches, N5 door 4526, the log lines).
+
 ## 0.22.66 - build T2: sonar view kept, intro table from the game data (2026-11-19)
 
 Package T2 (R1 (6) and R1 (2) of `docs/Pakete-1811.md`). Not installed (0.22.65 stays in the game until after Saturday).

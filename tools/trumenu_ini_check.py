@@ -7520,7 +7520,8 @@ def check_02265():
             'PchRecHas(rec, 420, 603)' not in act:
         problems.append('TruMenu.cpp: PchActive must take records 826 / 840 / 841 / 849 / 860..867 and states 420 / 603 (R9 2.1)')
     tick = fn_body(src, 'void PchTick(')
-    if 'fabsf(dz) > 100.0f' not in tick or '[Perch] DROP' not in tick or 'PchDiff(' not in tick:
+    # 0.22.67 (B1): DROP only downwards (dz < -100), upwards = [Perch] LIFT
+    if ('fabsf(dz) > 100.0f' not in tick and 'dz < -100.0f' not in tick) or '[Perch] DROP' not in tick or 'PchDiff(' not in tick:
         problems.append('TruMenu.cpp: PchTick must log DROP with the field diffs on > 100 units z in one frame')
     box = fn_body(src, 'void PchBoxText(')
     if 't + 0xc94' not in box or 'flags & 0x20000' not in box or 'flags & 0x10' not in box or 'ROTATED' not in box:
@@ -7552,6 +7553,105 @@ def check_02265():
     if '## 0.22.65' not in readme or 'TO TEST 0.22.65' not in readme:
         problems.append('README.md: section "## 0.22.65" with "TO TEST 0.22.65" missing')
     return problems, 'build S5 (%s)' % ', '.join(done)
+
+
+def check_02267():
+    """0.22.67 (package B1, docs Pakete-2111.md row 5): kVersion starts with 0.22.67; (1) K1: the 7 byte checks, the
+    request only through 0x5c1760 after the switch (SwitchCostume / DgSlotCheck), the reload gate in LoadUnit /
+    cp.reload / level.start / chapter rows, armed only after a live switch; (2) V1: puzzle.pull chains vt 58 -> vt 59 from
+    on with bit 0x200 = 0 (not inside puzzle.pullto), at most 2 s; (3) N5: puzzle.pullout through the TruLinkAct drive
+    (no limit / node write), item + label, rows in the targets; (4) logs: [Death] detours 8 / 7 bytes after 9 byte checks
+    and nothing written in the hooks, B1 section without other writes, log.vein default on with item + bar row, the
+    [Jump] velocity turned into the world, [Perch] LIFT; README section"""
+    problems = []
+    done = []
+    src = read_cpp()
+    ver = src[:src.find('\n', src.find('kVersion = '))]
+    if '"TruMenu 0.22.67 (build B1' not in ver and ' - 0.22.67 (build B1' not in ver:
+        problems.append('TruMenu.cpp: kVersion must start with "TruMenu 0.22.67 (build B1 ..."')
+    at = src.find('// ---- 0.22.67 B1 (package B1')
+    end = src.find('// ---- end of 0.22.67 B1', at)
+    part = src[at:end] if at >= 0 and end > at else ''
+    if not part:
+        problems.append('TruMenu.cpp: section "0.22.67 B1" missing')
+    k1 = src[src.find('const ChCheck kK1Checks[] = {'):]
+    k1 = k1[:k1.find('};')]
+    for a, h in (('0x006f0b90', '6639730e7409 53 e8640eedff'), ('0x006f0b04', 'a3c8f1e700 c705ccf1e70000000000'),
+                 ('0x00555cb1', '66a1c8f1e700 6689820c020000'), ('0x00556fbd', '0fbf880c020000 890dc8f1e700'),
+                 ('0x005c1760', '8b442404 6a01 50 e8e4fdffff'), ('0x005c1730', '8b442404 6a00 50 e814feffff'),
+                 ('0x005de6f5', 'e8c659ffff')):
+        if '{%s, "%s"}' % (a, h) not in k1:
+            problems.append('TruMenu.cpp: kK1Checks row %s "%s" missing' % (a, h))
+    if 'K1AfterSwitch("costume switch");' not in fn_body(src, 'bool SwitchCostume(') or \
+            'K1AfterSwitch("costume B back");' not in fn_body(src, 'void DgSlotCheck('):
+        problems.append('TruMenu.cpp: K1AfterSwitch must follow both live switches (SwitchCostume, DgSlotCheck)')
+    req = fn_body(src, 'bool K1Request(')
+    if 'QlRequestFn>(0x005c1760)' not in req:
+        problems.append('TruMenu.cpp: K1Request must request through 0x5c1760 (the game\'s request with a reference)')
+    gate = fn_body(src, 'bool K1Gate(')
+    if 'if (!g_k1.live' not in gate or 'st == 2 && obj' not in gate:
+        problems.append('TruMenu.cpp: K1Gate must act only after a live switch and pass a loaded costume')
+    for fn, what in (('bool LoadUnit(', 'level.load'), ('bool RunCpReload(', 'cp.reload'), ('bool RunLevelStart(', 'level.start'),
+                     ('bool RunChapKeep(', 'chapter.keep'), ('bool RunChapUnit(', 'chapter.unit'), ('bool RunChapReload(', 'chapter.reload')):
+        if 'K1Gate("%s", o, n)' % what not in fn_body(src, fn):
+            problems.append('TruMenu.cpp: %s) must ask K1Gate("%s")' % (fn.strip('('), what))
+    done.append('1 K1')
+    pull = fn_body(src, 'bool RunPzPull(')
+    if 'p.chain = vt == 58 && st == 1 && !PzSwUsed(inst)' not in pull or '!PzPullToBusy(intro)' not in pull:
+        problems.append('TruMenu.cpp: RunPzPull must chain only vt 58 from on with bit 0x200 = 0 outside puzzle.pullto')
+    ptick = fn_body(src, 'void PzPullTick(')
+    if 'p.chain == 1' not in ptick or 'PzSwState(sw) == 0' not in ptick or 'now - p.at > 2000' not in ptick:
+        problems.append('TruMenu.cpp: PzPullTick must send vt 59 once +32 reads off, at most 2 s after vt 58')
+    done.append('2 V1')
+    pout = fn_body(src, 'bool RunPzPullOut(')
+    if 'tlact::DriveBegin(g_poDrive, d)' not in pout:
+        problems.append('TruMenu.cpp: RunPzPullOut must drive through the TruLinkAct drive')
+    for bad in ('kJtSetLimits', 'kJtLimitOn', 'WriteDword', 'WriteBytes', '+ 0x84) ='):
+        if bad in pout or bad in fn_body(src, 'bool PoFind('):
+            problems.append('TruMenu.cpp: puzzle.pullout must not write limits / nodes (found %s)' % bad)
+    if 'tlobj::D(tr + 0x18) != 15' not in fn_body(src, 'bool PoFind('):
+        problems.append('TruMenu.cpp: PoFind must take the "joint range left" transitions (condition 15)')
+    if '{"puzzle.pullout", "action",' not in src or '{"puzzle.pullout", "R' not in src:
+        problems.append('TruMenu.cpp: item / confirm label puzzle.pullout missing')
+    if 'PzPullOutRows(o, x, de)' not in fn_body(src, 'void PzNewRows('):
+        problems.append('TruMenu.cpp: PzNewRows must offer the pull-out rows in the targets')
+    done.append('3 N5')
+    dh = src[src.find('const ChCheck kDhChecks[] = {'):]
+    dh = dh[:dh.find('};')]
+    if '{0x006f5030, "51 f60544f1e70001 c6042400 0f85fb000000"}' not in dh or \
+            '{0x006f55a0, "a158dbfa00 d9ee 810db8f0e70000000800"}' not in dh:
+        problems.append('TruMenu.cpp: kDhChecks must pin the two entries 0x6f5030 / 0x6f55a0')
+    tick = fn_body(src, 'void DhTick(')
+    if 'B1Detour(0x006f5030, 8,' not in tick or 'B1Detour(0x006f55a0, 7,' not in tick:
+        problems.append('TruMenu.cpp: DhTick must move 8 bytes of 0x6f5030 and 7 of 0x6f55a0')
+    for fn in ('void __cdecl DhHitHook(', 'void __cdecl DhKillHook(', 'void B1ChartTick(', 'void B1JumpTick(',
+               'void B1TempoTick(', 'void B1CamTick(', 'void K1StandLine('):
+        body = fn_body(src, fn)
+        if not body:
+            problems.append('TruMenu.cpp: %s) missing' % fn.strip('('))
+        for bad in ('WriteBytes', 'WriteDword', 'WriteFloat', 'VirtualProtect', '*reinterpret_cast<volatile DWORD *>(t',
+                    '*reinterpret_cast<volatile float *>(t + 0x628) ='):
+            if bad in body:
+                problems.append('TruMenu.cpp: %s) must only read (found %s)' % (fn.strip('('), bad))
+    if part.count('WriteBytes(') != 1:
+        problems.append('TruMenu.cpp: the B1 section writes code only in B1Detour (found %d WriteBytes)' % part.count('WriteBytes('))
+    if 'volatile LONG g_vnOn = 1;' not in part or '{"log.vein", "bool",' not in src:
+        problems.append('TruMenu.cpp: log.vein must default to on and be an item')
+    lara = src[src.find('const QbRow kQbLara[] = {'):src.find('const QbRow kQbDebug[] = {')]
+    if '"log.vein", "", kQbBool' not in lara:
+        problems.append('TruMenu.cpp: bar row log.vein missing on kQbLara')
+    note = fn_body(src, 'void MdLaunchNote(')
+    if 'B1ToWorld(irot[2], vLocal, v);' not in note or 'B1NoteDrop();' not in note:
+        problems.append('TruMenu.cpp: MdLaunchNote must turn v into the world and count the 0x71f6e4 calls')
+    if '[Perch] LIFT' not in fn_body(src, 'void PchTick('):
+        problems.append('TruMenu.cpp: PchTick must log upward jumps as [Perch] LIFT')
+    if 'B1Tick(b1Raw, copy.sThumbLX, copy.sThumbLY, copy.sThumbRX, copy.sThumbRY);' not in fn_body(src, 'DWORD WINAPI PadHook('):
+        problems.append('TruMenu.cpp: PadHook must run B1Tick once per game frame')
+    done.append('4 logs')
+    readme = open(os.path.join(ROOT, 'src', 'asi', 'TruMenu', 'README.md'), encoding='utf-8-sig').read()
+    if '## 0.22.67' not in readme or 'TO TEST 0.22.67' not in readme:
+        problems.append('README.md: section "## 0.22.67" with "TO TEST 0.22.67" missing')
+    return problems, 'build B1 (%s)' % ', '.join(done)
 
 
 def check_02264():
@@ -8697,6 +8797,10 @@ def main(argv):
     for p in cproblems65: print('Q02265 %s' % p)
     if not cproblems65: print('ok: 0.22.65 %s' % csummary65)
     problems += cproblems65
+    cproblems67, csummary67 = check_02267()   # 0.22.67 (build B1: K1, V1, N5, logs)
+    for p in cproblems67: print('Q02267 %s' % p)
+    if not cproblems67: print('ok: 0.22.67 %s' % csummary67)
+    problems += cproblems67
     cproblems27, csummary27 = check_02227(ini_path, opt.get('--switches', SWITCHES))   # 0.22.27
     for p in cproblems27: print('Q02227 %s' % p)
     if not cproblems27: print('ok: 0.22.27 %s' % csummary27)

@@ -6,7 +6,11 @@ State record (0x28 bytes, layout: tools/state_actlist_fix.py): 10 u16 header (+0
 activity count, +0x0c state-id count, +0x0e transition count, +0x10 count of the +0x20 list), pointers +0x14 activities
 (8-byte entries {u16 id, u16 type, 4 value bytes}), +0x18 u16 state ids, +0x1c u16 transition indices (into the
 machine's transition pointer array), +0x20 u16 list.
-Transition = 20-byte block {u16 target, u16, u16 count, u16, ptr conditions, ptr, u32} (tools/chart_transitions.py);
+Transition = 20-byte block {u16 target, u16 kind count, u16 condition count, u16, ptr u16 kind list, ptr conditions,
+u32} as the PC machine reads it (0x787570 / 0x785920, A1 2026-11-20): kind 1 = the transition waits until
+machine+0x24 == 1, kind 7 = it waits while byte machine+0x53c != 0 (kept in machine+0x514 meanwhile). Without kinds
+both pointers are equal; before 2026-11-20 this tool read the conditions from +8, which for transitions with kinds
+printed the kind list as "{7,0,0} {0,0,0}" and dropped the last conditions.
 condition = 8 bytes {u16 key, u16 id, u16 value, u8 flags (bit 0 NOT), u8}.
 
 Usage (from the repository root):
@@ -71,12 +75,21 @@ class Chart:
     def trans(self, idx):
         a = self.tlist[idx]
         tg, w1, cnt, w3 = struct.unpack_from(self.f + '4H', self.d, a)
-        c0 = self.it[a + 8]
+        c0 = self.it.get(a + 0xc, self.it.get(a + 8))
         conds = []
         for j in range(min(cnt, 24)):
             ky, i, v = struct.unpack_from(self.f + '3H', self.d, c0 + 8 * j)
             conds.append((ky, i, v, self.d[c0 + 8 * j + 6]))
         return a, tg, w1, cnt, w3, conds
+
+    def kinds(self, idx):
+        """u16 kind list of a transition (+8, count +2): 1 = wait for machine+0x24 == 1, 7 = wait for machine+0x53c == 0."""
+        a = self.tlist[idx]
+        n = struct.unpack_from(self.f + 'H', self.d, a + 2)[0]
+        p = self.it.get(a + 8)
+        if not n or p is None:
+            return []
+        return [struct.unpack_from(self.f + 'H', self.d, p + 2 * j)[0] for j in range(n)]
 
     def state(self, k):
         r, sid, hdr, p14, p18, p1c, p20 = self.recs[k]
@@ -119,7 +132,8 @@ def show(C, k, depth, seen, indent=''):
         if ti >= len(C.tlist):
             print('%s  trans %d: OUT OF RANGE' % (indent, ti)); continue
         a, tg, w1, cnt, w3, conds = C.trans(ti)
-        print('%s  trans slot %4d +0x%05x -> %5d (w1 %d, w3 %d): %s' % (indent, ti, a, tg, w1, w3, fmt_conds(conds)))
+        print('%s  trans slot %4d +0x%05x -> %5d (w1 %d, w3 %d): %s%s' % (indent, ti, a, tg, w1, w3,
+              'kinds %s ' % C.kinds(ti) if w1 else '', fmt_conds(conds)))
         nxt.append(tg)
     if depth > 0:
         for tg in nxt:
@@ -194,7 +208,7 @@ def main(argv):
                   ' '.join('%d/t%d=%s' % (i, ty, fmt_val(C.f, ty, v)) for i, ty, v in acts)))
             for ti in tr:
                 a, tg, w1, cnt, w3, conds = C.trans(ti)
-                print('      -> %d [slot %d%s] %s' % (tg, ti, ', w1 %d' % w1 if w1 else '', fmt_conds(conds)))
+                print('      -> %d [slot %d%s] %s' % (tg, ti, ', kinds %s' % C.kinds(ti) if w1 else '', fmt_conds(conds)))
         return
     if mode == 'children':
         par = set(int(x) for x in argv[4].split(','))

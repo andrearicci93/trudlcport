@@ -33,7 +33,8 @@ def lines(C, idx):
             out.append('  trans %d OUT OF RANGE' % ti)
             continue
         a, tg, w1, cnt, w3, conds = C.trans(ti)
-        out.append('  -> %d [slot %d, w1 %d, w3 %d] %s' % (tg, ti, w1, w3, CP.fmt_conds(conds)))
+        out.append('  -> %d [slot %d, w1 %d, w3 %d] %s%s' % (tg, ti, w1, w3,
+                   'kinds %s ' % C.kinds(ti) if w1 else '', CP.fmt_conds(conds)))
     return out
 
 

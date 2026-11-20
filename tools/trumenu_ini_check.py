@@ -7773,6 +7773,23 @@ def check_02268():
     if 'PoTick();' not in fn_body(src, 'void InsTick('):
         problems.append('TruMenu.cpp: InsTick must run PoTick')
     done.append('4 pull out')
+    # (5) rune blocks: 7 byte checks, the hold writes only the found thread's wait (> 0.5) and reads it back, search logged
+    rc = src[src.find('const ChCheck kRuneChecks[] = {'):]
+    rc = rc[:rc.find('};')]
+    for a in ('0x0057ea18', '0x0057e27e', '0x0057aaa7', '0x0057aac7', '0x0057622b', '0x00576217', '0x0057a861'):
+        if '{%s, "' % a not in rc:
+            problems.append('TruMenu.cpp: kRuneChecks row %s missing' % a)
+    rt = fn_body(src, 'void RbTick(')
+    if 'if (w <= 0.5f) return;' not in rt or 'WriteDword(g_rb.thread + 8, bits) && ReadFloats(g_rb.thread + 8, &back, 1)' not in rt \
+            or rt.count('WriteDword(') != 1 or 'WriteBytes' in rt:
+        problems.append('TruMenu.cpp: RbTick may only write the thread wait (inside the pause) and must read it back')
+    if '[Rune] thread search: ' not in fn_body(src, 'DWORD RbFindThread(') or 'vt != 0x0084e4a8' not in fn_body(src, 'DWORD RbFindThread('):
+        problems.append('TruMenu.cpp: RbFindThread must log every search and match the thread vtable')
+    if 'RbRows(de, kHead, kSub, kAct);' not in fn_body(src, 'void PzNewRows(') or '{"puzzle.runehold", "bool",' not in src:
+        problems.append('TruMenu.cpp: rune rows in PzNewRows and item puzzle.runehold missing')
+    if 'RbTick();' not in fn_body(src, 'void PzGameTick('):
+        problems.append('TruMenu.cpp: PzGameTick must run RbTick')
+    done.append('5 rune blocks')
     readme = open(os.path.join(ROOT, 'src', 'asi', 'TruMenu', 'README.md'), encoding='utf-8-sig').read()
     if '## 0.22.68' not in readme or 'TO TEST 0.22.68' not in readme:
         problems.append('README.md: section "## 0.22.68" with "TO TEST 0.22.68" missing')

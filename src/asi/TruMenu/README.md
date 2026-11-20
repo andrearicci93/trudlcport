@@ -2998,6 +2998,16 @@ Package B2 of the owner's queue (workspace `docs/Pakete-2111.md` row 6; specs in
   P+0x50 (in holder / in hands / stowed), P+0x54 raw and resolved, Lara's carry +0x858, body awake / asleep, position.
   Then "Stange zu mir" / "Einstecken" as before (insert places the pole on the hole marker before 0x165); the
   `puzzle.insert` lines now also show P+0x50 and whether P+0x54 resolves to the hole. 7 byte checks.
+- **(5) falling rune blocks** (A4 c, ENGINE 9 "Falling rune blocks: a script clock (A4)", `dlc2_hall_ceremony_goo`):
+  Puzzles nearby gets a group "Fallende Runenbloecke" with one row per block "Runenblock <id> (Uhr A / B): faellt in x
+  s, Takt 9.0 s" and the row "Runenbloecke festhalten" / "Hold the rune blocks" (`puzzle.runehold 1|0`, cheat, not
+  kept). Clock = the block whose script names the other (puzzle edges), else the lower intro id (unproven). A fall = the
+  block's model (bone 0) or inst+0x20 more than 50 units below its highest point (`[Rune] block .. falls`, `.. back
+  up after x s`); the period is measured between two falls of A (9.0 s from the data until then). Hold: the clock's VM
+  thread from the handle table `[0xcc4f70]` (flags bit 0 + 0x20000, vtable 0x84e4a8, top frame +4 = `[clock+0x60]`,
+  every search logged with the counts), its wait thread+8 read when > 0.5 s (inside the 8.5 s pause - a request in the
+  0.5 s window waits) and written back every game frame, read back (a line every 5 s, a failed write stops); off = no
+  more writes. Off at a unit / stamp change or when the thread is gone. 7 byte checks.
 
 ### TO TEST 0.22.68
 

@@ -43311,7 +43311,7 @@ const char *RadialWhy(const RadItem &e) {
     }
     if (!_stricmp(id, "photo.pose")) {       // 0.22.34 (F2): poses only in the photo mode
         if (!PpCheck()) return g_ppWhy;
-        if (!g_pmActive) return "only in the photo mode (photo.on)";
+        if (!g_pmActive && !strstr(e.arg, "test")) return "only in the photo mode (photo.on)";   // 0.22.68: '<n> test'
     }
     if ((!_stricmp(id, "arena.load") || !_stricmp(id, "arena.unload")) && !QlCheck()) return g_qlWhy;   // 0.22.33
     if ((!_stricmp(id, "fix.hall02") || !_stricmp(id, "thrall.scriptval")) && !g_h2Ok) return g_h2Why;   // 0.21.4

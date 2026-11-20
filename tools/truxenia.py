@@ -21,6 +21,12 @@ Usage (from the repository root):
                                                        camera comparison TSV (CAM_COLS = TruShadowPower 0.25 TruCam.log
                                                        columns; tools/cam_compare.py) - no window, no link, may run
                                                        next to a running TruXenia
+  ../bin/pyt -t 0 tools/truxenia.py --movelog [PATH] [--movelog-seconds 600] [--movelog-interval 0.005]
+                                                       2026-11-20 (B3): the Xbox side of TruMenu's [Perch] / [Vein] /
+                                                       [Tempo] / [Jump] / [Press] lines (tools/truxenia_moves.py, default
+                                                       logs/truxenia/moves_<time>.log; compare with
+                                                       tools/compare_pc_xenia_logs.py) - no window, no link, may run
+                                                       next to a running TruXenia
 Options: --port N, --log PATH (default ../logs/truxenia/truxenia_<time>.log), --hitlog PATH (default next to the log),
   --unproven, --allow-write (unlocks `set` after a confirmation), --lang de|en, --verbose, --debug, --trace.
 Link commands (tools/truxenia_cmd.py): status | enemies | lara | snapshot <file> | watch <seconds> <file> |
@@ -1828,6 +1834,11 @@ def main():
                          'no window, no link - may run next to a running TruXenia')
     ap.add_argument('--camtrace-seconds', type=float, default=120.0)
     ap.add_argument('--camtrace-interval', type=float, default=0.05)
+    ap.add_argument('--movelog', nargs='?', const='', default=None,
+                    help='B3 move log: [Perch] / [Vein] / [Tempo] / [Jump] / [Press] in the TruMenu line format (default '
+                         'logs/truxenia/moves_<time>.log); no window, no link - may run next to a running TruXenia')
+    ap.add_argument('--movelog-seconds', type=float, default=600.0)
+    ap.add_argument('--movelog-interval', type=float, default=0.005)
     a = ap.parse_args()
     if a.selftest_gui:
         a.selftest = True
@@ -1877,6 +1888,11 @@ def main():
         ct.f.close()
         log.w('I', 'camera trace end: %d rows in %s' % (ct.rows, cpath))
         return 0
+    if a.movelog is not None and not a.selftest:
+        import truxenia_moves as MV
+        mpath = a.movelog or os.path.join(os.path.dirname(a.log), 'moves_%s.log' % stamp)
+        ml = MV.run(mem, A, log, mpath, a.movelog_seconds, a.movelog_interval, opt, once=bool(a.once or a.dumpfile))
+        return 0 if all(ml.ok.values()) else 1
     hp = a.hitlog or os.path.join(os.path.dirname(a.log), 'hits_%s%s.log' % (stamp, '_selftest' if a.selftest else ''))
     model.hitlog = open(hp, 'a', encoding='utf-8')
     log.w('I', 'hit log %s' % hp)

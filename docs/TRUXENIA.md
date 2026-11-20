@@ -36,6 +36,9 @@ From the repository root (`../bin/pyt` = the project's Python runner; any Python
 ../bin/pyt -t 120 tools/truxenia.py --selftest    # offline: simulated memory, hit log, link, saves (dry run)
 ../bin/pyt -t 60 tools/truxenia.py --dumpfile work/xenia_dump/tu_image_82000000.bin --check   # proof words vs a dump
 ../bin/pyt -t 0  tools/truxenia.py --camtrace --camtrace-seconds 300   # camera trace TSV only (next to a running TruXenia)
+../bin/pyt -t 0  tools/truxenia.py --movelog --movelog-seconds 900     # move log (section "Move log"), next to TruXenia
+../bin/pyt -t 120 tools/truxenia_moves.py --selftest                   # offline: move log lines on a simulated TU memory
+../bin/pyt -t 120 tools/compare_pc_xenia_logs.py --selftest            # offline: the PC / Xbox comparison
 ```
 
 Options: `--port N`, `--log PATH`, `--hitlog PATH`, `--unproven`, `--allow-write`, `--lang de|en`, `--verbose`,
@@ -234,6 +237,44 @@ sonar keeps entries only while it is open). The counters are reset every sonar f
 mid-frame - the 2 s maximum is the useful number; `refused` > 0 = limit hit (`LIMIT HIT` in the link answer).
 Everything is read only; while the sonar is closed the unit list is empty (the units are freed on close).
 
+## Move log (B3, 2026-11-20)
+
+The Xbox side of TruMenu 0.22.65 .. 0.22.68's move lines, so that the same place can be played in Xenia and on the PC
+and the two logs laid side by side. `--movelog [PATH]` (`--movelog-seconds`, default 600, `--movelog-interval`,
+default 0.005) writes `logs/truxenia/moves_<time>.log` with TruMenu's time stamp and line format; no window, no link -
+it may run next to a running TruXenia. Code: `tools/truxenia_moves.py`; addresses: sections `move_machine`,
+`move_tracker`, `move_markup`, `move_input`, `move_time` of the address file (69 proof words, all `"optional"`: a
+mismatch turns that section's values into `?`, without machine + tracker there are no lines; both TU dumps 69 / 69,
+retail 0 / 69). TU twins: ENGINE.md row "TU move fields".
+
+| Line | Xbox values (TU) | `?` on the Xbox side |
+|---|---|---|
+| `[Perch]` enter / change / leave, `LIFT` / `DROP` (> 100 u between two samples), the 8-sample ring and the dword diff of gt+0xa00..+0xcff / Lara +0..+0x2ff | machine m = `[[0x829892b0]+0xf10]`, record `[m+0x520]` as index; Lara position +0x20, yaw +0x38; gt+0xa64, gt+0xc94 (box: record id / type, item type, flags PERCH / PILLAR, owner, bone matrix rotated / straight, line points p0 / p1), gt+0xc98 | stick; item id, point count, owner intro id; matrix of a box without owner |
+| `[Perch]` P1 - P5 | `[m+0x524]` pending (PC +0x514: target, kinds), `[m+0x24]`, byte `[m+0x54c]` (PC +0x53c), action 52 bits, P5 pillar point p0 + t (p1 - p0) | raw pad A |
+| `[Vein]` watch, V1 - V3 (records 455, 1460..1517) | as P1; gt+0x78 is a **byte** (PC logs the dword - the comparison takes its low byte); V2 `power` = condition 1046 itself (TU 0x8246e400) | raw pad A, stick |
+| `[Tempo]` (power on: once a second, and on each change) | meter flags bit 0, world `[gt+0x118]`, player `[gt+0x150]` (PC +0x14c), ramp targets 0x827754cc / 0x827754ac, the 7 request slots, meter value, Lara runs / stands (step > 3 u per sample) | HUD fraction, stick |
+| `[Jump]` launch+ / launch / re-aim / fly / flight end, `kind` | T+0xa20, target T+0xa64 (box type), flight time T+0x77c, kinds T+0xb00 / T+0xc90 | T+0xaa0, T+0x610, dt, inst+0x2a0, the launch site (`via=?`) |
+| `[Press]` | rising bit 0x10 of action 52: record before / now, T+0xb00 / T+0xc90 | mode / catch of the kind, stick, camera yaw, T+0xa60 |
+
+Differences that are not values: TruXenia polls; a sample whose tracker, machine and Lara blocks are byte-equal to the
+last one is dropped, so a logged step is one game frame when the poll is faster than the game (lines say "sample"
+where TruMenu says "frame"). There is no launch hook: "launch" = T+0xa20 written with a new value outside a flight,
+inside a flight a re-aim; "flight end" = z still for 0.3 s (heuristic). PC `drop` lines (calls with v = 0) have no
+Xbox twin. "Action 52 = jump" comes from the chart data - the A press must show `PRESSED` live.
+
+🔶 **Villa switch** (+32, bit 0x200, target node; TruMenu `puzzle.pull` and the 16.11. V3 notes) is **not** on the Xbox
+side: the script object (`inst+0x60`), its class chain / member table and the Uber node layout are not proven on the
+TU. How to prove: find the TU twins of `tlobj::ScriptObj` (PC inst+0x60), the IsA walk 0x5749e0 and the member table
+root+0x2c by their PC call pattern, then proof words; instance +0x1c bit 0x200 (ENGINE 5.2) by a TU reader of +0x1c.
+Until then `peek <inst> 128` on the link shows the raw instance words.
+
+Compare: `tools/compare_pc_xenia_logs.py --pc <game>/TruMenu.log --xbox ../logs/truxenia/moves_<time>.log --out
+../logs/compare_moves.md` (`--pc-since` / `--pc-until` / `--xbox-since` / `--xbox-until` as `HH:MM:SS` or a full stamp;
+by default only the PC lines after the last `TruMenu.*loaded` line, `--pc-all` for the whole file). Per tag the events
+are aligned by their record signature; a pair is `ok`, `DIFF: <field> pc / xbox`, `PC only` or `Xbox only`.
+Tolerances: z / dz 5 u, t 0.02, time scale 0.02, vectors 0.5; pointers only as "0 / set" and "jump target == attach
+box"; `?` is never a difference.
+
 ## State (2026-11-09)
 
 - First live session 09.11. 17:35-18:10 (hit log, values readable, proof words passed).
@@ -249,5 +290,9 @@ Everything is read only; while the sonar is closed the unit list is empty (the u
   0 / 89), `--selftest` passes with the sonar / peek checks (incl. refused peeks and '?' for a section with a proof
   mismatch); the DLC 2 dump `dlc2_shadow_off_image.bin` reads mode 0 (closed), no units. Window page not opened
   (Tk code path only reviewed). Not yet run live.
+- 2026-11-20 (offline, B3): move log (section "Move log") and `tools/compare_pc_xenia_logs.py`; 69 optional proof
+  words (both TU dumps 69 / 69, retail 0 / 69); `truxenia_moves.py --selftest` and `compare_pc_xenia_logs.py
+  --selftest` pass, `truxenia.py --selftest` still passes; the comparison parses a real TruMenu 0.22.65 log of
+  19.11. (788 / 788 `[Perch]` lines). Not yet run live; villa switch 🔶.
 - Open: `Ko` meaning, camera look-at point, units / sections / shaders, Xenia function-trace reader (stage 2).
 - TU addresses: ENGINE.md section 13 rows "TU combat addresses", "TU brain shift", "TU TruXenia stage 1b".

@@ -62,12 +62,13 @@
 #include "../TruLink/TruLinkAct.h"          // 0.22.56: TruLink 0.5 placement / command / joint drive (the same code)
 #include "TruPuzzleCore.h"                  // 0.22.56: puzzle analysis, pure reads (offline: TruLinkObjTest 'puzzle <id>')
 #include "TruIntroScan.h"                   // 0.22.66 (T2 2): intro table from the game archives (offline: TruIntroScanTest)
+#include "TruThorCore.h"                    // 0.22.68 (B2 1): Thor pillar reach from the terrain (offline: TruThorCoreTest)
 
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 namespace {
 
-const char *const kVersion = "TruMenu 0.22.67 (build B1 2026-11-20: (1) K1 after a live costume switch the checkpoint costume (s16)[gd+0x20c] is requested with a reference (0x5c1760) unless loaded, own reloads refused until it is (no 0x5ff851 crash), [Costume] watch lines; (2) puzzle.pull from on with bit 0x200 = 0: vt 58, then vt 59 once off (one press); (3) puzzle.pullout 'Tuer herausziehen' (joint range left, motor drive past the edge); (4) logs: [Death] (0x6f5030 / 0x6f55a0), log.perch P1-P5 + LIFT, log.vein V1-V3, [Press] / [Flight] / 0x1c7 count, [Jump] velocity turned into the world, [Tempo], [Cam] per frame on look input; (5) fall.box air by record 294 / flight, catch tubes ahead only, dbg.flatedges pass counted + LESSEQUAL) - 0.22.66 (build T2 2026-11-19: (1) sonar.keepview - the next sonar open in the same unit gets the view centre (with the LT / RT zoom), yaw / pitch and floor of the last close (16 byte checks, game thread, the game's floor change of 'back to Lara'); (2) the level-start intro table from patch.000 / bigfile.000 at run time (TruIntroScan.h, background thread), TruMenu.unitintros.txt as the fallback, a file / game data comparison line) - 0.22.65 (build S5 2026-11-19, evidence instead of guesses: (1) log.perch [Perch] lines in the perch / post records (W5 slanted posts) per record change with the attach box, flags, matrix rotated / straight, DROP line with field diffs on > 100 units z in one frame; (2) [Thor] obstacle extents by 4 rays, floor rays terrain / object per cell; [Cam] cam.nowall 2 camera in geometry once a second and the camera water state (0x5ea200 fields)) - 0.22.64 (build S4 2026-11-19: (1) cam.nowall 0 / 1 / 2 = the follow camera as in the game / without the pull-in (0x600598) / through walls (+ 0x60037c, 0x6004e3), 6 byte checks, written on the game thread only while the follow camera 0xe83860 is current, back = the old bytes) - 0.22.63 (build S3 2026-11-19 after the analysis S2: (1) puzzle.pull from on uses vt 58 (the off reaction; S2: vt 59 acts only from off), puzzle.pull <id> lever|off|action = vt 59 / 58 / 55; (2) bal.nofall: the beam fall flag stays 0 (3 bytes 01 -> 00 at 0x742eeb / 0x742f17 / 0x742f3c after 4 byte checks, written back when off); (3) photo.pose lets Lara run 45 frames despite the pause (+0x1c 0x1000, exactly back), photo.hide / photo.show (+0x14 0x800 on Lara and her children, exactly back), photo.shotui (ui shot once the panel is closed); (4) [Push] only while Lara's record holds state 1477, the pushed instance [[0xfae504]+0x148] logged against the kind filter; (5) Thor areas strict (|dz| <= 6) for areas / state / arrow / log, relaxed only with puzzle.thorloose, obstacles of the unit (bodies / breakables, re-query round moved ones), artifacts from the unit's intro list with the measured data -> live offset, galleries chained, exit = the remaining gallery nearest a unit trigger) - 0.22.62 (fix build S1 2026-11-19 after the live test of 18.11.: (a) puzzle.pull uses vt 59 (the lever) also from on - the villa switches - with the lever node in the check after; (b) the puzzle help level is two switches puzzle.hints / puzzle.actions ([Puzzle] Hints / Actions, the old Help still read); (c) bar rows: fall.box / trace.arcs on Figur, puzzle.thor / thorgap on Kapitel, obj.track on Debug, dbg.plates (plates / weights / holes) of its own on Leveldaten; (d) the flight arc takes T+0xa20 while a target is set, else inst+0x2a0 from the frame after the call (the game passes v = 0), jump.preview = dashed arcs of the target slots T+0xb00 / T+0xc90 from the jump table (0x6f1950 byte checked, read only) with 'du landest auf <markup>' / 'kein Ziel, Fallhoehe x m', jump.catch = 300-unit tube; (e) [Jump] sites: 0x766b4f ground move / 0x71b519 restart only at LogLevel 3, 0x71f6e4 pole take-off, a v = 0 call is logged only when a flight follows, re-aims only from the aim solver; (f) the light blue throw path fades out 3 s after the body's rest, [Push] only for pushable objects (uber graph / jointed multibody, no ragdoll pieces) with Lara on the ground, one multibody once; (g) puzzle.pullto 'Figur aufs Ziel' = the n pulls of a chapel wall switch one after the other through puzzle.pull, stop when locked) - 0.22.61 (Thor pillar areas, package R1c 2026-11-18: puzzle.thor computes at run time where the pushable Thor pillar must stand for a jump from its top to the exit gallery / the two artifact galleries / the column rings (floor query 0x493330 per 150-unit cell, unit ledges 1700 .. 2200 above the floor, [Puzzle] ThorGap 600), draws the areas on the floor, the pillar's circle, in the area / x m off and an arrow; (2) holder rule of R4 (named by it / its script names it / nearest free accepting holder), puzzle.insert 'Einstecken' = onto the holder + message 0x165 through the game's send 0x5b3750 (2 byte checks of its callers, check after 2 s), obj.msg (TruLink 0.5.3), counted weights first for a plate) - 0.22.60 (motion data, package R1b 2026-11-18: [Jump] launch / drop lines from the game's launch 0x70e050 / drop 0x70e100 (pass-through, 6 byte checks) with p0, v0, g, target, direction to the heading; [Throw] release / rest of a portable leaving Lara's hands; [Push] start / move (10 / s) / end of a body near Lara, obj.track <id> on|off|list [Track] 5 / s; trace.arcs draws the flight arc to the ground probe hit (0x493330) + the throw path; fall.box ground below + fall height at landing + the last landing's scale) - 0.22.59 (puzzles + landing log, package R1 2026-11-18: (1) mid-chapter keep-state loads keep the loaded same-level intros' played marks at 1 on the loading screen; (9a) puzzle.pull 'Schalter betaetigen' through the switch's own script (vt 59 lever / vt 55 action, 3 byte checks, check after in the log); (9) hold open: closed gates open first (motor drive / the opening set-node record), up to 4 holds at once, the shadow door always offered; (4) puzzle.help 0 off / 1 hints / 2 solve with hint lines in the list and at the objects + the next checkpoint + local TruMenu.puzzlehints.txt; (5) plates / weights / pole holes in the key items view with state; (7) [Fall] landing line from the fall damage check 0x75d080 (R2, read only); (7b) fall.box: fall height box with the run-time limits a / b / c) - 0.22.58 (chapter / loading + costume 857, package Q1b 2026-11-17: (S1) page Kapitel rows by kind - chapter starts = the in-level level start f27 (new game data, intro), mid-chapter units = level.keep (level.load, state kept), [Chapter] UnitFresh=1 (experimental) = f27 + the loaded intro units' played marks kept at 1 on the loading screen (level.start <unit> 0 mark); (S2) level.keep / chapter.keep / level.reload into an intro's own unit set that intro's played mark (sticky int 0:<intro> key 5968) to 0 first, watchdog ': Cine already played' without 'ABOUT TO FADE OUT' within 10 s; (S3) the level-start intro table from TruMenu.unitintros.txt (tools/unit_intro_table.py, game data next to tru.exe); (S4) cp.reload 'Letzten Checkpoint laden' = [0xe7f0b8] |= 0x80000 (the game's death restart request, 6 byte checks), in-place restore vs full reload logged; (S5) level.reload 'Reload unit (unit start, state kept)'; (S6) chapter.reload takes the newest safe-ground unit when Lara is off the map, the row shows the unit; (S7) DLC: 'Reload DLC start'; costume 857 doppelganger_casual outside DLC 2: fix A = dlc_doppel_costume_a by name, [Costume] DoppelLive=1 = the real 857 with game data +0x390 = 0 before message 35 and a slot-0 check two frames later (back to the previous costume when empty; 5 byte checks)) - 0.22.57 (puzzle helpers 2, package Q2 2026-11-17: figures only with the fire, hold open for motor / timer / counter-command gates with the 180 wrap, part labels with part n/N + offset + the door time on the moving part, bring weight behind Lara on own spots, weights -> plate, switch -> command from the loaded scripts, already used = +0x1c bit 0x200, anchor / pole labels, export TruMenuPuzzleList, level not found before queueing); 0.22.56 (puzzle helpers + chapter / camera fixes, package P2b 2026-11-16: (1) exports TruMenuNote / TruMenuNoteClear / TruMenuNoteList (64 notes, one line under the object's label, TruLink 0.5.1 mark.*); (2) P3 fix 1: every TruMenu level change arms a flag, the game-thread hooks zero [0xe804f0+0x110] / [+0x10c] while main state [0xe7ed60] is 2 (stale camera hints of the old level, crash 2026-11-15 22:27; 6 byte checks, 30 s timeout); (3) P3 fix 2: chapter rows and chapter.reload in a level = the in-level level start f27(unit, 0, 0, 1) + f7 + f19 also for base-game units (the new-game block clears the played-intro marks); choice row 'Kapitel (Stand behalten)' (chapter.keep) = level.load with a warning; (4) page Kapitel 'Raetsel in der Naehe' rebuilt from TruLink 0.5's decoders: switches (kind of the target graph, state +32 against +16 / +20 / +24 of the switch base, locked by an up plate), plates (+92 flag, rail, weights / Lara on it), hints from reverse instancerefs, ring figures (current vs the object check's target, commands left, switch learned at run time), puzzle.figures (the pillar commands through X vf+4, one step per idle link), puzzle.hold (joint drive hold-until-off of a motor-closed hinge, TruLinkAct.h), door time 'offen 148 Grad, zu in ~42 s' in the list and the uber labels, puzzle.bring (a weight / pole next to Lara through the game's placement path, back again), puzzle state log lines; the 0.22.31 'solve' rows (joint.set) removed)" " - 0.22.55 (chapter page + display fixes, package P2a 2026-11-16: (1) page Kapitel row 'Aktuelles Kapitel neu laden' (chapter.reload) = Lara's chapter start from kChapOrder through ChapSteps - backup, the pause menu's DLC start / level.load / the mission start; (2) [Cheat] FlightKeepOnLoad (flight.keep, row under Fliegen, default 0): every TruMenu level load turns flight off first; cp.jump never turns flight on (player.goto alone, cheat.flight 0 after unit.go's portal flight); (3) doppelganger_casual (DLC 1 freeze 15.11. 22:11) refused for the live switch unless the doppelganger flag [[0xfadb58]+0x1244] is set; (4) 'level not found': a unit outside the level list without mods\\<unit>.drm is never requested; (5) every metre text of the debug labels / log lines with kUnitsPerMetre 290 (was 100); (6) multibody parts labelled at their model (bone 0 [[inst+0x90]+0x30]) as '<object> - Teil n/N (<node>)', not merged at the shared +0x20; (7) ma_pt_pole_a without a hole in its unit and without an instanceref marked 'kein Loch (Original-Daten)' / 'no hole (original data)' in the labels and the puzzle list, detected at run time)" " - 0.22.54 (two crash fixes + sound switches reset at start, owner 2026-11-15 evening: (1) snd.mute of a sub-group (snd.hear <sub> stumm, 0.22.53) read kHow[7] past the end of its 7 texts - the %s of the log line took the bytes 'ever' as a pointer (TruMenu+0x13aec6 strnlen, main menu music); one text per rule kind now (static_assert) and the index checked; every format string of Log / Out / LabelAdd / TextAdd / IniPut / Text / ShotNote / LxAppend / SndNote / ClkNote / QbResult and the ImGui text calls checked by MSVC /analyze (_Printf_format_string_, work\\fmt_1511\\Test-TruMenuFormats.ps1): 2 sign mismatches fixed; (2) the sonar extra loads (S7): the find 0x6e2a60 appends a new list entry whose constructor 0x6dd820 leaves the load handle +0x88 unset - S7Extend took that heap garbage for 'requested already' (no load, the recursion stopped after one step) and the close 0x6dff20 -> 0x6dd780 passed it to 0x54f050 (tru+0x14f05d, 1.0f as a handle); a new entry gets +0x88 / +0xb2 / +0xb4 = 0 at once (S7FreshEntry), 6 more byte checks (23); (3) [Sound] ResetAtStart (default 1, row 'Ton-Schalter beim Start zuruecksetzen'): MuteMusic / MuteAmbient / ReverbOff back to 0 at every start, also in TruMenu.ini; the log filters, ReverbFollowsMute and SonarMute stay; (4) sub-group mu_menu 'Menue-Musik' = group 1 (the main theme stream), mu_music = g2-3, g10-12; (5) the heading row Schnell-Hoeren removed; the start line names LogFollowMute; (6) joint.set (owner 20:28, a door rail moved far the wrong way, out of its limits): target clamped into the joint's own limits, the lock point ramps from the value towards the target with a short lead, the drive stops at once when the value leaves the limits / moves away / overshoots, one log line per tick (value, velocity, lock), a row whose drive stood at the target without a node change says 'range not armed here (tried)')" " - 0.22.53 (sound log trees + kind Waffen + sonar extra loads + markups in the sonar view, owner wishes 2026-11-14 night (docs\\Status-2026-11-14.md W-53 / LT-2310): Spiel-Einstellungen / Ton / Ton-Log in the owner's layout - the settings rows, [+] Filter (Zeigen) (log display only: kind rows snd.logcat, sub-group rows snd.logsub, [Sound] LogHideSubs, 'Filter folgt Stumm' snd.logfollow [Sound] LogFollowMute default 1), the plain heading Schnell-Hoeren, [+] Stumm / Solo (sound only: Alles zurueck, Neuester Ton solo, Hall folgt Stumm, Hall aus, then per kind / sub-group one value row snd.hear normal / stumm / solo = snd.mute / snd.solo cat: / sub:); both trees kind -> named sub-groups of the game's sound groups (38, kW8Sub), nesting levels 2 / 3 (kQfLv2 / kQfLv3); a new kind Waffen (groups 51 / 52 / 58 / 59 / 61 / 62 / 63 - 'Stumm: Lara' no longer mutes the weapons), Lara's voice 68 / 69 and the DLC 2 player groups 77 / 78 are Lara's; a group-14 'world default' sound whose source is Lara or her gear (+0x54 = the player) = Waffen for a wp_* owner or a weapon-only wave of the data (optional TruMenu.weaponwaves.txt from weapon_waves.py - game data, not in the source), else Lara / Ausruestung; the monitor's voices under kind -> sub-group headings, the box lines and history rows name kind / sub-group; [Sonar] LoadNeighbourFloors / LoadAllConnected (default 0, with FullMap): R1 0x6e4e3f call 0x6e2e60 -> S7LoadStub (the game's neighbour rule first, then more units through the game's 0x6e2a60 / 0x6e4e80 inside the load callback, only in mode 1 with the pause byte 6 and no PDA map heap; caps LoadMaxUnits 24 and TriangleCap; released by the game's close 0x6dff20; 17 byte checks, one log line per open); the markup layer projects with the camera matrix 0xe804a0 while the sonar is open, like the trigger layer)" " - 0.22.52 (reverb mark + DSP graph + sonar shader fade + area colours + joint row fix, owner wishes 2026-11-14 late evening:the whole FMOD DSP graph walked (live 22:02: 189 units - one SFX Reverb, two ParamEQ inserts of groups 58 / 59, stream codecs, 162 group heads; static: createDSPByType only 0x586fda / 0x5839f3 (oscillator, played as its own channel) / 0x5876df (group / node effects = ChannelGroup::addDSP inserts behind the mute), DSP::addInput only 0x58223b / 0x584188) - the reverb send is the only path past FMOD's mute; a reverb mark per line in box and monitor (arcs = reverb audible, struck = muted by ReverbFollowsMute / ReverbOff, dot = no send), monitor rows for the graph and every effect, a muted voice's send zeroed at once (W10Sweep, 50 ms) and the voice update rate counted; [Sonar] FadeFar drives the real dimming = the face shader lib 192 of materials 3348 / 3349 (1/d falloff floor c110.x 0.5, fade to black c108.w .. c109.w 200 .. 600 m; 6 byte checks), fog off for every value != 0; [Sonar] TintOthers 2 = a muted colour per area with a legend in the sonar view state; page Kapitel Raetsel: no drive for an open-ended range on a free hinge (motion detector), the range cut to the joint's limits, our lock taken back after a node change) - 0.22.51 (sonar view + base PDA + X default + DLC start from a level + reverb follows mute, owner wishes 2026-11-14 evening: the game's SFX reverb (holder [0xccde98]) gets a send from every pool voice that FMOD's mute never reaches - 'Hall folgt Stumm' [Sound] ReverbFollowsMute = call redirects 0x591591 / 0x5841bf -> W9SendStub (a muted voice sends 0), 'Hall aus' [Sound] ReverbOff = reverb -> master setMix 0 (old level back on off), audible = not paused and (dry > 0 or send > 0 with the reverb out > 0) in box / monitor, a reverb row, 11 more byte checks; 'Sonar: Abblenden Ferne' [Sonar] FadeFar = the sonar view's fog (0 game: near = far = 65536, n m = fog n/2 .. n, -1 aus; call redirects 0x6e4d94 / 0x6e4bf9 -> S5FogStub); 'Bereich anzeigen' = one unit of the sonar's own list drawn (0x6e42ac -> S5UnitStub, no load, no camera move); 'andere Bereiche einfaerben' [Sonar] TintOthers = units but Lara's drawn with an amber draw colour [0xee03bc] for their call; sonar.why + the open line log the view centre / axis and per unit the cut plane of 0x6dfa60 ((v0 - centre) . axis < -4000); 'Shadow-PDA durch Basis-PDA ersetzen' [PDA] ShadowPdaAsBasePda = g_pda script 3347 f1 word 04000001 -> 04000000 (ScriptSection hash map 0x8a6ed0, only the DLC g_pda, only while the PDA is closed); X on a value row = its default, footer 'X: Standard'; Kapitel DLC rows in a level = the pause menu's DLC start (RegisterAcceptChanges case 8 as the title update: f27(unit, rule, 0, 1), f7, f19); command line: level.start suggests every unit, level.load in the main menu suggests level.start; 22 byte checks) - 0.22.50 (sound log readable + FMOD channels + source hooks, chapters from the main menu, owner wishes 2026-11-14: the bottom-right sound box per line with an on / off box from FMOD's own mute bit (ChannelI +0x74 bit 3), the group as text, the source, a loop mark (FMOD mode 0x2 / 0x4), repetitions collapsed (same wave + source = one line xn, newest on top), a 'laeuft gerade' block of the looping channels; filters per kind (Lara, enemies, world, objects, PDA / UI, speech, music), only audible, collapse, max distance ([Sound] Log*, live); quick hearing per kind mute / solo (snd.catmute / snd.catsolo = snd.mute / snd.solo cat:<kind>: whole groups + per channel + the FMOD channels outside the pool), newest sound solo, everything back; two code redirects V1 0x591351 (the wave node's Play call: voice -> emitter of the node) and E1 0x5b99fc (6 bytes after the untouched create call of the anim event, TruTrace keys on it: emitter -> instance), [Sound] SourceHooks; the owner list walk at most once a second and only while shown, W6EmitterOwner gone; the monitor counts every used FMOD channel (SystemI +0x150), shows FMOD's mute / pause, 'Fremdkanal (DSP)' rows and the music slots; ONE 'Ambient aus' (media.muteambient = snd.ambmute: groups 15 .. 24 + the '_amb_' beds, kept) and ONE 'Musik aus'; page Kapitel from the main menu = the game's mission start (level.start, DLC starts as the DLC menu), the DLC start rows refused in a level (level.load keeps Lara's costume), cp.jump from the main menu; 27 byte checks) - 0.22.49 (sonar all floors + map info, adrenaline options, owner wishes 2026-11-14:[Sonar] AllFloors with FullMap = the frame 0x6e4130 also draws the map units of other floors the sonar loaded itself (0x6e429b je -> nop nop; the game's open path loads the floor's units and their direct portal neighbours - no load added), item sonar.allfloors 'Alle verbundenen Bereiche'; info row sonar.unitmap 'Karte dieser Unit' (real N faces / placeholder only / no file, read from the sonar's unit list while it is open) and one log line per sonar open (floor, radius, view distance, every map unit with mask / state / faces); [Sonar] TriangleCap with FullMap (default 300000; the imm32 of 0x6dfa69 = the per-frame budget 93572 - only a counter: the triangles are flushed in batches of 2000 into the device's growing vertex pool); 3 more byte checks (16); adren.keep renamed 'Nach Einsatz auffuellen' (it refills only outside the mode), adren.stayfull 'Adrenalin bleibt voll' = TruShadowCombat [Adrenaline] DrainPercent / DrainModePercent 0 (old values kept in TruMenu.ini, back when off); ModeWithoutTarget / StrikeWithoutButton options (no '(Test)'), AssistPointer 'Zielhilfe Kreis', a DLC 2 note; snd.sonar log line printed the wave list's address as SonarMute) - 0.22.48 (adrenaline at Lara + sonar full map, owner wishes 2026-11-14: page Figur group Adrenalin (Lara) owns adren.meter / adren.fill / adren.keep and the TruShadowCombat [Adrenaline] switches (FillPercent, DrainPercent, DrainModePercent, StrikeWithoutFullMeter, AssistPointer, ModeWithoutTarget, StrikeWithoutButton, Log), page Tests keeps copies; the switches rows ModeWithoutTarget / StrikeWithoutButton live (TruShadowCombat M15ReadSwitches, once a second); teaser display default 12 (small circle + count badge); page Kapitel without '(debug)', the unused slots named readable; Sonar komplett [Sonar] FullMap = every vertex counts as revealed in the draw 0x6e3a00 (0x6e3b25 / 0x6e3b59 / 0x6e3ba2, display only, no save data), HidePlaceholder = call stub at 0x6e3ab0 skips the 100-face / 56-vertex MAP mesh, FloorMarkers = 0x6e40c6, all live, the game's bytes when off, one line when the triangle cap [0xee03ec] is hit; 12 byte checks kSoChecks) - 0.22.47 (sound monitor, owner wishes 2026-11-14: the wave id of a voice from the wave entry +4 (0x591348 - 0.20.1 .. 0.22.46 read every voice as 'Stream') and the emitter through the node's params object +0x74 (0x5906e0); bar group Ton-Monitor (live) and Paket B: every voice playing / paused with name, wave / section, group name, volume, 2D / 3D, distance, state and source (object #intro / UI / music / stream), the last [Sound] HistoryMax starts, the active rules, right = mute w<id> / e<hex>; snd.monitor / snd.history to the log; the bottom-right box as a log ([Sound] OverlayStyle 1: newest on top, colour + ImGui-drawn icon per kind, fading); Sonar-Ton aus [Sound] SonarMute 1 = waves 914 / 915 / 916 of g_pda.drm per channel (2 = the whole group 57 incl. Lara's hints in child group 70), kept in TruMenu.ini; the list / switches also run from the Present hook while the game polls no pad (main menu); 6 byte checks) - 0.22.46 (arena from the main menu,owner live 2026-11-14 12:07 'arena.go 1a refused: level change pending (GameTracker+0xb9 = 1)': in the front end +0xb9 = 1 is a request nobody serves - only main state 1 serves one (0x5e0050 -> 0x5dab40), the next level start clears it (0x5de864), here TruMenu's own level.load of the unit.go step; LevelChangePending ignores it in main state 10, level.load is refused in the front end (main state 6 / 10), arena.go from the main menu starts the unit through the game's mission start (level.start <unit> 0 = uigamedata f22, f27(unit, 0, 0, 1), stdscreenmgr f19 + f7; new game data, fresh player tracker = main-game mode), waits for it, places Lara, cheat.onehitkill 0, arena.mode <spot> with unit + one-hit kill byte; refused outside the main menu itself (front-end state 0xfae8da != 3), during a one-shot movie or a cutscene, without a level; level.start [0|1] = f27's selection argument; 'level up' log line of the shortcut runner; 10 byte checks kFeChecks) - 0.22.45 (W6 sound switches,owner live notes 2026-11-13: snd.mute <target> [1|0] - single waves / SoundPlex sections / emitters per channel through FMOD's own ChannelI::setMute 0x7c92b5 behind the game's handle validate 0x7c7e5a, sound groups and ambience (group 15 + the '_amb_' srmusic beds) through ChannelGroupI::setMute, music tracks by name through the game's srmusic stop; snd.solo, snd.mutes, snd.ambmute, snd.now (voices with emitter + SoundPlex section), music.stop / music.next / music.mute; one 'snd.wave <id> START' log line per start of a watched wave ([Sound] WaveLog / WaveIds 10 / WaveLogMax) with unit, emitter (params - 0x14, vtable 0x851240), SoundPlex section and the object whose sound list [inst+0x248] holds it; 15 byte checks) - 0.22.44 (W2 order, owner live notes 2026-11-13: page Tests by the test guide packages A - F of 14.11. (group tg_1411, sub-groups tg_a .. tg_f with the items each package needs, checks tg<A-F>.<name>), the 11.11. Q90 packages, test spots, light / depth diagnosis and hall02 rows in the closed group Archiv / Alt (nothing deleted); Barrierefreiheit: no leading spaces, Arachnophobie in its own sub-group, the planned rows (no item) in the closed group Geplant; planned rows without the 3-space prefix; an INI without [Menu] Load (written before 0.22.18) reads Enabled the old way = Load, the big window stays off; row DeviceGlyphs on page Spiel-Einstellungen / Steuerung; kQbViewMax 256) - 0.22.43 (W5 markup, owner live notes 2026-11-13:draw.markup puts object markup (box +0xc owner) through the owner's bone matrix like the engine (0x5be360 / 0x49ba20, only with owner +0x2d8) - before every object ledge was drawn around the world origin (the dungeon 'coil' 21:53 = dlc1_uo_pillar_of_doom ledges); boxes the engine's markup query skips (record +0x32, disabled bit 31, owner flags, stream unit +5) are not drawn; label 'type #id' (DE / EN) within 15 m of Lara, nearest 24, one colour per type; dbg.roomonly and the occlusion fading apply to markup too; bar rows Markup / Nur Kanten first in their group; 6 byte checks) - 0.22.42 (W3 debug view, owner live notes 2026-11-13: RoomOnly keeps an object of another unit when its own stream unit +0xe0 is Lara's or it is within [Debug] RoomNear 3000 (dlc_level1_start holds copies of the dlc_caverns bridge objects), each drop / keep logged once; DistMetres default 1; labels within [Debug] OcclNear 600 and Lara's own never fade, test point 1 m above the origin; labels de-cluttered - one label per instance and frame (uber labels join it with their state line), same object x n, LabelStack 3, LabelCellMax 5 per screen cell; [Debug] HideEmptyPots 1 - no labels at plain / empty jars; teaser icon only in the main menu (front-end state 3, no one-shot Bink movie - not in the credits)) - 0.22.41 (Q126c compact attract styles, owner 2026-11-14 after trying 0.22.40: [Menu] AttractIcon 8 .. 16 appended, all without a box - 8 / 9 small circle without / with the red strike, 10 / 11 / 12 small circle + only the counter beside / below / as a badge on its edge, 13 terse 12s . 3, 14 terse 12/40 . x3, 15 / 16 only the counter as a word / with a skip arrow; no time next to a circle; blink at the limit for all; 0 .. 7 unchanged, default 7) - 0.22.40 (Q126b attract display styles, owner 2026-11-13: one cycle switch [Menu] AttractIcon 0 .. 7 (menu.attracticon, bar row Teaser-Anzeige with the style name) instead of AttractIcon 0 / 1 + AttractIconText - 0 off, 1 text only, 2 circle, 3 circle + red strike, 4 text inside the circle, 5 text below, 6 = 4 + strike, 7 the 0.22.39 look (default); a 0.22.39 INI is mapped once (1 + 1 -> 7, 1 + 0 -> 3) and AttractIconText removed; blink at the limit for all) - 0.22.39 (Q126 attract icon,owner idea 2026-11-13: [Menu] AttractIcon default 1 (menu.attracticon): top right in the main menu a circle that fills with the game's AttractTimer clock toward its limit (elapsed +0x10 / alarm +0x14 of the captured clock, NoAttract holding: the shadow count modulo the alarm), a play icon in the middle (crossed out while NoAttract holds), [Menu] AttractIconText seconds + counter skipped / teaser started, 3 orange blinks at each limit; read only through the 0.22.20 update slot, live re-read of both keys) - 0.22.38 (PD, owner decisions 2026-11-13: [Input] DeviceGlyphs default 1 (pad / keyboard prompts by the last used device); the co_ / fx_ filter also takes dlc_ / dlc1_ / dlc2_ in front (dlc_fx_*, dlc1_fx_*; exceptions co_rock*, *_grab_prompt kept); trigger edges with occlusion on are drawn whole and faded instead of cut by the depth test (one occlusion query pair per edge / circle, Occlusion 2 drops hidden edges), [Debug] TriggerNearest (dbg.trignear: only triggers with Lara + the n nearest) and TriggerCornerId (dbg.trigcorner: the intro id at one box corner)) - 0.22.37 (debug view P5, Paket R / Q119:labels as name / symbol / both per layer ([Debug] Style*, dbg.labelstyle; ImGui symbols + legend), room always + readable (kRoomNames, LabelRoom) and metres (DistMetres), key items layer dbg.keyitems (parts, switches, doors, grapple points, P1 part -> target lines, state from link parent +0x228 / uber node), the game's reward bit +0x3ed90 as 'collected' (LabelCollected semantics), DrawDistance + TruMenu.debugview.txt per unit, labels behind walls faded / hidden by D3D9 occlusion queries in the depth pass (Occlusion), co_ / fx_ hidden (HideCo / HideFx), live wishes: uber labels + key items of Lara's room only (RoomOnly, dbg.roomonly; then every _uo_ / _ei_ / _pt_ object of the room, readable name + node 'Kanaltor, verschlossen'), uber labels fade behind walls, readable names (kP5Readable: 'Wandschalter (einmalig)'), grey 'versteckt' for hidden non-collectibles, kChapOrder after Paket R (CP 76 return visit, 160 / 42, going_in / going_out, 7 return rows), arena.load references released at a level change; 6 byte checks) - 0.22.36 (label filter, live 2026-11-12: the name labels dbg.labels / dbg.names ask the 0.21 collected / hidden check LfNotDrawn as the collectibles layer - [Debug] LabelCollected 0 none / 1 grey 'eingesammelt'; Lara's own gear by game data (parent +0x54 = player from BirthObject, weapon-manager slots + gear list) - [Debug] LabelLaraGear 0 none / 1 shown; both live, items dbg.labelcollected / dbg.labelgear, 11 byte checks) - 0.22.35 (level chain, Q113: base-game checkpoints of the Kapitel page in walking order, loop directions + l4_temple side trip as headings) - 0.22.34 (achievements, photo.pose, group M; Q20 / I-2: [Achievements] Enabled=1 (default, read at the start) bends the 16 push immediates of the achievement binder 0x7abb80 (script 66, all bound to the empty 0x796620) to TruMenu's stubs before the generalbank binds them - 'achievement <id> <name> unlocked' once per profile (= the save folder) in TruMenu.log and TruMenu.achievements.txt, names / gamerscore of the Xbox ids f0 1 .. f15 18 (f12 - f15 unsure), repeats counted; ach.list / ach.status, page Figur group Erfolge, big window page Achievements; F2: photo.pose 1..7|next|off = Lara's screen_capture_0n (anim table 1605 - n, section checked, resident) through the game's anim request 0x444ba0 mode 0 (the uber / script play-anim path) - photo mode only; off / photo.off = the slot noted from processor +0x44 again in mode 1; J-5: chapter 1.2 heading before l1_kraken_entrance (title card from intro 696); K follow-up: ai.spawn warns when a resident kind's children are not loaded; 36 byte checks); " "0.22.33 (photo mode, arena.load, glyphs.status, group K; F1 / Q78: photo.on = the game's own FreeCamera (camera manager mode 5 through its switch 0x5edd70(mgr, 5, 0) - CAMERA_SetMode knows only 6 / 11 / 12; its own stick / mouse input and generalbank DTP 16 values) + the world pause bit 0x1000 (the camera update still runs) + the UI byte 0xcdc9a0 (the game's screenshot task hides the HUD the same way); photo.off / leaving by itself on a level change, a new player / unit, main state != 1, a cutscene, the game's pause menu or a camera the game took = mode, Lara's control, pause bit and HUD as before; refused in cutscenes / loading / pause / flight / cine.pause / another camera layer; photo.shot = shot.save clean photo_<n>; Q83: arena.load <kind> requests one of the 26 enemy kinds with the game's object request with reference 0x5c1760 (checks tracker 204 / anim pool 3000 / 3D navgraph / DRMs, at most 2 kinds), ready = object + children at status 2 and anim slots resolved (log line), ai.spawn refuses it before; arena.unload <kind>|all = STREAM_DumpObject 0x5c1790 once for its own requests; arena.enemies lists the states; Q95: glyphs.status = DeviceGlyphs, device now (pad / keyboard / mouse), last switch time, prompt counters; 37 byte checks, no new INI key); " "0.22.32 (arena, group A; Q86: ai.spawn names the LP each spawned enemy got from the game's enemy init (brain+0x2c64; tune health record by the EnemyHP step [[0xc59264]+0x3ef98]), the EnemyHP step and warns while one-hit kill [0xe91ffd] is on - the 2026-11-11 21:02 thrall 'LP 0' was that cheat, its AI ran; no name / an inexact or unloaded name = the list of the loaded AI enemy kinds with the reason; Q100: arena.mode [spot] = player object, doppelganger byte [[0xfadb58]+0x1244] and TruDlc2Player flag, fits / WARNING per spot, logged; arena.go reads the mode first - a main-game spot with the flag set loads with level.load (new game tracker clears it), a DLC 2 spot without it warns - and ends with arena.mode <spot>; Q98: spots 1d l5_valgrind CP 7329, 1e l2_puzzleroom CP 2074, 1f l4_traprooms CP 5722 - the largest open navmesh floors with a resident enemy kind; read only, no new INI key, no hook); " "0.22.31 (level navigation + puzzles, group B; Q105: the 15 unit names in no PC archive (q105_units.tsv: three base units of the level list, six container / costume / cine names, the six known DLC slots) grey and refused by level.load / level.start / unit.go / cp.jump unless a mods\\<unit>.drm exists, one 'units:' log line; page Kapitel base game in play order from the stream portals with chapter headings (callers of generalbank script 72 SetChapterUIData) and the checkpoint intros per unit - right 2x = backup + load, a checkpoint row = cp.jump <unit> <cp> force (new optional third word: cheat.flight 1;player.goto <cp> force); Q106: uber.dump prints every joint-range transition (condition 14 / 15) with the joint's live value (the engine's getter 0x4e1ef0 / 0x4e1ea0), joint.set <intro> <joint> <value>|stop drives a hinge / rail joint with the engine's limit setters 0x4d9fc0 / 0x4d9f50 / 0x4da0c0 + wake 0x4d8fd0 until the uber leaves its node or 6 s (game thread, a cheat), page Kapitel group 'Raetsel in der Naehe' lists the uber objects with their current node and joint targets, 'solve' rows run joint.set; 27 byte checks); " "0.22.30 (log dates, device glyphs, drawn guards; Q107: every TruMenu.log line starts with 'YYYY-MM-DD HH:MM:SS.mmm' and the first line of a process is the session header '=== <date time> TruMenu <version> session start (pid n) ===' (src/asi/TruLog.h, shared with the other plugins); the log page / overlay take a stamp with or without the date and show the time; Q95: [Input] DeviceGlyphs=1 (default 0) - the last used device (pad: a button, a trigger or a stick past its dead zone in the game's poll; keyboard / mouse: a key, a click, the wheel, a mouse move away from the client centre) decides the button prompts of UIText: 23 bytes of 0x5a7c20 at 0x5a7d75 call GlName - pad = the symbol of the first XInput binding (Start / Back U+1810 / U+1811 too), keyboard / mouse = the name of the first other binding, else the game's own name; 12 byte checks, 'glyphs:' log lines; Q103 rest: the quick bar's presses and every widget of the big menu (ImGuiItemFlags_Disabled) act only after 3 drawn frames since the open, else 'quick: buttons 0x.... ignored - not drawn (n frames)' / 'menu: input ignored - not drawn (n frames)'); " "0.22.29 (radial lock, Q103:[Radial] Enabled=0 also closes a ring that is still open (settings.reset) and drops its pending release / open / close requests; a release, confirm, A / click or R3 runs a ring entry only when DrawRadial drew the ring in at least 3 frames since the open, else 'radial: <what> ignored - not drawn (n frames)'; the close line names the drawn frames; no new INI key); " "0.22.28 (test packages, Q90: page Tests group 'Testpakete 11.11. (Q90)' with one closed sub-group per package A, 1 .. 9 of docs\\Testpakete-1111.md - a hint line, jump / load rows of existing items (level.start, level.load, arena.go), the existing switch rows of TruMenu.switches.txt the package toggles (kQbSwitch = the page Fixes row: TruShadowPower ShakeTuTimeStep / [Player] TuTimeStep / DoppelgangerSettings / CameraTuTimeStep, TruQoL [FrameLimit] Enabled / MaxFps, TruRockVein JumpTarget / LedgeProbe, TruMenu [Log] Save), probe rows (save.inv / save.find 5240 / 5695 / save.pending / save.waiting, adren.meter / adren.fill, phys.status, log.script / log.scriptfile) and TO TEST checks (kQbCheck tp<package>.<name>: right ok, left fail, X skip, again = open; added with test.add at the first mark, TruMenu.log 'tests: test.mark <id> <state>'); every row flagged kQfTp (test-package content: a real row of its page or deleted after the tests); no new INI key, no hook); " "0.22.27 (save probe, Q79:save.pending / save.inv / save.waiting / save.find read the save arenas - live [0xc59258] and checkpoint snapshot [0xc5925c], the restore buffer 0xc57258 with the reason a block waits (unit / object / link parent, as 0x555640 / 0x5bb160 / 0x5bb640), the inventory area +0x34c of both game blocks (15 + 8 intro ids, 6 counts), the 64-slot waiting table 0xc592a8, dead bits; read only, 32 byte checks (TruSaveProbe.h); [Log] Save=1 (default 0, live) = two TruMenu.log lines per SAVE_SaveGame / SAVE_RestoreGame through their memcpy calls 0x557127 / 0x5571a3, 5 more byte checks); " "0.22.26 (test arena, Q76:page Tests group 'Arena 1 - Kampf (Q76)' - three flat floors with resident AI enemy kinds, arena.go 1a|1b|1c = one shortcut as cp.jump (backup, unit.go, wait.unit, flight, player.goto <intro> force; 1a l7_helheim03 generator 8785, 1b l7_yggdrasil_hall02 generator 8762, 1c dlc_yggdrasil_hall02 checkpoint 10644), arena.list (one list of arenas / spots: arena 2 Museum later), flight / god mode, the ai.spawn rows, ai.remove spawned (only the instances ai.spawn made, by address + allocation stamp +0x44), fight diagnosis rows; adrenaline meter: adren.meter (CM+0x3c / max [[0xfad764]+0x2d0], CM+0x1fc bits 22 / 27, doppelganger byte [[0xfadb58]+0x1244]; read only), adren.fill (the game's meter-full 0x6e6630, body of the script native 0x777a50; cheat), adren.keep 1|0 (refill once per game frame while below the maximum and bits 22 / 27 clear; not kept); 6 byte checks); " "0.22.25 (settings.reset writes the whole TruMenu.ini: the default text is measured and built in a buffer of its size - 0.10 .. 0.22.24 kept it in a static 16384-byte buffer and wrote only the first 16383 of the 42 KB, a truncated INI; text built before the backup, write and close checked, the answer names bytes and keys; other table texts: TruMenu.log lines up to 2047 characters (was 511, light.cut lines were cut), [Quick] Closed 1023 characters (was 383, too short for every group) and like [Debug] CheckpointHide only whole keys / ids, settings.show ends with the count of the keys it could not hold); " "0.22.24 (fall watch + fall net, Q19 hall02 fall out of the world: TruMenu.log lines at LogLevel 1 for Lara's chart records 742 / 743 / 1068 / 1080 and states 1008 / 1015 with position, a watchdog line every second while in the fall record 1068, safe-ground ring additions, rate-limited; [Rescue] FallNet=1 (default 0, live) puts Lara back on the newest safe-ground sample when she is more than 3 s in 1068 and more than 3000 units below it - player.unstuck's teleport, at most 3 per fall, never in menus / cinematics; 2 byte checks); " "0.22.23 (switches file limit:TruMenu.switches.txt holds up to 512 switch lines (was 160; 24 groups as before), file format unchanged; switch lines past 512 and group lines past 24 are not shown and named in one TruMenu.log line each with the count and the first line number, sw.reload / the bar head say so; the quick bar page Fixes (128 rows) names the rows of an open group it cannot hold instead of cutting them silently - the long menu section Fixes shows every row); " "0.22.22 (teaser timer line, live 2026-11-10: the line follows the bar language [Quick] Language as every overlay; it shows the game clock (the dt the clock got since its (re)start) next to TruMenu's wall clock since that (re)start, and 'Pause-Bit aktiv (halbe Zeit)' / 'Pause bit set (half time)' while the frame time [0xe7f188] is the fixed 0.5 of the pause bit [0xe7f0b4] & 0x10000000 - read only, 4 byte checks); " "0.22.21 (teaser timer: menu.attracttimer 1|0 / [Menu] AttractTimerShow, bar row 'Teaser-Uhr anzeigen' in Spiel-Einstellungen / Hauptmen\303\274 - while in the front end (main state 6 / 10) a line in a screen corner ([Menu] AttractTimerPosition, default tr) shows the AttractTimer clock: elapsed / alarm, or while menu.noattract holds it a shadow count (the dt the game hands the clock update while the clock runs, back to 0 when the game restarts the clock) that flashes 1 s and writes one TruMenu.log line each time it passes the alarm (40 s, then every 40 s with repeat) - the moment the teaser would have started; with menu.noattract off it flashes when the real clock fires; read only through the same update slot 0x84584c, no behaviour change, no new byte checks); " "0.22.20 (main menu attract video off: menu.noattract 1|0 / [Menu] NoAttract, bar row 'Hauptmen\303\274-Video aus' in Spiel-Einstellungen / Hauptmen\303\274 - the clock f11 native 0x795cc0 (called only by the AttractTimer script 60) hands TruMenu the AttractTimer clock, the clock update slot 0x84584c holds its elapsed time at 0 in the front end (main state 6 / 10), so the alarm never fires: no stopTitleMusic, no StopMovie, no teaser; every other clock and the menu background stay the game's; 13 byte checks); " "0.22.19 (pages remembered:the quick bar opens on the page it showed last ([Quick] LastPage, written 1 s after a page change or at the close; a name that is no page any more = page 1, logged) and the big window with the pages that were open ([Menu] OpenPages, written when a page is opened / closed), also after a restart, RememberPage=0 = off; power.infinite 1|0 = TruShadowPower 0.23 [Meter] Infinite written into TruShadowPower.ini (only that line, a missing key added), bar row 'Kraft unendlich' in Rettung / Cheats, greyed with the reason while TruShadowPower.asi 0.23+ is not loaded or its INI is missing); " "0.22.18 (volumes / mouse saved through the game's own write 0x4796b0 (0x478010 only refreshes their mirrors); every bar section a collapsible group, sub-groups, rows indented per level with a guide line, the long menu's groups collapsible; frame stepping: View held = step mode (each RB tap one frame), RB + View held 0.4 s = [Settings] StepRate frames per s; subtitles top / free height and left / right with a margin (origin x of 0x477180 moved per line); voice.lang = speech language only (MultiFS mask 0x472d80 while 0x472be0 is free), voice.full = speech now + registry Language; media list fallback, media.music.inlevels, music volume 0 warning row; goo drip candidate columns (bone 0, old position, physics body); light.demote = a 4th shadow caster takes a free plain place (hooks 0x504e06 / 0x504341); bar settings written back to TruMenu.ini (quick.lang, camera, mute, light switches); defaults: big menu window and ring off, quick bar on, bar language English; TruShadowPower [Meter] Infinite row); " "0.22.17 (subtitle fallback: a cutscene subtitle record without the wanted language id goes to the reader 0x4538d0 with its English entry (id 0) as that id - only while no record of the same stream (cinematic handler, new on a handler change or when the stream time [s+0x384] goes back) carried the wanted id, so the DLC cinematics (ids 0 1 2 3 4 11) get English lines in Russian (9) and the base cutscenes with their own per-language cue times never mix; [Settings] SubtitleFallback=1, 0 = the game's; sub.lang rewrite and TruMenu's parse use the same rule; SbName(9)); " "0.22.16 (bar page Spiel-Einstellungen: the game's own options live - volumes, inversion, vibration, combat mode, mouse through the option setter 0x5d5100 and the settings save 0x478010 2 s after the last change; subtitle look (show, size, bar, bar opacity, colour, height) through the draw parameters of 0x583e20, kept in TruMenu.ini [Settings]; live graphics (fullscreen effects, depth of field, shadows, water, reflections, volumetric, filter, aspect) through ApplySettings 0x522a10 on a copy of the active block, PadHook only; gfx.save; gfx.next = registry values for the next start; D3D-reset settings as greyed rows; sub.lang cycles -1 / 0..4 / 11 (Nederlands) and a rewritten line is found again (U3); bar reorganised - Rettung / Cheats, Figur with the doppelganger switch groups, Gegner (KI), Render, Zeit / Ablauf, Licht (Diagnose) group; 29 byte checks); " "0.22.15 (aim.trace 1|0: the lock-on path per change into TruAim.log - aim input RT action 33 / LT action 35 held (+0x630 / +0x690 bit 2 of the action records; LT = pad code 4, RT = 5), tuning bytes [0xfad764]+0x294 / +0x27c (the LT / RT aim timer values), game gates 0x8ab4e6 / 0xe7f144 / 0xe7f143, weapon slot [[P+0x500]+0x134], aim timers P+0x588 / +0x58c / +0x798 / +0x788, CM+0x1fc bits 9 / 10 / 11 / 18 / 19 / 20 / 21, Lara's chart records, targeter 0 flags / target / candidates per filter group or rejected with distance and camera angle, the nearest enemy and a why code; aim.why info item: the first blocking step for the nearest enemy in plain words; read only, 25 byte checks);" "0.22.14 (sub.lang switches the subtitle lines on screen at once, also in a cutscene held by cine.pause: the call 0x4574ec of the cinematic handler update copies each subtitle record (every language, '<id>\\r<text>\\r...') into TruMenu's ring of the last 2 records before the reader 0x4538d0 runs, the call 0x453a17 notes the lines the reader hands to the box; sub.lang <v> then picks the new language from the stored records as the reader does and rewrites the box lines 0xccdec0 +0 / +0x100 - clock and floats stay, a line of no stored record (Bink movie) stays and is logged); " "0.22.13 (cutscene pad combos: LB + View / RB + View fire on release and only when no third combo button joined while they were held, the photo combo LB + RB + View at once; cine.pause also holds the subtitle line clock [0xccdec0+0x208] - the subtitle draw 0x583e20 counts it down by the scaled frame time 0xe7f188, its disp32 at 0x583f24 points to TruMenu's own value while a cutscene is held; sub.lang calls the game's settings save 0x478010 (the registry write of the shutdown path 0x5df930) so the language survives a restart; ring.bits info item, an enemy panel line and fight.trace columns for the combat reticle request (CM+0x1fc bits 9 / 10 / 11 / 21, HUD group 12 of 0xfae924, style 0xfae8ac, reticle +0x40); fight.trace goo drip columns (sources 10706 / 10707: uber node / time; copies 929 / 942: count, nearest position / dz / iflags / node) and Lara's LP drop per sample; enemy panel 'Kampf-Spur: an (n Zeilen)'); 0.22.12 (fight.trace also writes a Lara-only line (enemy columns -) when Lara's chart record of machine 1 or 2 or her machine-1 state ids change - before only machine 1's record counted; quick bar: bool rows whose value starts with the id (fight.trace, combo.trace) show an / aus again instead of always aus, action rows of value items show the value (sub.lang: subtitle language now)); 0.22.11 (Xbox comparison, PC side: fight.trace 1|0 writes TruFight.log in TruXenia's TSV column layout plus PC columns - enemies within 6000 units on change (LP, stamina, states, requested state, target, distance, attack slot, MeleeAttack record, last hit), Lara LP / chart records / state ids / position, shadow meter, power mode, world / player time scale, the meter's 7 time-scale request slots and the selector's choice, the last time-ramp native call (gamebase 23 / 24 = 0x776030 / 0x776090, pass-through counter, one TruMenu.log line per call), camera object / mode / offset to Lara / FOV; enemy.panel 1|0 = Gegneranzeige at the right edge for the nearest enemy); 0.22.10 (light cut of the set builder 0x504cc0: light.cutlabels shows the sets / cut sets of the last frame and a label at every dropped light, light.cut [frames] [all] writes the sets with the offered list (+ kept, - dropped) to TruMenu.log; light.stablecut / [Light] StableCut orders each object's lights before the cut - sun, shadow map, caster, plain, then address - the per-object alternative to light.stable); 0.22.9 (enemy diagnosis: a third enemy label line with target, attack-slot requests / grants (coordinator 0x67d780, pass-through counter), gate bits, requested state, layer 1, stamina, last hit reaction; ai.why [id] writes the full set to TruMenu.log; combo.trace 1|0 logs Lara's chart record path and the enemy's reaction per hit; sub.lang -1|0..4|7|9..12 sets the subtitle language live through the game's option setter 0x5d5100); 0.22.8 (cutscene pad combos on by default - PausePad 0x0120 View + LB, StepPad 0x0220 View + RB, ShotPad 0x0320 View + LB + RB; pause acts only while a cutscene plays or is held, step only while held; the pause badge shows a second line with the keys / combos as set now); 0.22.7 (cutscene keys: [Cine] PauseKey / StepKey / ShotKey keyboard keys and PausePad / StepPad / ShotPad XInput combos for cine.pause, cine.step 1 and claude.mark - map extra pad buttons (8BitDo R4 / L4) to a combo; all 0 = off by default; help texts within 60 characters again); 0.22.6 (Present re-entry guard against the Steam overlay loop of 2026-11-08: a nested Present / SwapChain Present call draws nothing and goes to d3d9 directly through a hot-patch trampoline behind the overlay's jmp, or returns D3D_OK; one log line; German texts with umlauts - tools/trumenu_umlauts.py wrote 251 words of a fixed list as octal UTF-8 escapes inside the string literals, the INI option table stays ASCII); 0.22.5 (light.stable on by default: [Light] Stable=1 in TruMenu.ini, read at the start, a missing key counts as 1 - better a steady light set than the end-cutscene flicker until the real fix; 0 = the game's own order); 0.22.4 (light.stable now sorts the light pass's own collected list +0x250 / +0x258 by address right after the collection loop - 6 bytes at 0x56d69a -> jmp LsStub, put back when off; the 0.22.3 visible-list sort never changed anything); 0.22.3 (light.stable 1|0: the scene lights (visible-entity list +0x9c entries with +0x1e0 == 10) sorted by address in their own slots before the light pass 0x56d5c0 (call 0x5723cb) - test / fix for the rotating shadow slots of the throne flicker); 0.22.2 (light.frame [n]: the per-frame light lists of the scene - instances scene+0x20 / +0x1020, light bytes when changed, resources scene+0x1024 / +0x11a4 - captured at the frame end call 0x5098ca of the reset 0x504c50 into TruMenu.lightframe.txt, summary per light with BLINK?; for the throne flicker); 0.22.1 (cutscene pause, live wishes of 2026-11-08: the sound is held with the picture - master channel group paused through the game's ChannelGroup_SetPaused 0x7b9490, only by TruMenu and only given back by it, cine.step runs it muted; badge '|| Szene angehalten  <s> s' top centre; cine.mark / cine.pauseat <seconds> hold the next cutscene at a remembered time (armed over loads); cine.pause without an argument only reports); 0.22 (cine.pause / cine.step / cine.status: hold a playing cutscene - the stream walk calls 0x5904e3 / 0x5954f8 of the stream update 0x5901a0 point to a gate that skips the playing cutscene stream ([obj+0x77c] handler, state 4) while the world, particles and lights run on; off by itself at a load; bar page Tests); 0.21.11 (light.list: the scene's PCRenderLights with the shadow gate fields (+0xc5 bit 2, resource +0x1878 / +0x1879, frame flags +0x64 / +0x65, position, NEW since the last list); light.shadow <n> 0|1 = SetCastShadows vf+0x4c on the game thread); 0.21.10 (page Kapitel: group of the unused DLC slots dlc_level3..6_start + dlc_level1_left / _right, grey 'ungenutzt - keine Daten (17p/17s)' with the engine's reaction to a load (Can't open file pc-w\\<unit>.drm: error box, the game exits); level list, command line values, level.load, level.start and the start-up scan mark and refuse dlc_level3..6_start like left / right); 0.21.9 (page Tests: test spots of 17i (cp.jump <unit> <checkpoint> = backup, unit.go, wait.unit, dbg.cpgo; end scene 020_ghoul, floor 25057, ceremony room 030_pod); DLC 1 / DLC 2 units without a .drm in mods grey and refused by level.load; page Kapitel: DLC 1 / DLC 2 units in play order (ring marked Rundweg) with their checkpoints as jump rows (left opens them); goo drip uber label (mode, next drop, hard without exit, goo_off commands); navmesh labels / legend with meaning (bit 26 custom, bit 27 blocked by an obstacle, penalty multipliers, violet = dbg.enemycoll?); TO TEST INI toggles name the switch's when column; F11 shot key in the bar footer / help); 0.21.8 (quick command line: suggestions under the input (the menu bar's list), the menu's on-screen keyboard with Y (one keyboard, target = the line; Start kept from the game while it is open), the picked history line shown before A runs it, kCmdDanger lines (cheats, god mode, level / unit / save loads, save writes, costume resets, sw.set ...) ask for a second A within 3 s; favourites with an argument ([Favorites] Ids \"<id>|<argument>\": Fixes switches, costume rows, chapter units, rows with an argument) and a star on pinned rows; story values story.values (hall02 population / deaths / tutorial / wall, Croft Manor flags; read only); sound group sliders snd.group / snd.vol.* ([SoundGroups], the FMOD channel groups of the eight proposed sliders); ai.kill check 0x6203e9 (TruShadowCombat 0.6.5 owns the call 0x6203e4); SweepAndPrune checks accept the TruRockVein 0.10 limits (3000 / 500)); 0.21.7 (bar footer: Y: - on rows that refuse Y, L3 = command line, a help line for rows that are not self-explanatory (kQbHelp; page Fixes from the hint column DE // EN), pad NOT held warning; TruMenu.switches.txt UTF-8 with umlauts; costume rows the game refuses (0x5c54e0, checked on the game thread) grey and skipped; page Kapitel: the units per chapter / DLC (level.load, DLC 2 note); uber labels dbg.uber / uber.dump (gate / platform node + time left, [Debug] UberRadius 8000); shader labels shader.labels / shader.dump / shader.reload (TruMenu.shaderlabel.txt, file vs live shader libs); navmesh labels nav.labels (layer.graph #area, unit, flag bits, colour legend); SweepAndPrune read-out sap.status / sap.reset (markup collision boxes / pair links / proxies, peaks, [Debug] SapWatch); front-end pad diagnosis lines); 0.21.6 (bar page Kost\303\274me: costume row left / right through the outfit cycle list, switched once the choice stood 0.5 s (X = now), list of all costumes, next costume, choose for the next load + reload; flight key line bottom right while flying ([Cheat] FlightHint); quick command line in the bar (L3, the command bar's path); Render-Details pass / Navmesh rows show an / aus (orange + reason when a Navmesh switch cannot draw)); 0.21.5 (bar page Fixes + menu section Fixes: the plugin INI switches of TruMenu.switches.txt, sw.set / sw.list / sw.reload; the ring is frozen - its ring-only entries are bar rows (new page Render-Details) and the menu section Quick bar pages shows every bar row); 0.21.4 (hall02 counter rescue for saves whose checkpoint 11258 already holds tutorial thralls: fix.hall02 sets dispatcher 11270 population = 0 (tutorial 2) when no tutorial thrall lives; thrall.scriptval shows the thrall-script int +8 (restored 0 / generator-born 2)); 0.21.3 (quick bar: Y pins / unpins the row as a favourite, X runs it (confirmation rows: X twice), X / Y kept from the game while the bar is open; the sound list is as wide as its rows of this frame); 0.21.2 (queued items run in the Present hook while another pad hook sits outside PadHook - an item's pad poll no longer makes TruLink cut the pad chain); 0.21.1 (ai.kill nearest / others / all / <intro> the game's own kill (death state: scripts count it), ai.remove warns about story enemies; sticky.get / sticky.set; room check for player.goto (parked templates, unloaded / far units, force) and pos.go, unit.go (thrall-fight Prepare), label 'geparkt', pot label from the drawn instance; phys.status / phys.dump (physics bodies of the ChunkDoll crash); ai.spawn of the loaded enemy kinds; bar: page 0 Favoriten / Zuletzt, page Tests (Prepare, teleports, TO TEST), collapsible groups ([Quick] Closed), the KI page in three groups; export TruMenuPadBlock; "
+const char *const kVersion = "TruMenu 0.22.68 (build B2 2026-11-20: (1) puzzle.thor rebuilt - the Thor pillar's reach from the unit's terrain mesh (25-u cells, [Puzzle] ThorStep / ThorFoot, exact distance field, flood fill from the pillar, again at every [Push] end and obstacle move; vertical rays as the fallback), rings coloured by their next target (exit / artifact A / B), unreachable targets grey, height tiles puzzle.thormap, [Thor] terrain / reach / target / pillar / MISMATCH / foot / jump lines; TruThorCore.h, offline selftest TruThorCoreTest) - 0.22.67 (build B1 2026-11-20: (1) K1 after a live costume switch the checkpoint costume (s16)[gd+0x20c] is requested with a reference (0x5c1760) unless loaded, own reloads refused until it is (no 0x5ff851 crash), [Costume] watch lines; (2) puzzle.pull from on with bit 0x200 = 0: vt 58, then vt 59 once off (one press); (3) puzzle.pullout 'Tuer herausziehen' (joint range left, motor drive past the edge); (4) logs: [Death] (0x6f5030 / 0x6f55a0), log.perch P1-P5 + LIFT, log.vein V1-V3, [Press] / [Flight] / 0x1c7 count, [Jump] velocity turned into the world, [Tempo], [Cam] per frame on look input; (5) fall.box air by record 294 / flight, catch tubes ahead only, dbg.flatedges pass counted + LESSEQUAL) - 0.22.66 (build T2 2026-11-19: (1) sonar.keepview - the next sonar open in the same unit gets the view centre (with the LT / RT zoom), yaw / pitch and floor of the last close (16 byte checks, game thread, the game's floor change of 'back to Lara'); (2) the level-start intro table from patch.000 / bigfile.000 at run time (TruIntroScan.h, background thread), TruMenu.unitintros.txt as the fallback, a file / game data comparison line) - 0.22.65 (build S5 2026-11-19, evidence instead of guesses: (1) log.perch [Perch] lines in the perch / post records (W5 slanted posts) per record change with the attach box, flags, matrix rotated / straight, DROP line with field diffs on > 100 units z in one frame; (2) [Thor] obstacle extents by 4 rays, floor rays terrain / object per cell; [Cam] cam.nowall 2 camera in geometry once a second and the camera water state (0x5ea200 fields)) - 0.22.64 (build S4 2026-11-19: (1) cam.nowall 0 / 1 / 2 = the follow camera as in the game / without the pull-in (0x600598) / through walls (+ 0x60037c, 0x6004e3), 6 byte checks, written on the game thread only while the follow camera 0xe83860 is current, back = the old bytes) - 0.22.63 (build S3 2026-11-19 after the analysis S2: (1) puzzle.pull from on uses vt 58 (the off reaction; S2: vt 59 acts only from off), puzzle.pull <id> lever|off|action = vt 59 / 58 / 55; (2) bal.nofall: the beam fall flag stays 0 (3 bytes 01 -> 00 at 0x742eeb / 0x742f17 / 0x742f3c after 4 byte checks, written back when off); (3) photo.pose lets Lara run 45 frames despite the pause (+0x1c 0x1000, exactly back), photo.hide / photo.show (+0x14 0x800 on Lara and her children, exactly back), photo.shotui (ui shot once the panel is closed); (4) [Push] only while Lara's record holds state 1477, the pushed instance [[0xfae504]+0x148] logged against the kind filter; (5) Thor areas strict (|dz| <= 6) for areas / state / arrow / log, relaxed only with puzzle.thorloose, obstacles of the unit (bodies / breakables, re-query round moved ones), artifacts from the unit's intro list with the measured data -> live offset, galleries chained, exit = the remaining gallery nearest a unit trigger) - 0.22.62 (fix build S1 2026-11-19 after the live test of 18.11.: (a) puzzle.pull uses vt 59 (the lever) also from on - the villa switches - with the lever node in the check after; (b) the puzzle help level is two switches puzzle.hints / puzzle.actions ([Puzzle] Hints / Actions, the old Help still read); (c) bar rows: fall.box / trace.arcs on Figur, puzzle.thor / thorgap on Kapitel, obj.track on Debug, dbg.plates (plates / weights / holes) of its own on Leveldaten; (d) the flight arc takes T+0xa20 while a target is set, else inst+0x2a0 from the frame after the call (the game passes v = 0), jump.preview = dashed arcs of the target slots T+0xb00 / T+0xc90 from the jump table (0x6f1950 byte checked, read only) with 'du landest auf <markup>' / 'kein Ziel, Fallhoehe x m', jump.catch = 300-unit tube; (e) [Jump] sites: 0x766b4f ground move / 0x71b519 restart only at LogLevel 3, 0x71f6e4 pole take-off, a v = 0 call is logged only when a flight follows, re-aims only from the aim solver; (f) the light blue throw path fades out 3 s after the body's rest, [Push] only for pushable objects (uber graph / jointed multibody, no ragdoll pieces) with Lara on the ground, one multibody once; (g) puzzle.pullto 'Figur aufs Ziel' = the n pulls of a chapel wall switch one after the other through puzzle.pull, stop when locked) - 0.22.61 (Thor pillar areas, package R1c 2026-11-18: puzzle.thor computes at run time where the pushable Thor pillar must stand for a jump from its top to the exit gallery / the two artifact galleries / the column rings (floor query 0x493330 per 150-unit cell, unit ledges 1700 .. 2200 above the floor, [Puzzle] ThorGap 600), draws the areas on the floor, the pillar's circle, in the area / x m off and an arrow; (2) holder rule of R4 (named by it / its script names it / nearest free accepting holder), puzzle.insert 'Einstecken' = onto the holder + message 0x165 through the game's send 0x5b3750 (2 byte checks of its callers, check after 2 s), obj.msg (TruLink 0.5.3), counted weights first for a plate) - 0.22.60 (motion data, package R1b 2026-11-18: [Jump] launch / drop lines from the game's launch 0x70e050 / drop 0x70e100 (pass-through, 6 byte checks) with p0, v0, g, target, direction to the heading; [Throw] release / rest of a portable leaving Lara's hands; [Push] start / move (10 / s) / end of a body near Lara, obj.track <id> on|off|list [Track] 5 / s; trace.arcs draws the flight arc to the ground probe hit (0x493330) + the throw path; fall.box ground below + fall height at landing + the last landing's scale) - 0.22.59 (puzzles + landing log, package R1 2026-11-18: (1) mid-chapter keep-state loads keep the loaded same-level intros' played marks at 1 on the loading screen; (9a) puzzle.pull 'Schalter betaetigen' through the switch's own script (vt 59 lever / vt 55 action, 3 byte checks, check after in the log); (9) hold open: closed gates open first (motor drive / the opening set-node record), up to 4 holds at once, the shadow door always offered; (4) puzzle.help 0 off / 1 hints / 2 solve with hint lines in the list and at the objects + the next checkpoint + local TruMenu.puzzlehints.txt; (5) plates / weights / pole holes in the key items view with state; (7) [Fall] landing line from the fall damage check 0x75d080 (R2, read only); (7b) fall.box: fall height box with the run-time limits a / b / c) - 0.22.58 (chapter / loading + costume 857, package Q1b 2026-11-17: (S1) page Kapitel rows by kind - chapter starts = the in-level level start f27 (new game data, intro), mid-chapter units = level.keep (level.load, state kept), [Chapter] UnitFresh=1 (experimental) = f27 + the loaded intro units' played marks kept at 1 on the loading screen (level.start <unit> 0 mark); (S2) level.keep / chapter.keep / level.reload into an intro's own unit set that intro's played mark (sticky int 0:<intro> key 5968) to 0 first, watchdog ': Cine already played' without 'ABOUT TO FADE OUT' within 10 s; (S3) the level-start intro table from TruMenu.unitintros.txt (tools/unit_intro_table.py, game data next to tru.exe); (S4) cp.reload 'Letzten Checkpoint laden' = [0xe7f0b8] |= 0x80000 (the game's death restart request, 6 byte checks), in-place restore vs full reload logged; (S5) level.reload 'Reload unit (unit start, state kept)'; (S6) chapter.reload takes the newest safe-ground unit when Lara is off the map, the row shows the unit; (S7) DLC: 'Reload DLC start'; costume 857 doppelganger_casual outside DLC 2: fix A = dlc_doppel_costume_a by name, [Costume] DoppelLive=1 = the real 857 with game data +0x390 = 0 before message 35 and a slot-0 check two frames later (back to the previous costume when empty; 5 byte checks)) - 0.22.57 (puzzle helpers 2, package Q2 2026-11-17: figures only with the fire, hold open for motor / timer / counter-command gates with the 180 wrap, part labels with part n/N + offset + the door time on the moving part, bring weight behind Lara on own spots, weights -> plate, switch -> command from the loaded scripts, already used = +0x1c bit 0x200, anchor / pole labels, export TruMenuPuzzleList, level not found before queueing); 0.22.56 (puzzle helpers + chapter / camera fixes, package P2b 2026-11-16: (1) exports TruMenuNote / TruMenuNoteClear / TruMenuNoteList (64 notes, one line under the object's label, TruLink 0.5.1 mark.*); (2) P3 fix 1: every TruMenu level change arms a flag, the game-thread hooks zero [0xe804f0+0x110] / [+0x10c] while main state [0xe7ed60] is 2 (stale camera hints of the old level, crash 2026-11-15 22:27; 6 byte checks, 30 s timeout); (3) P3 fix 2: chapter rows and chapter.reload in a level = the in-level level start f27(unit, 0, 0, 1) + f7 + f19 also for base-game units (the new-game block clears the played-intro marks); choice row 'Kapitel (Stand behalten)' (chapter.keep) = level.load with a warning; (4) page Kapitel 'Raetsel in der Naehe' rebuilt from TruLink 0.5's decoders: switches (kind of the target graph, state +32 against +16 / +20 / +24 of the switch base, locked by an up plate), plates (+92 flag, rail, weights / Lara on it), hints from reverse instancerefs, ring figures (current vs the object check's target, commands left, switch learned at run time), puzzle.figures (the pillar commands through X vf+4, one step per idle link), puzzle.hold (joint drive hold-until-off of a motor-closed hinge, TruLinkAct.h), door time 'offen 148 Grad, zu in ~42 s' in the list and the uber labels, puzzle.bring (a weight / pole next to Lara through the game's placement path, back again), puzzle state log lines; the 0.22.31 'solve' rows (joint.set) removed)" " - 0.22.55 (chapter page + display fixes, package P2a 2026-11-16: (1) page Kapitel row 'Aktuelles Kapitel neu laden' (chapter.reload) = Lara's chapter start from kChapOrder through ChapSteps - backup, the pause menu's DLC start / level.load / the mission start; (2) [Cheat] FlightKeepOnLoad (flight.keep, row under Fliegen, default 0): every TruMenu level load turns flight off first; cp.jump never turns flight on (player.goto alone, cheat.flight 0 after unit.go's portal flight); (3) doppelganger_casual (DLC 1 freeze 15.11. 22:11) refused for the live switch unless the doppelganger flag [[0xfadb58]+0x1244] is set; (4) 'level not found': a unit outside the level list without mods\\<unit>.drm is never requested; (5) every metre text of the debug labels / log lines with kUnitsPerMetre 290 (was 100); (6) multibody parts labelled at their model (bone 0 [[inst+0x90]+0x30]) as '<object> - Teil n/N (<node>)', not merged at the shared +0x20; (7) ma_pt_pole_a without a hole in its unit and without an instanceref marked 'kein Loch (Original-Daten)' / 'no hole (original data)' in the labels and the puzzle list, detected at run time)" " - 0.22.54 (two crash fixes + sound switches reset at start, owner 2026-11-15 evening: (1) snd.mute of a sub-group (snd.hear <sub> stumm, 0.22.53) read kHow[7] past the end of its 7 texts - the %s of the log line took the bytes 'ever' as a pointer (TruMenu+0x13aec6 strnlen, main menu music); one text per rule kind now (static_assert) and the index checked; every format string of Log / Out / LabelAdd / TextAdd / IniPut / Text / ShotNote / LxAppend / SndNote / ClkNote / QbResult and the ImGui text calls checked by MSVC /analyze (_Printf_format_string_, work\\fmt_1511\\Test-TruMenuFormats.ps1): 2 sign mismatches fixed; (2) the sonar extra loads (S7): the find 0x6e2a60 appends a new list entry whose constructor 0x6dd820 leaves the load handle +0x88 unset - S7Extend took that heap garbage for 'requested already' (no load, the recursion stopped after one step) and the close 0x6dff20 -> 0x6dd780 passed it to 0x54f050 (tru+0x14f05d, 1.0f as a handle); a new entry gets +0x88 / +0xb2 / +0xb4 = 0 at once (S7FreshEntry), 6 more byte checks (23); (3) [Sound] ResetAtStart (default 1, row 'Ton-Schalter beim Start zuruecksetzen'): MuteMusic / MuteAmbient / ReverbOff back to 0 at every start, also in TruMenu.ini; the log filters, ReverbFollowsMute and SonarMute stay; (4) sub-group mu_menu 'Menue-Musik' = group 1 (the main theme stream), mu_music = g2-3, g10-12; (5) the heading row Schnell-Hoeren removed; the start line names LogFollowMute; (6) joint.set (owner 20:28, a door rail moved far the wrong way, out of its limits): target clamped into the joint's own limits, the lock point ramps from the value towards the target with a short lead, the drive stops at once when the value leaves the limits / moves away / overshoots, one log line per tick (value, velocity, lock), a row whose drive stood at the target without a node change says 'range not armed here (tried)')" " - 0.22.53 (sound log trees + kind Waffen + sonar extra loads + markups in the sonar view, owner wishes 2026-11-14 night (docs\\Status-2026-11-14.md W-53 / LT-2310): Spiel-Einstellungen / Ton / Ton-Log in the owner's layout - the settings rows, [+] Filter (Zeigen) (log display only: kind rows snd.logcat, sub-group rows snd.logsub, [Sound] LogHideSubs, 'Filter folgt Stumm' snd.logfollow [Sound] LogFollowMute default 1), the plain heading Schnell-Hoeren, [+] Stumm / Solo (sound only: Alles zurueck, Neuester Ton solo, Hall folgt Stumm, Hall aus, then per kind / sub-group one value row snd.hear normal / stumm / solo = snd.mute / snd.solo cat: / sub:); both trees kind -> named sub-groups of the game's sound groups (38, kW8Sub), nesting levels 2 / 3 (kQfLv2 / kQfLv3); a new kind Waffen (groups 51 / 52 / 58 / 59 / 61 / 62 / 63 - 'Stumm: Lara' no longer mutes the weapons), Lara's voice 68 / 69 and the DLC 2 player groups 77 / 78 are Lara's; a group-14 'world default' sound whose source is Lara or her gear (+0x54 = the player) = Waffen for a wp_* owner or a weapon-only wave of the data (optional TruMenu.weaponwaves.txt from weapon_waves.py - game data, not in the source), else Lara / Ausruestung; the monitor's voices under kind -> sub-group headings, the box lines and history rows name kind / sub-group; [Sonar] LoadNeighbourFloors / LoadAllConnected (default 0, with FullMap): R1 0x6e4e3f call 0x6e2e60 -> S7LoadStub (the game's neighbour rule first, then more units through the game's 0x6e2a60 / 0x6e4e80 inside the load callback, only in mode 1 with the pause byte 6 and no PDA map heap; caps LoadMaxUnits 24 and TriangleCap; released by the game's close 0x6dff20; 17 byte checks, one log line per open); the markup layer projects with the camera matrix 0xe804a0 while the sonar is open, like the trigger layer)" " - 0.22.52 (reverb mark + DSP graph + sonar shader fade + area colours + joint row fix, owner wishes 2026-11-14 late evening:the whole FMOD DSP graph walked (live 22:02: 189 units - one SFX Reverb, two ParamEQ inserts of groups 58 / 59, stream codecs, 162 group heads; static: createDSPByType only 0x586fda / 0x5839f3 (oscillator, played as its own channel) / 0x5876df (group / node effects = ChannelGroup::addDSP inserts behind the mute), DSP::addInput only 0x58223b / 0x584188) - the reverb send is the only path past FMOD's mute; a reverb mark per line in box and monitor (arcs = reverb audible, struck = muted by ReverbFollowsMute / ReverbOff, dot = no send), monitor rows for the graph and every effect, a muted voice's send zeroed at once (W10Sweep, 50 ms) and the voice update rate counted; [Sonar] FadeFar drives the real dimming = the face shader lib 192 of materials 3348 / 3349 (1/d falloff floor c110.x 0.5, fade to black c108.w .. c109.w 200 .. 600 m; 6 byte checks), fog off for every value != 0; [Sonar] TintOthers 2 = a muted colour per area with a legend in the sonar view state; page Kapitel Raetsel: no drive for an open-ended range on a free hinge (motion detector), the range cut to the joint's limits, our lock taken back after a node change) - 0.22.51 (sonar view + base PDA + X default + DLC start from a level + reverb follows mute, owner wishes 2026-11-14 evening: the game's SFX reverb (holder [0xccde98]) gets a send from every pool voice that FMOD's mute never reaches - 'Hall folgt Stumm' [Sound] ReverbFollowsMute = call redirects 0x591591 / 0x5841bf -> W9SendStub (a muted voice sends 0), 'Hall aus' [Sound] ReverbOff = reverb -> master setMix 0 (old level back on off), audible = not paused and (dry > 0 or send > 0 with the reverb out > 0) in box / monitor, a reverb row, 11 more byte checks; 'Sonar: Abblenden Ferne' [Sonar] FadeFar = the sonar view's fog (0 game: near = far = 65536, n m = fog n/2 .. n, -1 aus; call redirects 0x6e4d94 / 0x6e4bf9 -> S5FogStub); 'Bereich anzeigen' = one unit of the sonar's own list drawn (0x6e42ac -> S5UnitStub, no load, no camera move); 'andere Bereiche einfaerben' [Sonar] TintOthers = units but Lara's drawn with an amber draw colour [0xee03bc] for their call; sonar.why + the open line log the view centre / axis and per unit the cut plane of 0x6dfa60 ((v0 - centre) . axis < -4000); 'Shadow-PDA durch Basis-PDA ersetzen' [PDA] ShadowPdaAsBasePda = g_pda script 3347 f1 word 04000001 -> 04000000 (ScriptSection hash map 0x8a6ed0, only the DLC g_pda, only while the PDA is closed); X on a value row = its default, footer 'X: Standard'; Kapitel DLC rows in a level = the pause menu's DLC start (RegisterAcceptChanges case 8 as the title update: f27(unit, rule, 0, 1), f7, f19); command line: level.start suggests every unit, level.load in the main menu suggests level.start; 22 byte checks) - 0.22.50 (sound log readable + FMOD channels + source hooks, chapters from the main menu, owner wishes 2026-11-14: the bottom-right sound box per line with an on / off box from FMOD's own mute bit (ChannelI +0x74 bit 3), the group as text, the source, a loop mark (FMOD mode 0x2 / 0x4), repetitions collapsed (same wave + source = one line xn, newest on top), a 'laeuft gerade' block of the looping channels; filters per kind (Lara, enemies, world, objects, PDA / UI, speech, music), only audible, collapse, max distance ([Sound] Log*, live); quick hearing per kind mute / solo (snd.catmute / snd.catsolo = snd.mute / snd.solo cat:<kind>: whole groups + per channel + the FMOD channels outside the pool), newest sound solo, everything back; two code redirects V1 0x591351 (the wave node's Play call: voice -> emitter of the node) and E1 0x5b99fc (6 bytes after the untouched create call of the anim event, TruTrace keys on it: emitter -> instance), [Sound] SourceHooks; the owner list walk at most once a second and only while shown, W6EmitterOwner gone; the monitor counts every used FMOD channel (SystemI +0x150), shows FMOD's mute / pause, 'Fremdkanal (DSP)' rows and the music slots; ONE 'Ambient aus' (media.muteambient = snd.ambmute: groups 15 .. 24 + the '_amb_' beds, kept) and ONE 'Musik aus'; page Kapitel from the main menu = the game's mission start (level.start, DLC starts as the DLC menu), the DLC start rows refused in a level (level.load keeps Lara's costume), cp.jump from the main menu; 27 byte checks) - 0.22.49 (sonar all floors + map info, adrenaline options, owner wishes 2026-11-14:[Sonar] AllFloors with FullMap = the frame 0x6e4130 also draws the map units of other floors the sonar loaded itself (0x6e429b je -> nop nop; the game's open path loads the floor's units and their direct portal neighbours - no load added), item sonar.allfloors 'Alle verbundenen Bereiche'; info row sonar.unitmap 'Karte dieser Unit' (real N faces / placeholder only / no file, read from the sonar's unit list while it is open) and one log line per sonar open (floor, radius, view distance, every map unit with mask / state / faces); [Sonar] TriangleCap with FullMap (default 300000; the imm32 of 0x6dfa69 = the per-frame budget 93572 - only a counter: the triangles are flushed in batches of 2000 into the device's growing vertex pool); 3 more byte checks (16); adren.keep renamed 'Nach Einsatz auffuellen' (it refills only outside the mode), adren.stayfull 'Adrenalin bleibt voll' = TruShadowCombat [Adrenaline] DrainPercent / DrainModePercent 0 (old values kept in TruMenu.ini, back when off); ModeWithoutTarget / StrikeWithoutButton options (no '(Test)'), AssistPointer 'Zielhilfe Kreis', a DLC 2 note; snd.sonar log line printed the wave list's address as SonarMute) - 0.22.48 (adrenaline at Lara + sonar full map, owner wishes 2026-11-14: page Figur group Adrenalin (Lara) owns adren.meter / adren.fill / adren.keep and the TruShadowCombat [Adrenaline] switches (FillPercent, DrainPercent, DrainModePercent, StrikeWithoutFullMeter, AssistPointer, ModeWithoutTarget, StrikeWithoutButton, Log), page Tests keeps copies; the switches rows ModeWithoutTarget / StrikeWithoutButton live (TruShadowCombat M15ReadSwitches, once a second); teaser display default 12 (small circle + count badge); page Kapitel without '(debug)', the unused slots named readable; Sonar komplett [Sonar] FullMap = every vertex counts as revealed in the draw 0x6e3a00 (0x6e3b25 / 0x6e3b59 / 0x6e3ba2, display only, no save data), HidePlaceholder = call stub at 0x6e3ab0 skips the 100-face / 56-vertex MAP mesh, FloorMarkers = 0x6e40c6, all live, the game's bytes when off, one line when the triangle cap [0xee03ec] is hit; 12 byte checks kSoChecks) - 0.22.47 (sound monitor, owner wishes 2026-11-14: the wave id of a voice from the wave entry +4 (0x591348 - 0.20.1 .. 0.22.46 read every voice as 'Stream') and the emitter through the node's params object +0x74 (0x5906e0); bar group Ton-Monitor (live) and Paket B: every voice playing / paused with name, wave / section, group name, volume, 2D / 3D, distance, state and source (object #intro / UI / music / stream), the last [Sound] HistoryMax starts, the active rules, right = mute w<id> / e<hex>; snd.monitor / snd.history to the log; the bottom-right box as a log ([Sound] OverlayStyle 1: newest on top, colour + ImGui-drawn icon per kind, fading); Sonar-Ton aus [Sound] SonarMute 1 = waves 914 / 915 / 916 of g_pda.drm per channel (2 = the whole group 57 incl. Lara's hints in child group 70), kept in TruMenu.ini; the list / switches also run from the Present hook while the game polls no pad (main menu); 6 byte checks) - 0.22.46 (arena from the main menu,owner live 2026-11-14 12:07 'arena.go 1a refused: level change pending (GameTracker+0xb9 = 1)': in the front end +0xb9 = 1 is a request nobody serves - only main state 1 serves one (0x5e0050 -> 0x5dab40), the next level start clears it (0x5de864), here TruMenu's own level.load of the unit.go step; LevelChangePending ignores it in main state 10, level.load is refused in the front end (main state 6 / 10), arena.go from the main menu starts the unit through the game's mission start (level.start <unit> 0 = uigamedata f22, f27(unit, 0, 0, 1), stdscreenmgr f19 + f7; new game data, fresh player tracker = main-game mode), waits for it, places Lara, cheat.onehitkill 0, arena.mode <spot> with unit + one-hit kill byte; refused outside the main menu itself (front-end state 0xfae8da != 3), during a one-shot movie or a cutscene, without a level; level.start [0|1] = f27's selection argument; 'level up' log line of the shortcut runner; 10 byte checks kFeChecks) - 0.22.45 (W6 sound switches,owner live notes 2026-11-13: snd.mute <target> [1|0] - single waves / SoundPlex sections / emitters per channel through FMOD's own ChannelI::setMute 0x7c92b5 behind the game's handle validate 0x7c7e5a, sound groups and ambience (group 15 + the '_amb_' srmusic beds) through ChannelGroupI::setMute, music tracks by name through the game's srmusic stop; snd.solo, snd.mutes, snd.ambmute, snd.now (voices with emitter + SoundPlex section), music.stop / music.next / music.mute; one 'snd.wave <id> START' log line per start of a watched wave ([Sound] WaveLog / WaveIds 10 / WaveLogMax) with unit, emitter (params - 0x14, vtable 0x851240), SoundPlex section and the object whose sound list [inst+0x248] holds it; 15 byte checks) - 0.22.44 (W2 order, owner live notes 2026-11-13: page Tests by the test guide packages A - F of 14.11. (group tg_1411, sub-groups tg_a .. tg_f with the items each package needs, checks tg<A-F>.<name>), the 11.11. Q90 packages, test spots, light / depth diagnosis and hall02 rows in the closed group Archiv / Alt (nothing deleted); Barrierefreiheit: no leading spaces, Arachnophobie in its own sub-group, the planned rows (no item) in the closed group Geplant; planned rows without the 3-space prefix; an INI without [Menu] Load (written before 0.22.18) reads Enabled the old way = Load, the big window stays off; row DeviceGlyphs on page Spiel-Einstellungen / Steuerung; kQbViewMax 256) - 0.22.43 (W5 markup, owner live notes 2026-11-13:draw.markup puts object markup (box +0xc owner) through the owner's bone matrix like the engine (0x5be360 / 0x49ba20, only with owner +0x2d8) - before every object ledge was drawn around the world origin (the dungeon 'coil' 21:53 = dlc1_uo_pillar_of_doom ledges); boxes the engine's markup query skips (record +0x32, disabled bit 31, owner flags, stream unit +5) are not drawn; label 'type #id' (DE / EN) within 15 m of Lara, nearest 24, one colour per type; dbg.roomonly and the occlusion fading apply to markup too; bar rows Markup / Nur Kanten first in their group; 6 byte checks) - 0.22.42 (W3 debug view, owner live notes 2026-11-13: RoomOnly keeps an object of another unit when its own stream unit +0xe0 is Lara's or it is within [Debug] RoomNear 3000 (dlc_level1_start holds copies of the dlc_caverns bridge objects), each drop / keep logged once; DistMetres default 1; labels within [Debug] OcclNear 600 and Lara's own never fade, test point 1 m above the origin; labels de-cluttered - one label per instance and frame (uber labels join it with their state line), same object x n, LabelStack 3, LabelCellMax 5 per screen cell; [Debug] HideEmptyPots 1 - no labels at plain / empty jars; teaser icon only in the main menu (front-end state 3, no one-shot Bink movie - not in the credits)) - 0.22.41 (Q126c compact attract styles, owner 2026-11-14 after trying 0.22.40: [Menu] AttractIcon 8 .. 16 appended, all without a box - 8 / 9 small circle without / with the red strike, 10 / 11 / 12 small circle + only the counter beside / below / as a badge on its edge, 13 terse 12s . 3, 14 terse 12/40 . x3, 15 / 16 only the counter as a word / with a skip arrow; no time next to a circle; blink at the limit for all; 0 .. 7 unchanged, default 7) - 0.22.40 (Q126b attract display styles, owner 2026-11-13: one cycle switch [Menu] AttractIcon 0 .. 7 (menu.attracticon, bar row Teaser-Anzeige with the style name) instead of AttractIcon 0 / 1 + AttractIconText - 0 off, 1 text only, 2 circle, 3 circle + red strike, 4 text inside the circle, 5 text below, 6 = 4 + strike, 7 the 0.22.39 look (default); a 0.22.39 INI is mapped once (1 + 1 -> 7, 1 + 0 -> 3) and AttractIconText removed; blink at the limit for all) - 0.22.39 (Q126 attract icon,owner idea 2026-11-13: [Menu] AttractIcon default 1 (menu.attracticon): top right in the main menu a circle that fills with the game's AttractTimer clock toward its limit (elapsed +0x10 / alarm +0x14 of the captured clock, NoAttract holding: the shadow count modulo the alarm), a play icon in the middle (crossed out while NoAttract holds), [Menu] AttractIconText seconds + counter skipped / teaser started, 3 orange blinks at each limit; read only through the 0.22.20 update slot, live re-read of both keys) - 0.22.38 (PD, owner decisions 2026-11-13: [Input] DeviceGlyphs default 1 (pad / keyboard prompts by the last used device); the co_ / fx_ filter also takes dlc_ / dlc1_ / dlc2_ in front (dlc_fx_*, dlc1_fx_*; exceptions co_rock*, *_grab_prompt kept); trigger edges with occlusion on are drawn whole and faded instead of cut by the depth test (one occlusion query pair per edge / circle, Occlusion 2 drops hidden edges), [Debug] TriggerNearest (dbg.trignear: only triggers with Lara + the n nearest) and TriggerCornerId (dbg.trigcorner: the intro id at one box corner)) - 0.22.37 (debug view P5, Paket R / Q119:labels as name / symbol / both per layer ([Debug] Style*, dbg.labelstyle; ImGui symbols + legend), room always + readable (kRoomNames, LabelRoom) and metres (DistMetres), key items layer dbg.keyitems (parts, switches, doors, grapple points, P1 part -> target lines, state from link parent +0x228 / uber node), the game's reward bit +0x3ed90 as 'collected' (LabelCollected semantics), DrawDistance + TruMenu.debugview.txt per unit, labels behind walls faded / hidden by D3D9 occlusion queries in the depth pass (Occlusion), co_ / fx_ hidden (HideCo / HideFx), live wishes: uber labels + key items of Lara's room only (RoomOnly, dbg.roomonly; then every _uo_ / _ei_ / _pt_ object of the room, readable name + node 'Kanaltor, verschlossen'), uber labels fade behind walls, readable names (kP5Readable: 'Wandschalter (einmalig)'), grey 'versteckt' for hidden non-collectibles, kChapOrder after Paket R (CP 76 return visit, 160 / 42, going_in / going_out, 7 return rows), arena.load references released at a level change; 6 byte checks) - 0.22.36 (label filter, live 2026-11-12: the name labels dbg.labels / dbg.names ask the 0.21 collected / hidden check LfNotDrawn as the collectibles layer - [Debug] LabelCollected 0 none / 1 grey 'eingesammelt'; Lara's own gear by game data (parent +0x54 = player from BirthObject, weapon-manager slots + gear list) - [Debug] LabelLaraGear 0 none / 1 shown; both live, items dbg.labelcollected / dbg.labelgear, 11 byte checks) - 0.22.35 (level chain, Q113: base-game checkpoints of the Kapitel page in walking order, loop directions + l4_temple side trip as headings) - 0.22.34 (achievements, photo.pose, group M; Q20 / I-2: [Achievements] Enabled=1 (default, read at the start) bends the 16 push immediates of the achievement binder 0x7abb80 (script 66, all bound to the empty 0x796620) to TruMenu's stubs before the generalbank binds them - 'achievement <id> <name> unlocked' once per profile (= the save folder) in TruMenu.log and TruMenu.achievements.txt, names / gamerscore of the Xbox ids f0 1 .. f15 18 (f12 - f15 unsure), repeats counted; ach.list / ach.status, page Figur group Erfolge, big window page Achievements; F2: photo.pose 1..7|next|off = Lara's screen_capture_0n (anim table 1605 - n, section checked, resident) through the game's anim request 0x444ba0 mode 0 (the uber / script play-anim path) - photo mode only; off / photo.off = the slot noted from processor +0x44 again in mode 1; J-5: chapter 1.2 heading before l1_kraken_entrance (title card from intro 696); K follow-up: ai.spawn warns when a resident kind's children are not loaded; 36 byte checks); " "0.22.33 (photo mode, arena.load, glyphs.status, group K; F1 / Q78: photo.on = the game's own FreeCamera (camera manager mode 5 through its switch 0x5edd70(mgr, 5, 0) - CAMERA_SetMode knows only 6 / 11 / 12; its own stick / mouse input and generalbank DTP 16 values) + the world pause bit 0x1000 (the camera update still runs) + the UI byte 0xcdc9a0 (the game's screenshot task hides the HUD the same way); photo.off / leaving by itself on a level change, a new player / unit, main state != 1, a cutscene, the game's pause menu or a camera the game took = mode, Lara's control, pause bit and HUD as before; refused in cutscenes / loading / pause / flight / cine.pause / another camera layer; photo.shot = shot.save clean photo_<n>; Q83: arena.load <kind> requests one of the 26 enemy kinds with the game's object request with reference 0x5c1760 (checks tracker 204 / anim pool 3000 / 3D navgraph / DRMs, at most 2 kinds), ready = object + children at status 2 and anim slots resolved (log line), ai.spawn refuses it before; arena.unload <kind>|all = STREAM_DumpObject 0x5c1790 once for its own requests; arena.enemies lists the states; Q95: glyphs.status = DeviceGlyphs, device now (pad / keyboard / mouse), last switch time, prompt counters; 37 byte checks, no new INI key); " "0.22.32 (arena, group A; Q86: ai.spawn names the LP each spawned enemy got from the game's enemy init (brain+0x2c64; tune health record by the EnemyHP step [[0xc59264]+0x3ef98]), the EnemyHP step and warns while one-hit kill [0xe91ffd] is on - the 2026-11-11 21:02 thrall 'LP 0' was that cheat, its AI ran; no name / an inexact or unloaded name = the list of the loaded AI enemy kinds with the reason; Q100: arena.mode [spot] = player object, doppelganger byte [[0xfadb58]+0x1244] and TruDlc2Player flag, fits / WARNING per spot, logged; arena.go reads the mode first - a main-game spot with the flag set loads with level.load (new game tracker clears it), a DLC 2 spot without it warns - and ends with arena.mode <spot>; Q98: spots 1d l5_valgrind CP 7329, 1e l2_puzzleroom CP 2074, 1f l4_traprooms CP 5722 - the largest open navmesh floors with a resident enemy kind; read only, no new INI key, no hook); " "0.22.31 (level navigation + puzzles, group B; Q105: the 15 unit names in no PC archive (q105_units.tsv: three base units of the level list, six container / costume / cine names, the six known DLC slots) grey and refused by level.load / level.start / unit.go / cp.jump unless a mods\\<unit>.drm exists, one 'units:' log line; page Kapitel base game in play order from the stream portals with chapter headings (callers of generalbank script 72 SetChapterUIData) and the checkpoint intros per unit - right 2x = backup + load, a checkpoint row = cp.jump <unit> <cp> force (new optional third word: cheat.flight 1;player.goto <cp> force); Q106: uber.dump prints every joint-range transition (condition 14 / 15) with the joint's live value (the engine's getter 0x4e1ef0 / 0x4e1ea0), joint.set <intro> <joint> <value>|stop drives a hinge / rail joint with the engine's limit setters 0x4d9fc0 / 0x4d9f50 / 0x4da0c0 + wake 0x4d8fd0 until the uber leaves its node or 6 s (game thread, a cheat), page Kapitel group 'Raetsel in der Naehe' lists the uber objects with their current node and joint targets, 'solve' rows run joint.set; 27 byte checks); " "0.22.30 (log dates, device glyphs, drawn guards; Q107: every TruMenu.log line starts with 'YYYY-MM-DD HH:MM:SS.mmm' and the first line of a process is the session header '=== <date time> TruMenu <version> session start (pid n) ===' (src/asi/TruLog.h, shared with the other plugins); the log page / overlay take a stamp with or without the date and show the time; Q95: [Input] DeviceGlyphs=1 (default 0) - the last used device (pad: a button, a trigger or a stick past its dead zone in the game's poll; keyboard / mouse: a key, a click, the wheel, a mouse move away from the client centre) decides the button prompts of UIText: 23 bytes of 0x5a7c20 at 0x5a7d75 call GlName - pad = the symbol of the first XInput binding (Start / Back U+1810 / U+1811 too), keyboard / mouse = the name of the first other binding, else the game's own name; 12 byte checks, 'glyphs:' log lines; Q103 rest: the quick bar's presses and every widget of the big menu (ImGuiItemFlags_Disabled) act only after 3 drawn frames since the open, else 'quick: buttons 0x.... ignored - not drawn (n frames)' / 'menu: input ignored - not drawn (n frames)'); " "0.22.29 (radial lock, Q103:[Radial] Enabled=0 also closes a ring that is still open (settings.reset) and drops its pending release / open / close requests; a release, confirm, A / click or R3 runs a ring entry only when DrawRadial drew the ring in at least 3 frames since the open, else 'radial: <what> ignored - not drawn (n frames)'; the close line names the drawn frames; no new INI key); " "0.22.28 (test packages, Q90: page Tests group 'Testpakete 11.11. (Q90)' with one closed sub-group per package A, 1 .. 9 of docs\\Testpakete-1111.md - a hint line, jump / load rows of existing items (level.start, level.load, arena.go), the existing switch rows of TruMenu.switches.txt the package toggles (kQbSwitch = the page Fixes row: TruShadowPower ShakeTuTimeStep / [Player] TuTimeStep / DoppelgangerSettings / CameraTuTimeStep, TruQoL [FrameLimit] Enabled / MaxFps, TruRockVein JumpTarget / LedgeProbe, TruMenu [Log] Save), probe rows (save.inv / save.find 5240 / 5695 / save.pending / save.waiting, adren.meter / adren.fill, phys.status, log.script / log.scriptfile) and TO TEST checks (kQbCheck tp<package>.<name>: right ok, left fail, X skip, again = open; added with test.add at the first mark, TruMenu.log 'tests: test.mark <id> <state>'); every row flagged kQfTp (test-package content: a real row of its page or deleted after the tests); no new INI key, no hook); " "0.22.27 (save probe, Q79:save.pending / save.inv / save.waiting / save.find read the save arenas - live [0xc59258] and checkpoint snapshot [0xc5925c], the restore buffer 0xc57258 with the reason a block waits (unit / object / link parent, as 0x555640 / 0x5bb160 / 0x5bb640), the inventory area +0x34c of both game blocks (15 + 8 intro ids, 6 counts), the 64-slot waiting table 0xc592a8, dead bits; read only, 32 byte checks (TruSaveProbe.h); [Log] Save=1 (default 0, live) = two TruMenu.log lines per SAVE_SaveGame / SAVE_RestoreGame through their memcpy calls 0x557127 / 0x5571a3, 5 more byte checks); " "0.22.26 (test arena, Q76:page Tests group 'Arena 1 - Kampf (Q76)' - three flat floors with resident AI enemy kinds, arena.go 1a|1b|1c = one shortcut as cp.jump (backup, unit.go, wait.unit, flight, player.goto <intro> force; 1a l7_helheim03 generator 8785, 1b l7_yggdrasil_hall02 generator 8762, 1c dlc_yggdrasil_hall02 checkpoint 10644), arena.list (one list of arenas / spots: arena 2 Museum later), flight / god mode, the ai.spawn rows, ai.remove spawned (only the instances ai.spawn made, by address + allocation stamp +0x44), fight diagnosis rows; adrenaline meter: adren.meter (CM+0x3c / max [[0xfad764]+0x2d0], CM+0x1fc bits 22 / 27, doppelganger byte [[0xfadb58]+0x1244]; read only), adren.fill (the game's meter-full 0x6e6630, body of the script native 0x777a50; cheat), adren.keep 1|0 (refill once per game frame while below the maximum and bits 22 / 27 clear; not kept); 6 byte checks); " "0.22.25 (settings.reset writes the whole TruMenu.ini: the default text is measured and built in a buffer of its size - 0.10 .. 0.22.24 kept it in a static 16384-byte buffer and wrote only the first 16383 of the 42 KB, a truncated INI; text built before the backup, write and close checked, the answer names bytes and keys; other table texts: TruMenu.log lines up to 2047 characters (was 511, light.cut lines were cut), [Quick] Closed 1023 characters (was 383, too short for every group) and like [Debug] CheckpointHide only whole keys / ids, settings.show ends with the count of the keys it could not hold); " "0.22.24 (fall watch + fall net, Q19 hall02 fall out of the world: TruMenu.log lines at LogLevel 1 for Lara's chart records 742 / 743 / 1068 / 1080 and states 1008 / 1015 with position, a watchdog line every second while in the fall record 1068, safe-ground ring additions, rate-limited; [Rescue] FallNet=1 (default 0, live) puts Lara back on the newest safe-ground sample when she is more than 3 s in 1068 and more than 3000 units below it - player.unstuck's teleport, at most 3 per fall, never in menus / cinematics; 2 byte checks); " "0.22.23 (switches file limit:TruMenu.switches.txt holds up to 512 switch lines (was 160; 24 groups as before), file format unchanged; switch lines past 512 and group lines past 24 are not shown and named in one TruMenu.log line each with the count and the first line number, sw.reload / the bar head say so; the quick bar page Fixes (128 rows) names the rows of an open group it cannot hold instead of cutting them silently - the long menu section Fixes shows every row); " "0.22.22 (teaser timer line, live 2026-11-10: the line follows the bar language [Quick] Language as every overlay; it shows the game clock (the dt the clock got since its (re)start) next to TruMenu's wall clock since that (re)start, and 'Pause-Bit aktiv (halbe Zeit)' / 'Pause bit set (half time)' while the frame time [0xe7f188] is the fixed 0.5 of the pause bit [0xe7f0b4] & 0x10000000 - read only, 4 byte checks); " "0.22.21 (teaser timer: menu.attracttimer 1|0 / [Menu] AttractTimerShow, bar row 'Teaser-Uhr anzeigen' in Spiel-Einstellungen / Hauptmen\303\274 - while in the front end (main state 6 / 10) a line in a screen corner ([Menu] AttractTimerPosition, default tr) shows the AttractTimer clock: elapsed / alarm, or while menu.noattract holds it a shadow count (the dt the game hands the clock update while the clock runs, back to 0 when the game restarts the clock) that flashes 1 s and writes one TruMenu.log line each time it passes the alarm (40 s, then every 40 s with repeat) - the moment the teaser would have started; with menu.noattract off it flashes when the real clock fires; read only through the same update slot 0x84584c, no behaviour change, no new byte checks); " "0.22.20 (main menu attract video off: menu.noattract 1|0 / [Menu] NoAttract, bar row 'Hauptmen\303\274-Video aus' in Spiel-Einstellungen / Hauptmen\303\274 - the clock f11 native 0x795cc0 (called only by the AttractTimer script 60) hands TruMenu the AttractTimer clock, the clock update slot 0x84584c holds its elapsed time at 0 in the front end (main state 6 / 10), so the alarm never fires: no stopTitleMusic, no StopMovie, no teaser; every other clock and the menu background stay the game's; 13 byte checks); " "0.22.19 (pages remembered:the quick bar opens on the page it showed last ([Quick] LastPage, written 1 s after a page change or at the close; a name that is no page any more = page 1, logged) and the big window with the pages that were open ([Menu] OpenPages, written when a page is opened / closed), also after a restart, RememberPage=0 = off; power.infinite 1|0 = TruShadowPower 0.23 [Meter] Infinite written into TruShadowPower.ini (only that line, a missing key added), bar row 'Kraft unendlich' in Rettung / Cheats, greyed with the reason while TruShadowPower.asi 0.23+ is not loaded or its INI is missing); " "0.22.18 (volumes / mouse saved through the game's own write 0x4796b0 (0x478010 only refreshes their mirrors); every bar section a collapsible group, sub-groups, rows indented per level with a guide line, the long menu's groups collapsible; frame stepping: View held = step mode (each RB tap one frame), RB + View held 0.4 s = [Settings] StepRate frames per s; subtitles top / free height and left / right with a margin (origin x of 0x477180 moved per line); voice.lang = speech language only (MultiFS mask 0x472d80 while 0x472be0 is free), voice.full = speech now + registry Language; media list fallback, media.music.inlevels, music volume 0 warning row; goo drip candidate columns (bone 0, old position, physics body); light.demote = a 4th shadow caster takes a free plain place (hooks 0x504e06 / 0x504341); bar settings written back to TruMenu.ini (quick.lang, camera, mute, light switches); defaults: big menu window and ring off, quick bar on, bar language English; TruShadowPower [Meter] Infinite row); " "0.22.17 (subtitle fallback: a cutscene subtitle record without the wanted language id goes to the reader 0x4538d0 with its English entry (id 0) as that id - only while no record of the same stream (cinematic handler, new on a handler change or when the stream time [s+0x384] goes back) carried the wanted id, so the DLC cinematics (ids 0 1 2 3 4 11) get English lines in Russian (9) and the base cutscenes with their own per-language cue times never mix; [Settings] SubtitleFallback=1, 0 = the game's; sub.lang rewrite and TruMenu's parse use the same rule; SbName(9)); " "0.22.16 (bar page Spiel-Einstellungen: the game's own options live - volumes, inversion, vibration, combat mode, mouse through the option setter 0x5d5100 and the settings save 0x478010 2 s after the last change; subtitle look (show, size, bar, bar opacity, colour, height) through the draw parameters of 0x583e20, kept in TruMenu.ini [Settings]; live graphics (fullscreen effects, depth of field, shadows, water, reflections, volumetric, filter, aspect) through ApplySettings 0x522a10 on a copy of the active block, PadHook only; gfx.save; gfx.next = registry values for the next start; D3D-reset settings as greyed rows; sub.lang cycles -1 / 0..4 / 11 (Nederlands) and a rewritten line is found again (U3); bar reorganised - Rettung / Cheats, Figur with the doppelganger switch groups, Gegner (KI), Render, Zeit / Ablauf, Licht (Diagnose) group; 29 byte checks); " "0.22.15 (aim.trace 1|0: the lock-on path per change into TruAim.log - aim input RT action 33 / LT action 35 held (+0x630 / +0x690 bit 2 of the action records; LT = pad code 4, RT = 5), tuning bytes [0xfad764]+0x294 / +0x27c (the LT / RT aim timer values), game gates 0x8ab4e6 / 0xe7f144 / 0xe7f143, weapon slot [[P+0x500]+0x134], aim timers P+0x588 / +0x58c / +0x798 / +0x788, CM+0x1fc bits 9 / 10 / 11 / 18 / 19 / 20 / 21, Lara's chart records, targeter 0 flags / target / candidates per filter group or rejected with distance and camera angle, the nearest enemy and a why code; aim.why info item: the first blocking step for the nearest enemy in plain words; read only, 25 byte checks);" "0.22.14 (sub.lang switches the subtitle lines on screen at once, also in a cutscene held by cine.pause: the call 0x4574ec of the cinematic handler update copies each subtitle record (every language, '<id>\\r<text>\\r...') into TruMenu's ring of the last 2 records before the reader 0x4538d0 runs, the call 0x453a17 notes the lines the reader hands to the box; sub.lang <v> then picks the new language from the stored records as the reader does and rewrites the box lines 0xccdec0 +0 / +0x100 - clock and floats stay, a line of no stored record (Bink movie) stays and is logged); " "0.22.13 (cutscene pad combos: LB + View / RB + View fire on release and only when no third combo button joined while they were held, the photo combo LB + RB + View at once; cine.pause also holds the subtitle line clock [0xccdec0+0x208] - the subtitle draw 0x583e20 counts it down by the scaled frame time 0xe7f188, its disp32 at 0x583f24 points to TruMenu's own value while a cutscene is held; sub.lang calls the game's settings save 0x478010 (the registry write of the shutdown path 0x5df930) so the language survives a restart; ring.bits info item, an enemy panel line and fight.trace columns for the combat reticle request (CM+0x1fc bits 9 / 10 / 11 / 21, HUD group 12 of 0xfae924, style 0xfae8ac, reticle +0x40); fight.trace goo drip columns (sources 10706 / 10707: uber node / time; copies 929 / 942: count, nearest position / dz / iflags / node) and Lara's LP drop per sample; enemy panel 'Kampf-Spur: an (n Zeilen)'); 0.22.12 (fight.trace also writes a Lara-only line (enemy columns -) when Lara's chart record of machine 1 or 2 or her machine-1 state ids change - before only machine 1's record counted; quick bar: bool rows whose value starts with the id (fight.trace, combo.trace) show an / aus again instead of always aus, action rows of value items show the value (sub.lang: subtitle language now)); 0.22.11 (Xbox comparison, PC side: fight.trace 1|0 writes TruFight.log in TruXenia's TSV column layout plus PC columns - enemies within 6000 units on change (LP, stamina, states, requested state, target, distance, attack slot, MeleeAttack record, last hit), Lara LP / chart records / state ids / position, shadow meter, power mode, world / player time scale, the meter's 7 time-scale request slots and the selector's choice, the last time-ramp native call (gamebase 23 / 24 = 0x776030 / 0x776090, pass-through counter, one TruMenu.log line per call), camera object / mode / offset to Lara / FOV; enemy.panel 1|0 = Gegneranzeige at the right edge for the nearest enemy); 0.22.10 (light cut of the set builder 0x504cc0: light.cutlabels shows the sets / cut sets of the last frame and a label at every dropped light, light.cut [frames] [all] writes the sets with the offered list (+ kept, - dropped) to TruMenu.log; light.stablecut / [Light] StableCut orders each object's lights before the cut - sun, shadow map, caster, plain, then address - the per-object alternative to light.stable); 0.22.9 (enemy diagnosis: a third enemy label line with target, attack-slot requests / grants (coordinator 0x67d780, pass-through counter), gate bits, requested state, layer 1, stamina, last hit reaction; ai.why [id] writes the full set to TruMenu.log; combo.trace 1|0 logs Lara's chart record path and the enemy's reaction per hit; sub.lang -1|0..4|7|9..12 sets the subtitle language live through the game's option setter 0x5d5100); 0.22.8 (cutscene pad combos on by default - PausePad 0x0120 View + LB, StepPad 0x0220 View + RB, ShotPad 0x0320 View + LB + RB; pause acts only while a cutscene plays or is held, step only while held; the pause badge shows a second line with the keys / combos as set now); 0.22.7 (cutscene keys: [Cine] PauseKey / StepKey / ShotKey keyboard keys and PausePad / StepPad / ShotPad XInput combos for cine.pause, cine.step 1 and claude.mark - map extra pad buttons (8BitDo R4 / L4) to a combo; all 0 = off by default; help texts within 60 characters again); 0.22.6 (Present re-entry guard against the Steam overlay loop of 2026-11-08: a nested Present / SwapChain Present call draws nothing and goes to d3d9 directly through a hot-patch trampoline behind the overlay's jmp, or returns D3D_OK; one log line; German texts with umlauts - tools/trumenu_umlauts.py wrote 251 words of a fixed list as octal UTF-8 escapes inside the string literals, the INI option table stays ASCII); 0.22.5 (light.stable on by default: [Light] Stable=1 in TruMenu.ini, read at the start, a missing key counts as 1 - better a steady light set than the end-cutscene flicker until the real fix; 0 = the game's own order); 0.22.4 (light.stable now sorts the light pass's own collected list +0x250 / +0x258 by address right after the collection loop - 6 bytes at 0x56d69a -> jmp LsStub, put back when off; the 0.22.3 visible-list sort never changed anything); 0.22.3 (light.stable 1|0: the scene lights (visible-entity list +0x9c entries with +0x1e0 == 10) sorted by address in their own slots before the light pass 0x56d5c0 (call 0x5723cb) - test / fix for the rotating shadow slots of the throne flicker); 0.22.2 (light.frame [n]: the per-frame light lists of the scene - instances scene+0x20 / +0x1020, light bytes when changed, resources scene+0x1024 / +0x11a4 - captured at the frame end call 0x5098ca of the reset 0x504c50 into TruMenu.lightframe.txt, summary per light with BLINK?; for the throne flicker); 0.22.1 (cutscene pause, live wishes of 2026-11-08: the sound is held with the picture - master channel group paused through the game's ChannelGroup_SetPaused 0x7b9490, only by TruMenu and only given back by it, cine.step runs it muted; badge '|| Szene angehalten  <s> s' top centre; cine.mark / cine.pauseat <seconds> hold the next cutscene at a remembered time (armed over loads); cine.pause without an argument only reports); 0.22 (cine.pause / cine.step / cine.status: hold a playing cutscene - the stream walk calls 0x5904e3 / 0x5954f8 of the stream update 0x5901a0 point to a gate that skips the playing cutscene stream ([obj+0x77c] handler, state 4) while the world, particles and lights run on; off by itself at a load; bar page Tests); 0.21.11 (light.list: the scene's PCRenderLights with the shadow gate fields (+0xc5 bit 2, resource +0x1878 / +0x1879, frame flags +0x64 / +0x65, position, NEW since the last list); light.shadow <n> 0|1 = SetCastShadows vf+0x4c on the game thread); 0.21.10 (page Kapitel: group of the unused DLC slots dlc_level3..6_start + dlc_level1_left / _right, grey 'ungenutzt - keine Daten (17p/17s)' with the engine's reaction to a load (Can't open file pc-w\\<unit>.drm: error box, the game exits); level list, command line values, level.load, level.start and the start-up scan mark and refuse dlc_level3..6_start like left / right); 0.21.9 (page Tests: test spots of 17i (cp.jump <unit> <checkpoint> = backup, unit.go, wait.unit, dbg.cpgo; end scene 020_ghoul, floor 25057, ceremony room 030_pod); DLC 1 / DLC 2 units without a .drm in mods grey and refused by level.load; page Kapitel: DLC 1 / DLC 2 units in play order (ring marked Rundweg) with their checkpoints as jump rows (left opens them); goo drip uber label (mode, next drop, hard without exit, goo_off commands); navmesh labels / legend with meaning (bit 26 custom, bit 27 blocked by an obstacle, penalty multipliers, violet = dbg.enemycoll?); TO TEST INI toggles name the switch's when column; F11 shot key in the bar footer / help); 0.21.8 (quick command line: suggestions under the input (the menu bar's list), the menu's on-screen keyboard with Y (one keyboard, target = the line; Start kept from the game while it is open), the picked history line shown before A runs it, kCmdDanger lines (cheats, god mode, level / unit / save loads, save writes, costume resets, sw.set ...) ask for a second A within 3 s; favourites with an argument ([Favorites] Ids \"<id>|<argument>\": Fixes switches, costume rows, chapter units, rows with an argument) and a star on pinned rows; story values story.values (hall02 population / deaths / tutorial / wall, Croft Manor flags; read only); sound group sliders snd.group / snd.vol.* ([SoundGroups], the FMOD channel groups of the eight proposed sliders); ai.kill check 0x6203e9 (TruShadowCombat 0.6.5 owns the call 0x6203e4); SweepAndPrune checks accept the TruRockVein 0.10 limits (3000 / 500)); 0.21.7 (bar footer: Y: - on rows that refuse Y, L3 = command line, a help line for rows that are not self-explanatory (kQbHelp; page Fixes from the hint column DE // EN), pad NOT held warning; TruMenu.switches.txt UTF-8 with umlauts; costume rows the game refuses (0x5c54e0, checked on the game thread) grey and skipped; page Kapitel: the units per chapter / DLC (level.load, DLC 2 note); uber labels dbg.uber / uber.dump (gate / platform node + time left, [Debug] UberRadius 8000); shader labels shader.labels / shader.dump / shader.reload (TruMenu.shaderlabel.txt, file vs live shader libs); navmesh labels nav.labels (layer.graph #area, unit, flag bits, colour legend); SweepAndPrune read-out sap.status / sap.reset (markup collision boxes / pair links / proxies, peaks, [Debug] SapWatch); front-end pad diagnosis lines); 0.21.6 (bar page Kost\303\274me: costume row left / right through the outfit cycle list, switched once the choice stood 0.5 s (X = now), list of all costumes, next costume, choose for the next load + reload; flight key line bottom right while flying ([Cheat] FlightHint); quick command line in the bar (L3, the command bar's path); Render-Details pass / Navmesh rows show an / aus (orange + reason when a Navmesh switch cannot draw)); 0.21.5 (bar page Fixes + menu section Fixes: the plugin INI switches of TruMenu.switches.txt, sw.set / sw.list / sw.reload; the ring is frozen - its ring-only entries are bar rows (new page Render-Details) and the menu section Quick bar pages shows every bar row); 0.21.4 (hall02 counter rescue for saves whose checkpoint 11258 already holds tutorial thralls: fix.hall02 sets dispatcher 11270 population = 0 (tutorial 2) when no tutorial thrall lives; thrall.scriptval shows the thrall-script int +8 (restored 0 / generator-born 2)); 0.21.3 (quick bar: Y pins / unpins the row as a favourite, X runs it (confirmation rows: X twice), X / Y kept from the game while the bar is open; the sound list is as wide as its rows of this frame); 0.21.2 (queued items run in the Present hook while another pad hook sits outside PadHook - an item's pad poll no longer makes TruLink cut the pad chain); 0.21.1 (ai.kill nearest / others / all / <intro> the game's own kill (death state: scripts count it), ai.remove warns about story enemies; sticky.get / sticky.set; room check for player.goto (parked templates, unloaded / far units, force) and pos.go, unit.go (thrall-fight Prepare), label 'geparkt', pot label from the drawn instance; phys.status / phys.dump (physics bodies of the ChunkDoll crash); ai.spawn of the loaded enemy kinds; bar: page 0 Favoriten / Zuletzt, page Tests (Prepare, teleports, TO TEST), collapsible groups ([Quick] Closed), the KI page in three groups; export TruMenuPadBlock; "
                              "0.21 (Arachnophobie: arachno.on / .hide / .picture / .mute - spider model off "
                              "through the InstanceDrawable slot 7 (draw-group mask only during the spider's draw call), "
                              "a wobbling picture at its bones (TruMenu.arachno.png next to tru.exe or a built-in one), "
@@ -404,6 +405,13 @@ const OptDef kOpts[] = {
                                                      "computed at run time"},
     {"Puzzle", "ThorGap", "600", "0.22.61 (puzzle.thorgap): Thor pillar areas - the gap in units from the pillar's rim (552) "
                                  "to a ledge Lara can jump\nto from its top (100 .. 3000)"},
+    {"Puzzle", "ThorStep", "10", "0.22.68 (puzzle.thorstep): Thor pillar reach - a 25-unit cell blocks the pillar when its "
+                                 "highest surface rises more\nthan this above the floor (1 .. 200 units)"},
+    {"Puzzle", "ThorFoot", "290", "0.22.68 (puzzle.thorfoot): Thor pillar reach - the foot radius in units: the pillar's "
+                                  "centre keeps this distance\nfrom every blocked cell (50 .. 800; A3: 285 .. 300 from the "
+                                  "push tracks)"},
+    {"Puzzle", "ThorGalleryDirect", "0", "0.22.68 (puzzle.thordirect): 1 = also the galleries as direct jump targets from "
+                                         "the pillar top (rise ~800,\nunproven), dashed; 0 = only the rings"},
     {"Cheats", "Enabled", "1", "0.8: 1 = the Cheats page (god mode, one-hit kill, enemy health, infinite ammo, fill 'er up, "
                                "cheat codes) can switch;\n0 = the page only lists them (also needs [Cheat] "
                                "Experimental=1)"},
@@ -1428,7 +1436,9 @@ void DrawFallBox();    // 0.22.59 (R1 point 7b) fall height box (render thread, 
 extern volatile LONG g_fbOn;
 void MdTick();         // 0.22.60 (R1b) motion data: [Jump] / [Throw] / [Push] / [Track], arcs, ground probe (same section)
 void ThTick();         // 0.22.61 (R1c 1) Thor pillar floor areas (after the motion data section)
-void CnwTick();        // 0.22.64 (S4 1) cam.nowall (section "cam.nowall")
+void ThNotePushEnd(DWORD inst);      // 0.22.68 (B2 1): a [Push] end of the pillar rebuilds its reach (same section)
+void ThNoteLaunch(const float *p);   // 0.22.68 (B2 1): Lara's launch - a jump from the pillar top (same section)
+void CnwTick();       // 0.22.64 (S4 1) cam.nowall (section "cam.nowall")
 void PchTick(SHORT lx, SHORT ly);   // 0.22.65 (S5 1) [Perch] log (section "[Perch] log", before MdTick)
 void B1Tick(WORD raw, SHORT lx, SHORT ly, SHORT rx, SHORT ry);   // 0.22.67 (B1) section "0.22.67 B1" (after [Perch])
 bool MdGround(float *z, float *scale, int *rec);
@@ -35966,6 +35976,14 @@ void ValThorGap(char *o, size_t n);
 void ValThorLoose(char *o, size_t n);                    // 0.22.63 (S3 5)
 bool RunThorLoose(const char *arg, char *o, size_t n);
 bool RunThorGap(const char *arg, char *o, size_t n);
+void ValThorStep(char *o, size_t n);                     // 0.22.68 (B2 1)
+bool RunThorStep(const char *arg, char *o, size_t n);
+void ValThorFoot(char *o, size_t n);
+bool RunThorFoot(const char *arg, char *o, size_t n);
+void ValThorDirect(char *o, size_t n);
+bool RunThorDirect(const char *arg, char *o, size_t n);
+void ValThorMap(char *o, size_t n);
+bool RunThorMap(const char *arg, char *o, size_t n);
 void ValArcs(char *o, size_t n);                         // 0.22.60 (R1b), section "0.22.60 motion data"
 bool RunArcs(const char *arg, char *o, size_t n);
 void ValJumpPreview(char *o, size_t n);                  // 0.22.62 (S1 d), section "0.22.62 jump preview"
@@ -40641,13 +40659,22 @@ const Item kItems[] = {
                                 "Lara's insert; check after 2 s in the log", true, ValPzInsert, RunPzInsert},
     {"obj.msg", "action", "0.22.61 <intro> <msg> [<arg intro> | 0]: cheat - one message through the game's send 0x5b3750 "
                           "(arg = that instance); TruLink 0.5.3 obj.msg", true, ValObjMsg, RunObjMsg},
-    {"puzzle.thor", "bool", "0.22.61: Thor pillar floor areas (R8b, computed at run time: floor query, unit ledges 1700 .. "
-                            "2200 above the floor, gap [Puzzle] ThorGap) on the floor, the pillar's circle, in the area / "
-                            "x m off, arrow (default off; no push action)", true, ValThor, RunThor},
+    {"puzzle.thor", "bool", "0.22.61, 0.22.68 (B2 1): Thor pillar - where it can be pushed (the unit's terrain mesh, 25-u "
+                            "cells, step [Puzzle] ThorStep, foot ThorFoot, flood fill from the pillar) and from where Lara "
+                            "reaches a ring -> its next target (exit / artifact; gap ThorGap); areas, rings, track, state "
+                            "line (default off; no push action)", true, ValThor, RunThor},
+    {"puzzle.thorstep", "int", "0.22.68 (B2 1): [Puzzle] ThorStep - the highest surface step in a cell the pillar still "
+                               "slides over (1 .. 200 units, default 10)", true, ValThorStep, RunThorStep},
+    {"puzzle.thorfoot", "int", "0.22.68 (B2 1): [Puzzle] ThorFoot - the pillar's foot radius (50 .. 800 units, default "
+                               "290, A3: 285 .. 300 from the push tracks)", true, ValThorFoot, RunThorFoot},
+    {"puzzle.thordirect", "bool", "0.22.68 (B2 1): [Puzzle] ThorGalleryDirect - the galleries as direct targets from the "
+                                  "top (rise ~800, unproven) dashed (default 0)", true, ValThorDirect, RunThorDirect},
+    {"puzzle.thormap", "bool", "0.22.68 (B2 1): Thor pillar - height tiles of 100 u (highest rise: green <= 6, yellow 6 .. "
+                               "20, red > 20, walls > 300 not drawn; default off)", false, ValThorMap, RunThorMap},
     {"puzzle.thorgap", "int", "0.22.61: [Puzzle] ThorGap - the gap from the pillar's rim to a ledge (100 .. 3000 units, "
                               "default 600)", true, ValThorGap, RunThorGap},
-    {"puzzle.thorloose", "bool", "0.22.63: Thor pillar areas - the relaxed cells (|dz| <= 130) as thin lines too; state, arrow "
-                                 "and log stay strict (|dz| <= 6, default off)", false, ValThorLoose, RunThorLoose},
+    {"puzzle.thorloose", "bool", "0.22.63, 0.22.68 (B2 1): Thor pillar - the outline of all reachable cells as a thin white "
+                                 "line (default off)", false, ValThorLoose, RunThorLoose},
     {"obj.track", "action", "0.22.60 <intro> on|off | list: [Track] samples of an object 5 / s into TruMenu.log (position, "
                             "rotation, hinge, body velocity, sleep bit, Lara's record, way); TruLink: menu obj.track ...",
      true, ValObjTrack, RunObjTrack},
@@ -41861,6 +41888,10 @@ const CmdDanger kCmdDanger[] = {
     {"puzzle.insert", "R\303\244tsel-Cheat (Stange / Teil einstecken)", "puzzle cheat (insert a pole / piece)"},
     {"obj.msg", "Cheat (eine Spiel-Nachricht senden)", "cheat (send one game message)"},
     {"puzzle.thorgap", "Thor-S\303\244ule: Sprungl\303\274cke (Einheiten)", "Thor pillar: jump gap (units)"},
+    {"puzzle.thorstep", "Thor-S\303\244ule: Stufe (Einheiten)", "Thor pillar: step (units)"},   // 0.22.68 (B2 1)
+    {"puzzle.thorfoot", "Thor-S\303\244ule: Fu\303\237-Radius (Einheiten)", "Thor pillar: foot radius (units)"},
+    {"puzzle.thordirect", "Thor-S\303\244ule: Galerien direkt (unbelegt)", "Thor pillar: galleries direct (unproven)"},
+    {"puzzle.thormap", "Thor-S\303\244ule: H\303\266henkarte", "Thor pillar: height map"},
     {"obj.track", "Objekt-Daten ins Log (5 / s)", "object data to the log (5 / s)"},
     {"arena.go", "Sicherung, l\303\244dt evtl. einen Abschnitt", "backup, may load a unit"},   // 0.22.26
     {"pos.goload", "l\303\244dt evtl. einen Abschnitt", "may load a unit"},
@@ -45825,8 +45856,16 @@ const QbRow kQbChapters[] = {
      kQbWhite, 0},
     {"Thor-S\303\244ule: Sprungl\303\274cke ... (Einheiten)", "Thor pillar: jump gap ... (units)", "puzzle.thorgap", "",
      kQbAction, -1, kQcNone, 0, kQbWhite, kQfLine},
-    {"Thor-S\303\244ule: lockere Zellen zeigen", "Thor pillar: show relaxed cells", "puzzle.thorloose", "", kQbBool, -1,
-     kQcNone, 0, kQbWhite, 0},   // 0.22.63 (S3 5)
+    {"Thor-S\303\244ule: erreichbaren Bereich umranden", "Thor pillar: outline the reachable part", "puzzle.thorloose", "",
+     kQbBool, -1, kQcNone, 0, kQbWhite, 0},   // 0.22.63 (S3 5), 0.22.68 (B2 1)
+    {"Thor-S\303\244ule: H\303\266henkarte", "Thor pillar: height map", "puzzle.thormap", "", kQbBool, -1, kQcNone, 0,
+     kQbWhite, 0},   // 0.22.68 (B2 1)
+    {"Thor-S\303\244ule: Galerien direkt (unbelegt)", "Thor pillar: galleries direct (unproven)", "puzzle.thordirect", "",
+     kQbBool, -1, kQcNone, 0, kQbWhite, 0},
+    {"Thor-S\303\244ule: Stufe ... (Einheiten)", "Thor pillar: step ... (units)", "puzzle.thorstep", "", kQbAction, -1,
+     kQcNone, 0, kQbWhite, kQfLine},
+    {"Thor-S\303\244ule: Fu\303\237-Radius ... (Einheiten)", "Thor pillar: foot radius ... (units)", "puzzle.thorfoot", "",
+     kQbAction, -1, kQcNone, 0, kQbWhite, kQfLine},
 };
 // 0.18 Barrierefreiheit (coordinator / Lukas 2026-11-06, TODO.md "Ideen": the skeleton only) - the five categories of the
 // game paper "Barrierefreiheit in Games" (game e.V., July 2025): Sehen / Hoeren / Verstehen / Steuerung / Sonstige
@@ -54825,6 +54864,7 @@ void MdLaunchNote(DWORD inst, float g, const float *vLocal, DWORD ret, bool drop
         if (lv == 3 || InterlockedIncrement(&g_mdLines) <= 2000) Log(lv, "%s", l2);
     }
     if (!lara) return;
+    if (!still && !drop) ThNoteLaunch(p);    // 0.22.68 (B2 1): [Thor] jump from the pillar top (only near its top)
     MdFlight &f = g_mdFl;
     if (f.on && f.reaims)
         Log(1, "[Jump] previous flight: %d re-aim(s) over %.2f s", f.reaims, (now - f.firstTick) / 1000.0);
@@ -55339,6 +55379,7 @@ void MdObjTick(DWORD player, DWORD now) {
             if (o.stillSince && now - o.stillSince > 500) {
                 o.moving = false;
                 if (!o.dup) MdObjLine("Push", "end", o);
+                ThNotePushEnd(o.inst);       // 0.22.68 (B2 1): the Thor pillar's reach again from its new place
             } else if (!o.dup && now - o.lastLog >= 100 && o.samples < 600) {
                 o.lastLog = now;
                 ++o.samples;
@@ -57273,65 +57314,100 @@ void B1Tick(WORD raw, SHORT lx, SHORT ly, SHORT rx, SHORT ry) {   // game thread
 }
 // ---- end of 0.22.67 B1 (the puzzle parts V1 / N5 sit in the puzzle sections) ----
 // ---- 0.22.61 (package R1c point 1) Thor pillar floor areas (ENGINE 9 "Thor pillar floor positions (R8b)") ----
-// puzzle.thor (default off): where the pushable Thor pillar must stand so that Lara can jump from its top (the closed
-// LEDGEGRAB loop of the object, radius 552, about 1250 above its base) to a ledge. Everything is computed at run time
-// from the loaded objects and the unit markup, no positions are built in:
-//   pillar   the instance named "thor_pillar" (its link 1 = the turning part, else the anchor), radius 552
-//   floor    the segment query 0x493330 (as fall.box) straight down from floor + 1700 at every 150-unit cell centre,
-//            ignoring the pillar: the first hit within 20 units of the pillar's floor = floor (strict), within 130 =
-//            floor (relaxed, faces up to ~300 count); a cell is a valid centre when every cell centre within 552 of it is
-//            floor - the R8b rule "the 552 disc lies on floor and no face between the floor and 1700 is under it"
-//   targets  unit markup boxes (no owner) with the ledge flag (box +0x28 bit 30) whose points lie 1700 .. 2200 above the
-//            floor (R8b: high column rings ~2050 / 2065, galleries 2212 - rise from the top 642 / 657 / 804): a closed
-//            loop = ring (yellow); an open ledge within 1500 units (flat) of a reward artifact ("ma_rw_artifact", the
-//            lower intro id green, the higher blue) belongs to that artifact, else = the exit side (red)
-//   area     valid centre with (flat distance to the target's points / segments) - 552 <= [Puzzle] ThorGap (600)
-// Drawn on the floor (cell edges of each area, thick = strict, thin = relaxed), the pillar's circle, its state per
-// target ("im Bereich" / "x m daneben") and an arrow to the nearest valid cell; one [Thor] log line per build and per
-// change of the pillar's state. The build runs on the game thread, 300 queries per frame. No push action.
-const int kThMaxCells = 6400, kThCell = 150;
+// 0.22.68 (package B2 point 1, ENGINE 9 "Thor pillar reach from the terrain mesh (A3)"): rebuilt. puzzle.thor (default
+// off) shows where the pushable Thor pillar can be pushed to and from where Lara can jump from its top (the closed
+// LEDGEGRAB loop of the object, radius 552) to a ring / gallery. Everything at run time, no positions built in:
+//   terrain  the TerrainGroup collision meshes of the pillar's unit (stream table +8 Level, Level+0 -> terrain: +0x08
+//            group count, +0x0c groups of 0x50 B, +0x10 one more group; group +0x38 -> mesh: +0x20 position, +0x30
+//            vertices of 16 B, +0x34 faces of 20 B, +0x44 face / +0x48 vertex count; world = vertex + position), copied
+//            on the game thread (faces touching floor - 60 .. floor + 1450). Every face index is checked against the
+//            vertex count; a bad index, no mesh or no surface under the pillar -> vertical rays per 25-u cell instead
+//            (MdProbe from floor + 1450 down to floor - 60, the hit = the highest surface; walls only when the ray
+//            starts above them (unproven))
+//   rule     TruThorCore.h on a background thread: highest surface per 25-u cell, blocked when its rise > [Puzzle]
+//            ThorStep (10) or a hole or inside an obstacle disc (measured extent, 4 rays), valid when the nearest
+//            blocked cell is farther than [Puzzle] ThorFoot (290 (unproven), A3: 285 .. 300 from the push tracks), reachable =
+//            8-neighbour flood fill from the pillar; again at every [Push] end of the pillar and when an obstacle moves
+//   targets  unit markup ledges (boxes without owner, bit 30): 1700 .. 2200 above the floor = rings (closed) and
+//            galleries (open, chained), 1700 .. 2800 for the next edge of a ring; a gallery near an artifact of the
+//            unit's intro list is that artifact's, the one nearest a trigger of the unit the exit, left-overs join the
+//            nearest assigned gallery; a ring leads to its next edge (flat gap <= 900, rise 0 .. 500): an artifact
+//            gallery -> that artifact, else the exit. Areas = reachable cells with D = flat distance - 552 <= ThorGap;
+//            galleries direct (rise ~800 over the top (unproven)) only with [Puzzle] ThorGalleryDirect, dashed
+// Drawn (debug view): areas in the colour of their target (exit red, artifact A green, B blue, a ring without a next
+// target grey), valid but unreachable cells grey, the rings in their target's colour, targets without a reachable area
+// as grey text at their edge, the pillar's foot (290) and head ring (552), its track, the obstacles; heights per 100-u
+// tile with puzzle.thormap. Offline check: selftest/TruThorCoreTest.cpp on the unit file (both proven spots pass).
+const int kThObsMax = 48, kThLedgeMax = 32, kThTrackMax = 512;
 volatile LONG g_thOn = 0;
 int g_thGap = 600;                           // [Puzzle] ThorGap
-enum { kThExit = 0, kThArtA, kThArtB, kThRing, kThKinds };
-struct ThLedge { int kind; int n; int gal; float pts[64][3]; };   // 0.22.63: gal = the gallery (chained open ledges)
-const int kThLedgeMax = 24;
-// 0.22.63 (S3 5, ENGINE 9 "Thor areas: what went wrong live and the S3 rules (S2)"): strict = |dz| <= 6 over the whole
-// 552 disc (R8b) for areas, state, arrow and log; relaxed (<= 130) only with puzzle.thorloose, as thin lines.
-// Obstacles: instances of the pillar's unit with a physics body / multibody or named ma_ei_breakable, not hidden, not
-// Lara, not the pillar, near the floor; a cell is blocked when one lies closer than 552 + 100 (radius unproven) to its
-// centre; every second a moved (> 20 units) / new / gone obstacle re-queries the cells within 700 units. Artifacts from
-// the unit's intro list (also unborn / collected), data -> live by the offset of a born trigger instance of the unit
-// (inst+0x20 - [inst+0x100]+0x10, measured at run time); open ledges chained into galleries; the gallery near an
-// artifact is that artifact's, of the rest the one nearest a trigger of the unit is the exit.
-const int kThObsMax = 48;
-struct ThObs { DWORD inst, stamp; LONG intro; float pos[3]; bool breakable; };
+int g_thStep = 10;                           // 0.22.68: [Puzzle] ThorStep
+int g_thFoot = 290;                          // 0.22.68: [Puzzle] ThorFoot
+volatile LONG g_thDirect = 0;                // 0.22.68: [Puzzle] ThorGalleryDirect
+volatile LONG g_thMap = 0;                   // 0.22.68: puzzle.thormap (height tiles, default off)
+volatile LONG g_thLoose = 0;                 // 0.22.68: puzzle.thorloose = the outline of all reachable cells (default off)
+const char *const kThDe[thorcore::kKinds] = {"Ausgang", "Artefakt A", "Artefakt B"};
+const char *const kThEn[thorcore::kKinds] = {"exit", "artifact A", "artifact B"};
+const ImU32 kThCol[thorcore::kKinds] = {IM_COL32(255, 70, 70, 255), IM_COL32(90, 255, 120, 255), IM_COL32(80, 150, 255, 255)};
+const ImU32 kThGrey = IM_COL32(150, 150, 150, 220);
+struct ThObs { DWORD inst, stamp; LONG intro; float pos[3]; bool breakable; float ext; };
 struct ThArt { LONG intro; float pos[3]; bool born; };
-struct ThState {
-    volatile LONG ready;                     // 1 = cells ready for drawing
-    int phase;                               // 0 idle, 1 probing, 2 done, 3 re-probing round moved obstacles
-    DWORD pillar, stamp, anchor;
-    float floorZ, x0, y0, centre[3];
-    int nx, ny, next, ledges, kinds[kThKinds];
-    BYTE floorCls[kThMaxCells];              // 0 no floor, 1 strict (|dz| <= 6), 2 relaxed (<= 130)
-    BYTE inStrict[kThMaxCells], inRelaxed[kThMaxCells];   // bit k = in the area of target kind k
-    BYTE reprobe[kThMaxCells];               // 0.22.63: cells to query again (phase 3)
-    BYTE hitKind[kThMaxCells];               // 0.22.65 (S5 2): res +0 of the floor query (0 no hit, 1 terrain, 2 object)
-    DWORD hitW[kThMaxCells][3];              // 0.22.65: res +4 / +8 / +0xc of that query
-    ThLedge ledge[kThLedgeMax];
-    int lastState;                           // bits of the pillar's current cell (for the change log)
-    DWORD builtAt, obsAt, introLo, introHi;
-    ThObs obs[kThObsMax];
-    int obsN, arts, gals;
+struct ThSeg { float a[2], b[2]; int layer; };   // layers: 0..2 ring areas by kind, 3..5 direct gallery areas by kind,
+                                                 // 6 valid but unreachable, 7 all reachable, 8 ring without a next target
+struct ThTile { float x, y; ImU32 col; };
+struct ThView {                              // made by the worker, read by the render / game thread under g_thLock
+    thorcore::Result R;
+    std::vector<thorcore::Ledge> L;
+    std::vector<ThSeg> segs;
+    std::vector<ThTile> tiles;
     ThArt art[2];
-    float off[3];                            // data -> live offset of the unit (0 = not measured)
-    bool offOk;
+    int arts;
+    float centre[2];                         // the compass centre (middle of the ledges)
+    bool mesh;
+    bool kindReach[thorcore::kKinds];        // a reachable area leads to this kind
+    float kindAt[thorcore::kKinds][3];       // where the text of an unreachable kind goes (its gallery)
+    bool kindKnown[thorcore::kKinds];
+    std::vector<int> areaCells;              // cells in any area (the nearest-area search of the drawing)
 };
-ThState g_th = {};
-volatile LONG g_thLoose = 0;                 // 0.22.63: puzzle.thorloose - the relaxed cells as thin lines (default off)
-const char *const kThDe[kThKinds] = {"Ausgang", "Artefakt 1", "Artefakt 2", "S\303\244ulenring"};
-const char *const kThEn[kThKinds] = {"exit", "artifact 1", "artifact 2", "column ring"};
-const ImU32 kThCol[kThKinds] = {IM_COL32(255, 70, 70, 255), IM_COL32(90, 255, 120, 255), IM_COL32(80, 150, 255, 255),
-                                 IM_COL32(255, 230, 60, 255)};
+SRWLOCK g_thLock = SRWLOCK_INIT;
+ThView *g_thView = nullptr;                  // under g_thLock
+struct ThJob {
+    thorcore::Params P;
+    std::vector<thorcore::Face> faces;
+    std::vector<float> top;                  // the ray fallback (faces empty)
+    bool mesh;
+    std::vector<thorcore::Obstacle> obs;
+    std::vector<thorcore::Ledge> L;
+    float box[4], sx, sy;
+    ThArt art[2];
+    int arts, groups, meshes;
+    char reason[64];
+};
+struct ThState {
+    int phase = 0;                           // 0 idle, 1 rays (fallback), 2 worker / ready
+    DWORD pillar = 0, anchor = 0, stamp = 0, level = 0, introLo = 0, introHi = 0, lastTry = 0, obsAt = 0;
+    float floorZ = 0.0f, start[3] = {0, 0, 0};
+    float off[3] = {0, 0, 0};
+    bool offOk = false, mesh = false, meshChecked = false;
+    ThArt art[2] = {};
+    int arts = 0, obsN = 0, groups = 0, meshes = 0;
+    ThObs obs[kThObsMax] = {};
+    std::vector<thorcore::Face> faces;
+    std::vector<float> rayTop;
+    int rayNext = 0;
+    float box[4] = {0, 0, 0, 0};
+    std::vector<thorcore::Ledge> L;
+    volatile LONG busy = 0;
+    bool rebuild = false;
+    char reason[64] = "";
+    volatile LONG pushEnd = 0;
+    float pos[3] = {0, 0, 0};                // the pillar now (game thread -> render thread)
+    float track[kThTrackMax][2] = {};
+    volatile LONG trackN = 0;
+    DWORD jumpAt = 0;                        // a jump from the pillar top: the follow-up line 2 s later
+    float jumpP[3] = {0, 0, 0};
+};
+ThState g_th;
 DWORD ThPillarPart(DWORD *anchor) {
     DWORD found = 0;
     tlobj::ForInstances([&](DWORD inst, int) {
@@ -57346,27 +57422,10 @@ DWORD ThPillarPart(DWORD *anchor) {
     const DWORD x = tlobj::Multi(found), part = x ? tlobj::LinkInst(x, 1) : 0;
     return part ? part : found;
 }
-float ThSegDist2(const float *p, const float *a, const float *b) {   // flat distance^2 of p to segment ab
-    const float dx = b[0] - a[0], dy = b[1] - a[1], l2 = dx * dx + dy * dy;
-    float t = l2 > 1e-3f ? ((p[0] - a[0]) * dx + (p[1] - a[1]) * dy) / l2 : 0.0f;
-    if (t < 0.0f) t = 0.0f;
-    if (t > 1.0f) t = 1.0f;
-    const float qx = a[0] + t * dx - p[0], qy = a[1] + t * dy - p[1];
-    return qx * qx + qy * qy;
-}
-float ThLedgeDist(const ThLedge &l, const float *p) {
-    float best = 1e30f;
-    for (int i = 0; i < l.n; ++i) {
-        const float *b = l.pts[i + 1 < l.n ? i + 1 : (l.kind == kThRing ? 0 : i)];
-        const float d = ThSegDist2(p, l.pts[i], b);
-        if (d < best) best = d;
-    }
-    return sqrtf(best);
-}
 // 0.22.63 (S3 5): the intro record array of the pillar's unit (stream units state 2, +8 level, +0x74 unit data, intros
-// +0xc count / +0x10 array of 0x90 B), found as the one holding the anchor's record [inst+0x100]
+// +0xc count / +0x10 array of 0x90 B), found as the one holding the anchor's record [inst+0x100]; 0.22.68: + the level
 bool ThUnit(ThState &s) {
-    s.introLo = s.introHi = 0;
+    s.introLo = s.introHi = s.level = 0;
     DWORD rec = 0;
     if (!ReadDword(s.anchor + 0x100, &rec) || !rec) return false;
     for (DWORD e = kStreamUnits; e < kStreamUnitsEnd; e += kStreamUnitSize) {
@@ -57375,7 +57434,7 @@ bool ThUnit(ThState &s) {
         if (!ReadDword(e + 8, &level) || !level || !ReadDword(level + 0x74, &dtp) || !dtp || !ReadDword(dtp + 0xc, &n) ||
             n > 20000 || !ReadDword(dtp + 0x10, &arr) || !arr)
             continue;
-        if (rec >= arr && rec < arr + 0x90 * n) { s.introLo = arr; s.introHi = arr + 0x90 * n; return true; }
+        if (rec >= arr && rec < arr + 0x90 * n) { s.introLo = arr; s.introHi = arr + 0x90 * n; s.level = level; return true; }
     }
     return false;
 }
@@ -57439,30 +57498,10 @@ int ThObsCollect(const ThState &s, ThObs *out, int max) {
         float p[3];
         if (!(body && ReadFloats(body + 0x80, p, 3)) && !TlRead(inst + 0x20, p, 12)) return true;
         if (fabsf(p[2] - s.floorZ) > 400.0f) return true;
-        out[n++] = {inst, tlobj::D(inst + 0x44), static_cast<LONG>(tlobj::D(inst + 0x58)), {p[0], p[1], p[2]}, brk};
+        out[n++] = {inst, tlobj::D(inst + 0x44), static_cast<LONG>(tlobj::D(inst + 0x58)), {p[0], p[1], p[2]}, brk, 100.0f};
         return true;
     });
     return n;
-}
-// 0.22.65 (S5 2): evidence for the open S3 points - which query answered the floor ray of a cell (terrain / object and
-// the object's words) and how far an obstacle reaches (horizontal rays). res +0 = 1 after the terrain query 0x4e8fc0,
-// 2 after the object query 0x4e8ef0 (0x493330 at 0x49344a / 0x493518); which word names the hit object is unproven, so
-// +4 / +8 / +0xc are compared with the loaded instances and their physics bodies.
-void ThNoteHit(ThState &s, int i, const DWORD *words) {
-    s.hitKind[i] = static_cast<BYTE>(words[0] > 255 ? 255 : words[0]);
-    s.hitW[i][0] = words[1];
-    s.hitW[i][1] = words[2];
-    s.hitW[i][2] = words[3];
-}
-// the loaded instance a query word names (the instance itself or its body), 0 = none
-DWORD ThWordInst(DWORD w) {
-    if (w < 0x10000) return 0;
-    DWORD found = 0;
-    tlobj::ForInstances([&](DWORD inst, int) {
-        if (inst == w || tlobj::BodyOf(inst) == w) { found = inst; return false; }
-        return true;
-    });
-    return found;
 }
 bool ThWordsName(const DWORD *w3, DWORD inst) {
     const DWORD body = tlobj::BodyOf(inst);
@@ -57471,8 +57510,9 @@ bool ThWordsName(const DWORD *w3, DWORD inst) {
     return false;
 }
 // four horizontal rays from 1000 units out to the obstacle's centre (Lara ignored): the flat distance of each object
-// hit (res +0 = 2) to the centre; extent = the largest hit that names this obstacle, else of any object hit (marked)
-void ThObsExtent(const ThObs &o, char *out, size_t n) {
+// hit (res +0 = 2) to the centre; extent = the largest hit that names this obstacle, else of any object hit (marked),
+// else the default 100. 0.22.68 (B2 1): the extent is the blocking disc (was always 100)
+float ThObsExtent(const ThObs &o, char *out, size_t n) {
     char nm[48];
     tlobj::InstName(o.inst, nm, sizeof(nm));
     float best = -1.0f, bestAny = -1.0f;
@@ -57489,56 +57529,113 @@ void ThObsExtent(const ThObs &o, char *out, size_t n) {
         if (r > bestAny) bestAny = r;
         if (ThWordsName(words + 1, o.inst)) { ++named; if (r > best) best = r; }
     }
+    float ext = best >= 0.0f ? best : bestAny >= 0.0f ? bestAny : 100.0f;
+    if (ext < 20.0f) ext = 20.0f;
+    if (ext > 600.0f) ext = 600.0f;
     if (best >= 0.0f)
-        Out(out, n, "'%s': extent %.0f u measured (%d of 4 rays hit it by its words, %d other object / %d terrain hits; "
-            "blocking still uses the default 100)", nm,
-            static_cast<double>(best), named, obj - named, terr);
+        Out(out, n, "'%s': extent %.0f u measured (%d of 4 rays hit it by its words, %d other object / %d terrain hits) - "
+            "blocking disc %.0f", nm, static_cast<double>(best), named, obj - named, terr, static_cast<double>(ext));
     else if (bestAny >= 0.0f)
-        Out(out, n, "'%s': extent %.0f u from %d object hit(s) not named to it \xf0\x9f\x94\xb6 (%d terrain); blocking uses the "
-            "default 100", nm, static_cast<double>(bestAny), obj, terr);
+        Out(out, n, "'%s': extent %.0f u from %d object hit(s) not named to it \xf0\x9f\x94\xb6 (%d terrain) - blocking disc "
+            "%.0f", nm, static_cast<double>(bestAny), obj, terr, static_cast<double>(ext));
     else
         Out(out, n, "'%s': no object hit by 4 rays (%d terrain) - default 100", nm, terr);
+    return ext;
 }
-// the build: find pillar, floor, targets, grid (game thread)
-bool ThStart() {
-    ThState &s = g_th;
-    InterlockedExchange(&s.ready, 0);
-    DWORD anchor = 0;
-    s.pillar = ThPillarPart(&anchor);
-    if (!s.pillar) { s.phase = 0; return false; }
-    s.stamp = tlobj::D(s.pillar + 0x44);
-    float p[3];
-    if (!ReadFloats(s.pillar + kInstancePosition, p, 3)) return false;
-    memcpy(s.centre, p, sizeof(p));
-    const float a[3] = {p[0], p[1], p[2] + 400.0f}, b[3] = {p[0], p[1], p[2] - 2000.0f};
-    float hit[3];
-    if (!MdProbe(a, b, hit, s.pillar)) { Log(0, "[Thor] no floor below the pillar (query)"); s.phase = 0; return false; }
-    s.floorZ = hit[2];
-    // 0.22.63 (S3 5): the unit, its data -> live offset, the artifacts from its intro list, the obstacles
-    s.anchor = anchor;
-    if (!ThUnit(s)) Log(0, "[Thor] the pillar's unit (intro list) not found - no artifacts / obstacles by unit");
-    ThOffset(s);
-    ThArtifacts(s);
-    s.obsN = ThObsCollect(s, s.obs, kThObsMax);
-    s.obsAt = GetTickCount();
-    for (int q = 0; q < s.obsN; ++q) {       // 0.22.65 (S5 2): each obstacle with its measured extent
-        char ext[200];
-        ThObsExtent(s.obs[q], ext, sizeof(ext));
-        Log(1, "[Thor] obstacle %ld at %.0f %.0f %.0f%s %s", s.obs[q].intro, static_cast<double>(s.obs[q].pos[0]),
-            static_cast<double>(s.obs[q].pos[1]), static_cast<double>(s.obs[q].pos[2]), s.obs[q].breakable ? " (breakable)" : "", ext);
+// 0.22.68 (B2 1): the foot of the pillar measured directly - 4 horizontal rays (Lara ignored, the pillar not) at floor
+// + 100 and + 700 from 1000 units out to the pillar's centre; distance of each hit to the centre
+void ThFootLine(const ThState &s) {
+    char t[300] = "";
+    size_t used = 0;
+    for (int h = 0; h < 2; ++h)
+        for (int d = 0; d < 4; ++d) {
+            const float dx = d == 0 ? 1.0f : d == 1 ? -1.0f : 0.0f, dy = d == 2 ? 1.0f : d == 3 ? -1.0f : 0.0f;
+            const float z = s.floorZ + (h ? 700.0f : 100.0f);
+            const float a[3] = {s.start[0] + 1000.0f * dx, s.start[1] + 1000.0f * dy, z}, b[3] = {s.start[0], s.start[1], z};
+            float hit[3];
+            DWORD words[4];
+            if (!MdProbe(a, b, hit, 0, words)) { LabelAdd(t, sizeof(t), &used, "%s-", used ? " " : ""); continue; }
+            const float r = sqrtf((hit[0] - b[0]) * (hit[0] - b[0]) + (hit[1] - b[1]) * (hit[1] - b[1]));
+            LabelAdd(t, sizeof(t), &used, "%s%.0f%s", used ? " " : "", static_cast<double>(r),
+                     ThWordsName(words + 1, s.pillar) || ThWordsName(words + 1, s.anchor) ? "" : words[0] == 2 ? "(other)" : "(terrain)");
+        }
+    Log(1, "[Thor] foot: 4 horizontal rays at floor + 100 and + 700 against the pillar part -> extents %s (foot %d; "
+        "'(other)' / '(terrain)' = the hit does not name the pillar) \xf0\x9f\x94\xb6", t, g_thFoot);
+}
+// 0.22.68 (B2 1): the unit's terrain collision faces (game thread). false = no mesh / a bad index (-> rays)
+bool ThCopyMesh(ThState &s, char *why, size_t wn) {
+    s.faces.clear();
+    s.groups = s.meshes = 0;
+    DWORD terr = 0, cnt = 0, arr = 0, extra = 0;
+    if (!s.level || !ReadDword(s.level, &terr) || !terr) { Out(why, wn, "no terrain at Level+0"); return false; }
+    if (!ReadDword(terr + 8, &cnt) || !ReadDword(terr + 0xc, &arr) || cnt > 4096) { Out(why, wn, "terrain header not readable"); return false; }
+    ReadDword(terr + 0x10, &extra);
+    DWORD mesh[600];
+    int mn = 0;
+    auto add = [&](DWORD group) {
+        DWORD m = 0;
+        if (!group || !ReadDword(group + 0x38, &m) || !m) return;
+        for (int k = 0; k < mn; ++k) if (mesh[k] == m) return;
+        if (mn < 600) mesh[mn++] = m;
+    };
+    for (DWORD k = 0; arr && k < cnt; ++k) add(arr + 0x50 * k);
+    add(extra);
+    s.groups = static_cast<int>(cnt) + (extra ? 1 : 0);
+    s.meshes = mn;
+    if (!mn) { Out(why, wn, "%d group(s) without a collision mesh", s.groups); return false; }
+    const float zlo = s.floorZ - 60.0f, zhi = s.floorZ + 1450.0f, lim = 8800.0f;
+    std::vector<float> V;
+    std::vector<DWORD> F;
+    for (int k = 0; k < mn; ++k) {
+        float pos[3];
+        DWORD vp = 0, fp = 0, nf = 0, nv = 0;
+        if (!ReadFloats(mesh[k] + 0x20, pos, 3) || !ReadDword(mesh[k] + 0x30, &vp) || !ReadDword(mesh[k] + 0x34, &fp) ||
+            !ReadDword(mesh[k] + 0x44, &nf) || !ReadDword(mesh[k] + 0x48, &nv) || !vp || !fp) {
+            Out(why, wn, "mesh %d header not readable", k);
+            return false;
+        }
+        if (!nf) continue;
+        if (nf > 400000 || nv > 400000 || !nv) { Out(why, wn, "mesh %d counts %lu faces / %lu vertices out of range", k, nf, nv); return false; }
+        V.resize(static_cast<size_t>(nv) * 4);
+        F.resize(static_cast<size_t>(nf) * 5);
+        // the last face is stored without its trailing pad: read only its 3 indices
+        if (!TlRead(vp, V.data(), nv * 16) || !TlRead(fp, F.data(), (nf - 1) * 20 + 12)) {
+            Out(why, wn, "mesh %d arrays not readable", k);
+            return false;
+        }
+        for (DWORD f = 0; f < nf; ++f) {
+            const DWORD *ix = &F[static_cast<size_t>(f) * 5];
+            if (ix[0] >= nv || ix[1] >= nv || ix[2] >= nv) {
+                Out(why, wn, "mesh %d face %lu index %lu / %lu / %lu >= %lu vertices", k, f, ix[0], ix[1], ix[2], nv);
+                s.faces.clear();
+                return false;
+            }
+            thorcore::Face fc;
+            float mnz = 1e30f, mxz = -1e30f, mnx = 1e30f, mxx = -1e30f, mny = 1e30f, mxy = -1e30f;
+            for (int c = 0; c < 3; ++c) {
+                const float *v = &V[static_cast<size_t>(ix[c]) * 4];
+                for (int a = 0; a < 3; ++a) fc.v[3 * c + a] = v[a] + pos[a];
+                mnx = fc.v[3 * c] < mnx ? fc.v[3 * c] : mnx; mxx = fc.v[3 * c] > mxx ? fc.v[3 * c] : mxx;
+                mny = fc.v[3 * c + 1] < mny ? fc.v[3 * c + 1] : mny; mxy = fc.v[3 * c + 1] > mxy ? fc.v[3 * c + 1] : mxy;
+                mnz = fc.v[3 * c + 2] < mnz ? fc.v[3 * c + 2] : mnz; mxz = fc.v[3 * c + 2] > mxz ? fc.v[3 * c + 2] : mxz;
+            }
+            if (mxz < zlo || mnz > zhi || mxx < s.start[0] - lim || mnx > s.start[0] + lim || mxy < s.start[1] - lim ||
+                mny > s.start[1] + lim)
+                continue;
+            s.faces.push_back(fc);
+        }
     }
-    for (int k = 0; k < s.arts; ++k)
-        Log(1, "[Thor] artifact %c: intro %ld at %.0f %.0f %.0f (from the unit's intro list + offset) %s", k ? 'B' : 'A',
-            s.art[k].intro, static_cast<double>(s.art[k].pos[0]), static_cast<double>(s.art[k].pos[1]),
-            static_cast<double>(s.art[k].pos[2]), s.art[k].born ? "born" : "not born (collected?) \xf0\x9f\x94\xb6");
-    const int an = s.arts;
-    // target ledges from the unit markup
-    s.ledges = 0;
-    memset(s.kinds, 0, sizeof(s.kinds));
+    if (s.faces.empty()) { Out(why, wn, "%d mesh(es), no face in the band floor - 60 .. + 1450", mn); return false; }
+    return true;
+}
+// the markup ledges 1700 .. 2800 above the floor (target = 1700 .. 2200) and the unit's born triggers
+int ThLedges(ThState &s, std::vector<float> &trig, float *lo, float *hi) {
+    s.L.clear();
     DWORD mgr = 0, box = 0;
-    float lo[2] = {1e30f, 1e30f}, hi[2] = {-1e30f, -1e30f};
+    lo[0] = lo[1] = 1e30f;
+    hi[0] = hi[1] = -1e30f;
     if (ReadDword(kMarkupMgr, &mgr) && mgr && ReadDword(mgr + 0x14, &box))
-        for (int guard = 0; box && guard < 4000 && s.ledges < kThLedgeMax; ++guard) {
+        for (int guard = 0; box && guard < 4000 && static_cast<int>(s.L.size()) < kThLedgeMax; ++guard) {
             DWORD flags = 0, rec = 0, line = 0, next = 0, owner = 0, count = 0;
             ReadDword(box + 0x28, &flags);
             ReadDword(box + 0x20, &rec);
@@ -57546,237 +57643,472 @@ bool ThStart() {
             if (!ReadDword(box + 4, &next)) break;
             box = next;
             if (!rec || owner || !(flags & (1u << 30))) continue;
-            if (!ReadDword(rec + 0x58, &line) || !line || !ReadDword(line, &count) || count < 2 || count > 64) continue;
-            ThLedge &l = s.ledge[s.ledges];
-            l.n = 0;
-            bool ok = true;
+            if (!ReadDword(rec + 0x58, &line) || !line || !ReadDword(line, &count) || count < 2 ||
+                count > static_cast<DWORD>(thorcore::kMaxLedgePts))
+                continue;
+            thorcore::Ledge l;
+            memset(&l, 0, sizeof(l));
+            l.id = guard;
+            bool ok = true, target = true;
             for (DWORD i = 0; i < count && ok; ++i) {
                 ok = ReadFloats(line + 0x10 + 16 * i, l.pts[l.n], 3);
                 const float rise = l.pts[l.n][2] - s.floorZ;
-                ok = ok && rise >= 1700.0f && rise <= 2200.0f;
+                ok = ok && rise >= 1700.0f && rise <= 2800.0f;
+                target = target && rise <= 2200.0f;
                 ++l.n;
             }
             if (!ok) continue;
             const float *f = l.pts[0], *e = l.pts[l.n - 1];
-            const bool closed = l.n >= 6 && (f[0] - e[0]) * (f[0] - e[0]) + (f[1] - e[1]) * (f[1] - e[1]) < 200.0f * 200.0f;
-            l.kind = closed ? kThRing : -1;    // open ledges: kind after the galleries are chained
-            l.gal = s.ledges;
+            l.closed = l.n >= 6 && (f[0] - e[0]) * (f[0] - e[0]) + (f[1] - e[1]) * (f[1] - e[1]) < 200.0f * 200.0f;
+            l.target = target;
             for (int i = 0; i < l.n; ++i)
                 for (int c = 0; c < 2; ++c) { if (l.pts[i][c] < lo[c]) lo[c] = l.pts[i][c]; if (l.pts[i][c] > hi[c]) hi[c] = l.pts[i][c]; }
-            ++s.ledges;
+            s.L.push_back(l);
         }
-    // 0.22.63 (S3 5): chain open ledges into galleries (end points < 300 flat and < 100 in height apart)
-    for (bool merged = true; merged;) {
-        merged = false;
-        for (int a1 = 0; a1 < s.ledges; ++a1)
-            for (int b1 = a1 + 1; b1 < s.ledges; ++b1) {
-                ThLedge &la = s.ledge[a1], &lb = s.ledge[b1];
-                if (la.kind == kThRing || lb.kind == kThRing || la.gal == lb.gal) continue;
-                bool joined = false;
-                for (int ea = 0; ea < 2 && !joined; ++ea)
-                    for (int eb = 0; eb < 2 && !joined; ++eb) {
-                        const float *pa = la.pts[ea ? la.n - 1 : 0], *pb = lb.pts[eb ? lb.n - 1 : 0];
-                        const float dx = pa[0] - pb[0], dy = pa[1] - pb[1];
-                        joined = dx * dx + dy * dy < 300.0f * 300.0f && fabsf(pa[2] - pb[2]) < 100.0f;
-                    }
-                if (!joined) continue;
-                const int from = lb.gal, to = la.gal;
-                for (int k = 0; k < s.ledges; ++k)
-                    if (s.ledge[k].gal == from) s.ledge[k].gal = to;
-                merged = true;
-            }
-    }
-    // a gallery within 1500 units (flat) of an artifact = that artifact's; of the rest the one nearest a trigger of the
-    // unit = the exit; other open galleries are no target
-    int galKind[kThLedgeMax];
-    for (int g = 0; g < kThLedgeMax; ++g) galKind[g] = -2;   // -2 = no gallery, -1 = open, no kind yet
-    for (int k = 0; k < s.ledges; ++k)
-        if (s.ledge[k].kind != kThRing) galKind[s.ledge[k].gal] = -1;
-    for (int k = 0; k < s.ledges; ++k) {
-        const ThLedge &l = s.ledge[k];
-        if (l.kind == kThRing) continue;
-        for (int q = 0; q < an; ++q)
-            if (ThLedgeDist(l, s.art[q].pos) < 1500.0f && galKind[l.gal] == -1) galKind[l.gal] = q == 0 ? kThArtA : kThArtB;
-    }
-    int exitGal = -1;
-    float exitD = 1e30f;
+    trig.clear();
     tlobj::ForInstances([&](DWORD inst, int) {
         if (!ThInUnit(s, inst)) return true;
         char name[48];
         tlobj::InstName(inst, name, sizeof(name));
         if (!PzNameHas(name, "trigger")) return true;
         float tp[3];
-        if (!TlRead(inst + 0x20, tp, 12)) return true;
-        for (int k = 0; k < s.ledges; ++k) {
-            const ThLedge &l = s.ledge[k];
-            if (l.kind == kThRing || galKind[l.gal] != -1) continue;
-            const float d = ThLedgeDist(l, tp);
-            if (d < exitD) { exitD = d; exitGal = l.gal; }
-        }
+        if (TlRead(inst + 0x20, tp, 12)) { trig.push_back(tp[0]); trig.push_back(tp[1]); trig.push_back(tp[2]); }
         return true;
     });
-    int galN = 0;
-    for (int g = 0; g < kThLedgeMax; ++g) galN += galKind[g] != -2 ? 1 : 0;
-    s.gals = galN;
-    int keep = 0;
-    for (int k = 0; k < s.ledges; ++k) {
-        ThLedge l = s.ledge[k];
-        if (l.kind != kThRing) l.kind = galKind[l.gal] >= 0 ? galKind[l.gal] : l.gal == exitGal ? kThExit : -1;
-        if (l.kind < 0) continue;            // an open gallery that is neither an artifact's nor the exit
-        ++s.kinds[l.kind];
-        s.ledge[keep++] = l;
+    return static_cast<int>(s.L.size());
+}
+const char *ThCompass(float dx, float dy, bool de, bool shortName) {
+    static const char *const kDe[8] = {"Ost", "Nordost", "Nord", "Nordwest", "West", "S\303\274dwest", "S\303\274d", "S\303\274dost"};
+    static const char *const kEn[8] = {"east", "north-east", "north", "north-west", "west", "south-west", "south", "south-east"};
+    static const char *const kDeS[8] = {"O", "NO", "N", "NW", "W", "SW", "S", "SO"};
+    static const char *const kEnS[8] = {"E", "NE", "N", "NW", "W", "SW", "S", "SE"};
+    float a = atan2f(dy, dx) * 57.29578f;
+    if (a < 0.0f) a += 360.0f;
+    const int k = static_cast<int>((a + 22.5f) / 45.0f) % 8;
+    return shortName ? (de ? kDeS[k] : kEnS[k]) : (de ? kDe[k] : kEn[k]);
+}
+void ThRingCentre(const thorcore::Ledge &l, float *c) {
+    c[0] = c[1] = 0.0f;
+    for (int i = 0; i < l.n; ++i) { c[0] += l.pts[i][0]; c[1] += l.pts[i][1]; }
+    if (l.n) { c[0] /= static_cast<float>(l.n); c[1] /= static_cast<float>(l.n); }
+}
+// "Ring NO" / "ring NE" - the compass of the ring from the middle of the ledges (+y = north (unproven))
+void ThRingName(const ThView &v, const thorcore::Ledge &l, bool de, char *o, size_t n) {
+    float c[2];
+    ThRingCentre(l, c);
+    Out(o, n, "%s %s", de ? "Ring" : "ring", ThCompass(c[0] - v.centre[0], c[1] - v.centre[1], de, true));
+}
+void ThKindName(const ThView &v, int k, bool de, char *o, size_t n) {
+    if (k < 0) { Out(o, n, "%s", de ? "kein Weiter-Ziel" : "no next target"); return; }
+    if (k == thorcore::kExit) { Out(o, n, "%s", de ? kThDe[k] : kThEn[k]); return; }
+    const int a = k == thorcore::kArtA ? 0 : 1;
+    if (a < v.arts)
+        Out(o, n, "%s (%s)%s", de ? kThDe[k] : kThEn[k], ThCompass(v.art[a].pos[0] - v.centre[0], v.art[a].pos[1] - v.centre[1], de,
+                                                                  false), v.art[a].born ? "" : de ? " (gefunden?)" : " (collected?)");
+    else Out(o, n, "%s", de ? kThDe[k] : kThEn[k]);
+}
+// outlines of a cell set as merged segments (worker)
+template <typename In> void ThOutline(ThView &v, int layer, In in) {
+    const thorcore::Result &R = v.R;
+    const float c = R.P.cell;
+    for (int j = 0; j <= R.ny; ++j) {         // horizontal edges between row j - 1 and j
+        int run = -1;
+        for (int i = 0; i <= R.nx; ++i) {
+            const bool e = i < R.nx && (j > 0 && in((j - 1) * R.nx + i)) != (j < R.ny && in(j * R.nx + i));
+            if (e && run < 0) run = i;
+            if (!e && run >= 0) {
+                v.segs.push_back({{R.x0 + run * c, R.y0 + j * c}, {R.x0 + i * c, R.y0 + j * c}, layer});
+                run = -1;
+            }
+        }
     }
-    s.ledges = keep;
-    if (!s.ledges) { Log(0, "[Thor] pillar found, but no ledge 1700 .. 2200 above the floor %.1f in the unit markup", static_cast<double>(s.floorZ)); s.phase = 0; return false; }
-    const float margin = static_cast<float>(g_thGap) + 552.0f + 2.0f * kThCell;
-    s.x0 = lo[0] - margin;
-    s.y0 = lo[1] - margin;
-    s.nx = static_cast<int>((hi[0] + margin - s.x0) / kThCell) + 1;
-    s.ny = static_cast<int>((hi[1] + margin - s.y0) / kThCell) + 1;
-    if (s.nx > 80) {                         // too big (the cell stays 150 as R8b): an 80-cell window around the pillar
-        float nx0 = p[0] - 40.0f * kThCell;
-        if (nx0 < s.x0) nx0 = s.x0;
-        s.x0 = nx0;
-        s.nx = 80;
+    for (int i = 0; i <= R.nx; ++i) {         // vertical edges between column i - 1 and i
+        int run = -1;
+        for (int j = 0; j <= R.ny; ++j) {
+            const bool e = j < R.ny && (i > 0 && in(j * R.nx + i - 1)) != (i < R.nx && in(j * R.nx + i));
+            if (e && run < 0) run = j;
+            if (!e && run >= 0) {
+                v.segs.push_back({{R.x0 + i * c, R.y0 + run * c}, {R.x0 + i * c, R.y0 + j * c}, layer});
+                run = -1;
+            }
+        }
     }
-    if (s.ny > 80) {
-        float ny0 = p[1] - 40.0f * kThCell;
-        if (ny0 < s.y0) ny0 = s.y0;
-        s.y0 = ny0;
-        s.ny = 80;
+}
+int ThCellKinds(const ThView &v, int i) {    // bits of the target kinds of the ring areas of cell i (bit 3 = no next)
+    int m = 0;
+    const unsigned char rm = v.R.ringMask[static_cast<size_t>(i)];
+    for (size_t r = 0; r < v.R.rings.size(); ++r) {
+        if (!((rm >> r) & 1)) continue;
+        const int k = v.L[static_cast<size_t>(v.R.rings[r])].kind;
+        m |= k >= 0 ? 1 << k : 8;
     }
-    memset(s.floorCls, 0, sizeof(s.floorCls));
-    s.next = 0;
-    s.phase = 1;
-    s.lastState = -1;
-    Log(1, "[Thor] build: pillar part %lu at %.0f %.0f %.0f (anchor %lu), floor %.1f, %d target ledge(s) in %d open "
-        "galler(ies): exit %d (nearest a unit trigger, %.0f u), artifact A %d (%ld), artifact B %d (%ld), rings %d; %d "
-        "obstacle(s); grid %d x %d cells of %d, gap %d, strict |dz| <= 6", tlobj::D(s.pillar + 0x58),
-        static_cast<double>(p[0]), static_cast<double>(p[1]), static_cast<double>(p[2]), tlobj::D(anchor + 0x58),
-        static_cast<double>(s.floorZ), s.ledges, s.gals, s.kinds[kThExit], static_cast<double>(exitGal >= 0 ? exitD : -1.0f),
-        s.kinds[kThArtA], an > 0 ? s.art[0].intro : 0L, s.kinds[kThArtB], an > 1 ? s.art[1].intro : 0L, s.kinds[kThRing],
-        s.obsN, s.nx, s.ny, kThCell, g_thGap);
+    return m;
+}
+// the worker's log lines: terrain, reach, one per target
+void ThLogView(const ThView &v, const ThJob &j) {
+    const thorcore::Result &R = v.R;
+    Log(1, "[Thor] terrain: %d group(s), %d mesh(es), %d face(s) in box, source %s, grid %d x %d of %.0f, floor %.1f, step %d, "
+        "foot %d; rise cells 0..6 %d, 6..20 %d, 20..300 %d, >300 %d, hole %d (%s)", j.groups, j.meshes, R.facesUsed,
+        v.mesh ? "mesh" : "rays", R.nx, R.ny, static_cast<double>(R.P.cell), static_cast<double>(R.P.floorZ), g_thStep, g_thFoot,
+        R.hist[0] + R.hist[1], R.hist[2] + R.hist[3], R.hist[4] + R.hist[5] + R.hist[6], R.hist[7], R.hist[8], j.reason);
+    const double m2 = static_cast<double>(R.reachN) * R.P.cell * R.P.cell / (kUnitsPerMetre * kUnitsPerMetre);
+    Log(1, "[Thor] reach from %.0f %.0f: valid %d, reachable %d cells (%.0f m2)%s", static_cast<double>(j.sx),
+        static_cast<double>(j.sy), R.validN, R.reachN, m2, R.startCell < 0 ? " - the pillar stands on no valid cell (MISMATCH line)" : "");
+    for (size_t k = 0; k < v.L.size(); ++k) {
+        const thorcore::Ledge &l = v.L[k];
+        if (!l.target) continue;
+        char nm[48], to[96], via[96] = "";
+        if (l.closed) ThRingName(v, l, false, nm, sizeof(nm));
+        else Out(nm, sizeof(nm), "gallery %d", l.gal);
+        ThKindName(v, l.kind, false, to, sizeof(to));
+        if (l.closed && l.next >= 0)
+            Out(via, sizeof(via), " (via edge %d gap %.0f rise %.0f)", v.L[static_cast<size_t>(l.next)].id,
+                static_cast<double>(l.nextGap), static_cast<double>(l.nextRise));
+        int cells = 0;
+        float mn = 1e30f, at[2] = {0, 0}, b[4] = {1e30f, -1e30f, 1e30f, -1e30f};
+        for (int i = 0; i < R.nx * R.ny; ++i) {
+            if (!R.reach[static_cast<size_t>(i)]) continue;
+            const float c[3] = {R.Cx(i), R.Cy(i), R.P.floorZ};
+            const float d = thorcore::LedgeDist(l, c) - R.P.head;
+            if (d < mn) { mn = d; at[0] = c[0]; at[1] = c[1]; }
+            if (d > R.P.gap) continue;
+            ++cells;
+            b[0] = c[0] < b[0] ? c[0] : b[0]; b[1] = c[0] > b[1] ? c[0] : b[1];
+            b[2] = c[1] < b[2] ? c[1] : b[2]; b[3] = c[1] > b[3] ? c[1] : b[3];
+        }
+        Log(1, "[Thor] target %s (edge %d) %s z %.0f -> %s%s: reachable cells %d%s, bbox x %.0f .. %.0f y %.0f .. %.0f, min D %.0f "
+            "at (%.0f, %.0f)", nm, l.id, l.closed ? "ring" : "gallery", static_cast<double>(l.zmean), to, via, cells,
+            !l.closed && !g_thDirect ? " (direct, not drawn: ThorGalleryDirect 0)" : "", static_cast<double>(cells ? b[0] : 0.0f),
+            static_cast<double>(cells ? b[1] : 0.0f), static_cast<double>(cells ? b[2] : 0.0f), static_cast<double>(cells ? b[3] : 0.0f),
+            static_cast<double>(mn < 1e29f ? mn : -1.0f), static_cast<double>(at[0]), static_cast<double>(at[1]));
+    }
+}
+DWORD WINAPI ThWorker(LPVOID param) {
+    ThJob *j = static_cast<ThJob *>(param);
+    ThView *v = nullptr;
+    try {
+        v = new ThView;
+        v->L = j->L;
+        v->mesh = j->mesh;
+        v->arts = j->arts;
+        memcpy(v->art, j->art, sizeof(v->art));
+        if (!j->mesh) v->R.top = j->top;
+        const bool ok = thorcore::Build(v->R, j->P, j->mesh ? j->faces.data() : nullptr, j->mesh ? static_cast<int>(j->faces.size()) : -1,
+                                        j->obs.data(), static_cast<int>(j->obs.size()), v->L, j->box[0], j->box[1], j->box[2],
+                                        j->box[3], j->sx, j->sy);
+        if (!ok) {
+            Log(0, "[Thor] grid refused (box %.0f .. %.0f / %.0f .. %.0f) - no areas", static_cast<double>(j->box[0]),
+                static_cast<double>(j->box[1]), static_cast<double>(j->box[2]), static_cast<double>(j->box[3]));
+            delete v;
+            v = nullptr;
+        } else {
+            float lo[2] = {1e30f, 1e30f}, hi[2] = {-1e30f, -1e30f};
+            for (const thorcore::Ledge &l : v->L)
+                for (int i = 0; i < l.n; ++i)
+                    for (int c = 0; c < 2; ++c) { if (l.pts[i][c] < lo[c]) lo[c] = l.pts[i][c]; if (l.pts[i][c] > hi[c]) hi[c] = l.pts[i][c]; }
+            v->centre[0] = (lo[0] + hi[0]) * 0.5f;
+            v->centre[1] = (lo[1] + hi[1]) * 0.5f;
+            const thorcore::Result &R = v->R;
+            for (int k = 0; k < thorcore::kKinds; ++k) {
+                v->kindReach[k] = false;
+                v->kindKnown[k] = false;
+                ThView &w = *v;
+                const int bit = 1 << k;
+                ThOutline(w, k, [&](int i) { return (ThCellKinds(w, i) & bit) != 0; });
+                if (j->P.galleryDirect) ThOutline(w, 3 + k, [&](int i) { return (R.galMask[static_cast<size_t>(i)] & bit) != 0; });
+            }
+            ThView &w = *v;
+            ThOutline(w, 6, [&](int i) { return R.valid[static_cast<size_t>(i)] && !R.reach[static_cast<size_t>(i)]; });
+            ThOutline(w, 7, [&](int i) { return R.reach[static_cast<size_t>(i)] != 0; });
+            ThOutline(w, 8, [&](int i) { return (ThCellKinds(w, i) & 8) != 0; });
+            for (int i = 0; i < R.nx * R.ny; ++i) {
+                const int m = ThCellKinds(w, i) | (j->P.galleryDirect ? R.galMask[static_cast<size_t>(i)] : 0);
+                for (int k = 0; k < thorcore::kKinds; ++k) if (m & (1 << k)) v->kindReach[k] = true;
+                if (R.ringMask[static_cast<size_t>(i)] || R.galMask[static_cast<size_t>(i)]) v->areaCells.push_back(i);
+            }
+            for (const thorcore::Ledge &l : v->L)   // the text spot of each kind: its first gallery's middle point
+                if (!l.closed && l.target && l.kind >= 0 && !v->kindKnown[l.kind]) {
+                    memcpy(v->kindAt[l.kind], l.pts[l.n / 2], sizeof(v->kindAt[0]));
+                    v->kindKnown[l.kind] = true;
+                }
+            for (int ty = 0; ty < R.ny; ty += 4)      // height tiles of 4 x 4 cells (100 u): the highest rise
+                for (int tx = 0; tx < R.nx; tx += 4) {
+                    float mx = -1e30f;
+                    for (int b = ty; b < ty + 4 && b < R.ny; ++b)
+                        for (int a = tx; a < tx + 4 && a < R.nx; ++a) {
+                            const float r = R.Rise(b * R.nx + a);
+                            if (r < 1e29f && r > mx) mx = r;
+                        }
+                    if (mx < -1e29f || mx > 300.0f) continue;
+                    const ImU32 col = mx <= 6.0f ? IM_COL32(60, 220, 90, 70) : mx <= 20.0f ? IM_COL32(240, 220, 60, 80) : IM_COL32(240, 70, 60, 90);
+                    v->tiles.push_back({R.x0 + tx * R.P.cell, R.y0 + ty * R.P.cell, col});
+                }
+            ThLogView(*v, *j);
+        }
+    } catch (...) {
+        Log(0, "[Thor] worker: out of memory (caught) - no areas");
+        delete v;
+        v = nullptr;
+    }
+    if (v) {
+        AcquireSRWLockExclusive(&g_thLock);
+        ThView *old = g_thView;
+        g_thView = v;
+        ReleaseSRWLockExclusive(&g_thLock);
+        delete old;
+    }
+    delete j;
+    InterlockedExchange(&g_th.busy, 0);
+    return 0;
+}
+void ThDropView() {
+    AcquireSRWLockExclusive(&g_thLock);
+    ThView *old = g_thView;
+    g_thView = nullptr;
+    ReleaseSRWLockExclusive(&g_thLock);
+    delete old;
+}
+// start the worker on the current data (game thread); false = busy (asked again when it ends) / no thread
+bool ThLaunch(ThState &s, const char *reason) {
+    if (s.busy) { s.rebuild = true; strcpy_s(s.reason, sizeof(s.reason), reason); return false; }
+    ThJob *j = nullptr;
+    try {
+        j = new ThJob;
+        j->P.floorZ = s.floorZ;
+        j->P.step = static_cast<float>(g_thStep);
+        j->P.foot = static_cast<float>(g_thFoot);
+        j->P.gap = static_cast<float>(g_thGap);
+        j->P.galleryDirect = g_thDirect != 0;
+        j->mesh = s.mesh;
+        if (s.mesh) j->faces = s.faces;
+        else j->top = s.rayTop;
+        for (int q = 0; q < s.obsN; ++q) j->obs.push_back({s.obs[q].pos[0], s.obs[q].pos[1], s.obs[q].ext});
+        j->L = s.L;
+        memcpy(j->box, s.box, sizeof(j->box));
+        float p[3] = {s.start[0], s.start[1], s.start[2]};
+        ReadFloats(s.pillar + kInstancePosition, p, 3);
+        j->sx = p[0];
+        j->sy = p[1];
+        memcpy(j->art, s.art, sizeof(j->art));
+        j->arts = s.arts;
+        j->groups = s.groups;
+        j->meshes = s.meshes;
+        strcpy_s(j->reason, sizeof(j->reason), reason);
+    } catch (...) {
+        delete j;
+        Log(0, "[Thor] out of memory for the job (caught)");
+        return false;
+    }
+    InterlockedExchange(&s.busy, 1);
+    s.rebuild = false;
+    HANDLE t = CreateThread(nullptr, 0, ThWorker, j, 0, nullptr);
+    if (!t) { InterlockedExchange(&s.busy, 0); delete j; Log(0, "[Thor] CreateThread failed (%lu)", GetLastError()); return false; }
+    CloseHandle(t);
     return true;
 }
-void ThFinish() {
+void ThReset() {
     ThState &s = g_th;
-    const int r = static_cast<int>(552.0f / kThCell) + 1;
-    int cells[kThKinds] = {0, 0, 0, 0}, loose[kThKinds] = {0, 0, 0, 0}, blocked = 0;
-    for (int iy = 0; iy < s.ny; ++iy)
-        for (int ix = 0; ix < s.nx; ++ix) {
-            const int i = iy * s.nx + ix;
-            s.inStrict[i] = s.inRelaxed[i] = 0;
-            if (!s.floorCls[i]) continue;
-            // 0.22.63 (S3 5): an obstacle closer than 552 + 100 (radius unproven) to the cell centre blocks the cell
-            const float ccx = s.x0 + (ix + 0.5f) * kThCell, ccy = s.y0 + (iy + 0.5f) * kThCell;
-            bool stone = false;
-            for (int q = 0; q < s.obsN && !stone; ++q) {
-                const float ox = s.obs[q].pos[0] - ccx, oy = s.obs[q].pos[1] - ccy;
-                stone = ox * ox + oy * oy < 652.0f * 652.0f;
+    s.phase = 0;
+    s.meshChecked = false;
+    InterlockedExchange(&s.trackN, 0);
+    ThDropView();
+}
+// the build: pillar, floor, unit, obstacles, ledges, terrain (game thread)
+bool ThStart() {
+    ThState &s = g_th;
+    if (s.busy) return false;
+    DWORD anchor = 0;
+    s.pillar = ThPillarPart(&anchor);
+    if (!s.pillar) { s.phase = 0; return false; }
+    s.anchor = anchor;
+    s.stamp = tlobj::D(s.pillar + 0x44);
+    float p[3];
+    if (!ReadFloats(s.pillar + kInstancePosition, p, 3)) return false;
+    memcpy(s.start, p, sizeof(p));
+    memcpy(s.pos, p, sizeof(p));
+    const float a[3] = {p[0], p[1], p[2] + 400.0f}, b[3] = {p[0], p[1], p[2] - 2000.0f};
+    float hit[3];
+    if (!MdProbe(a, b, hit, s.pillar)) { Log(0, "[Thor] no floor below the pillar (query)"); s.phase = 0; return false; }
+    s.floorZ = hit[2];
+    if (!ThUnit(s)) Log(0, "[Thor] the pillar's unit (intro list) not found - no artifacts / obstacles / terrain by unit");
+    ThOffset(s);
+    ThArtifacts(s);
+    s.obsN = ThObsCollect(s, s.obs, kThObsMax);
+    s.obsAt = GetTickCount();
+    for (int q = 0; q < s.obsN; ++q) {
+        char ext[220];
+        s.obs[q].ext = ThObsExtent(s.obs[q], ext, sizeof(ext));
+        Log(1, "[Thor] obstacle %ld at %.0f %.0f %.0f%s %s", s.obs[q].intro, static_cast<double>(s.obs[q].pos[0]),
+            static_cast<double>(s.obs[q].pos[1]), static_cast<double>(s.obs[q].pos[2]), s.obs[q].breakable ? " (breakable)" : "", ext);
+    }
+    for (int k = 0; k < s.arts; ++k)
+        Log(1, "[Thor] artifact %c: intro %ld at %.0f %.0f %.0f (from the unit's intro list + offset) %s", k ? 'B' : 'A',
+            s.art[k].intro, static_cast<double>(s.art[k].pos[0]), static_cast<double>(s.art[k].pos[1]),
+            static_cast<double>(s.art[k].pos[2]), s.art[k].born ? "born" : "not born (collected?) \xf0\x9f\x94\xb6");
+    std::vector<float> trig;
+    float lo[2], hi[2];
+    ThLedges(s, trig, lo, hi);
+    int targets = 0;
+    for (const thorcore::Ledge &l : s.L) targets += l.target ? 1 : 0;
+    if (!targets) {
+        Log(0, "[Thor] pillar found, but no ledge 1700 .. 2200 above the floor %.1f in the unit markup", static_cast<double>(s.floorZ));
+        s.phase = 0;
+        return false;
+    }
+    float art[2][3];
+    for (int k = 0; k < 2; ++k) memcpy(art[k], s.art[k].pos, sizeof(art[k]));
+    char clog[600] = "";
+    thorcore::Classify(s.L, art, s.arts, trig.data(), static_cast<int>(trig.size() / 3), clog, sizeof(clog));
+    ThFootLine(s);
+    char why[160] = "";
+    s.mesh = ThCopyMesh(s, why, sizeof(why));
+    const float lim = 8800.0f;
+    if (s.mesh) {                            // box = the copied faces, at most 8800 round the pillar
+        float b0[4] = {1e30f, -1e30f, 1e30f, -1e30f};
+        for (const thorcore::Face &f : s.faces)
+            for (int c = 0; c < 3; ++c) {
+                b0[0] = f.v[3 * c] < b0[0] ? f.v[3 * c] : b0[0]; b0[1] = f.v[3 * c] > b0[1] ? f.v[3 * c] : b0[1];
+                b0[2] = f.v[3 * c + 1] < b0[2] ? f.v[3 * c + 1] : b0[2]; b0[3] = f.v[3 * c + 1] > b0[3] ? f.v[3 * c + 1] : b0[3];
             }
-            if (stone) { ++blocked; continue; }
-            bool strict = true, relaxed = true;   // the 552 disc on floor
-            for (int dy = -r; dy <= r && relaxed; ++dy)
-                for (int dx = -r; dx <= r && relaxed; ++dx) {
-                    if ((dx * dx + dy * dy) * kThCell * kThCell > 552 * 552) continue;
-                    const int jx = ix + dx, jy = iy + dy;
-                    const BYTE f = jx >= 0 && jy >= 0 && jx < s.nx && jy < s.ny ? s.floorCls[jy * s.nx + jx] : 0;
-                    if (!f) relaxed = false;
-                    if (f != 1) strict = false;
-                }
-            if (!relaxed) continue;
-            const float c[3] = {s.x0 + (ix + 0.5f) * kThCell, s.y0 + (iy + 0.5f) * kThCell, s.floorZ};
-            for (int k = 0; k < s.ledges; ++k) {
-                const ThLedge &l = s.ledge[k];
-                if (ThLedgeDist(l, c) - 552.0f > static_cast<float>(g_thGap)) continue;
-                s.inRelaxed[i] |= static_cast<BYTE>(1 << l.kind);
-                if (strict) s.inStrict[i] |= static_cast<BYTE>(1 << l.kind);
-            }
-            for (int k = 0; k < kThKinds; ++k) { cells[k] += (s.inStrict[i] >> k) & 1; loose[k] += (s.inRelaxed[i] >> k) & 1; }
+        s.box[0] = b0[0] > p[0] - lim ? b0[0] : p[0] - lim;
+        s.box[1] = b0[1] < p[0] + lim ? b0[1] : p[0] + lim;
+        s.box[2] = b0[2] > p[1] - lim ? b0[2] : p[1] - lim;
+        s.box[3] = b0[3] < p[1] + lim ? b0[3] : p[1] + lim;
+    } else {                                 // rays: the ledges' box + the reach of an area, at most 8800 round the pillar
+        const float m = static_cast<float>(g_thGap) + 552.0f + static_cast<float>(g_thFoot) + 100.0f;
+        s.box[0] = lo[0] - m > p[0] - lim ? lo[0] - m : p[0] - lim;
+        s.box[1] = hi[0] + m < p[0] + lim ? hi[0] + m : p[0] + lim;
+        s.box[2] = lo[1] - m > p[1] - lim ? lo[1] - m : p[1] - lim;
+        s.box[3] = hi[1] + m < p[1] + lim ? hi[1] + m : p[1] + lim;
+    }
+    Log(1, "[Thor] build: pillar part %lu at %.0f %.0f %.0f (anchor %lu), floor %.1f, %d ledge(s) (%d target(s)), %d trigger(s), "
+        "%d obstacle(s); terrain %s%s%s; box x %.0f .. %.0f y %.0f .. %.0f; step %d, foot %d, gap %d, galleries direct %ld; "
+        "classify: %s", tlobj::D(s.pillar + 0x58), static_cast<double>(p[0]), static_cast<double>(p[1]), static_cast<double>(p[2]),
+        tlobj::D(anchor + 0x58), static_cast<double>(s.floorZ), static_cast<int>(s.L.size()), targets, static_cast<int>(trig.size() / 3),
+        s.obsN, s.mesh ? "from the mesh" : "by rays (fallback): ", s.mesh ? "" : why, s.mesh ? "" : " \xf0\x9f\x94\xb6",
+        static_cast<double>(s.box[0]), static_cast<double>(s.box[1]), static_cast<double>(s.box[2]), static_cast<double>(s.box[3]),
+        g_thStep, g_thFoot, g_thGap, static_cast<LONG>(g_thDirect), clog[0] ? clog : "-");
+    InterlockedExchange(&s.trackN, 0);
+    if (s.mesh) {
+        s.phase = 2;
+        ThLaunch(s, "build (mesh)");
+        return true;
+    }
+    const int nx = static_cast<int>(ceilf((s.box[1] - s.box[0]) / 25.0f)), ny = static_cast<int>(ceilf((s.box[3] - s.box[2]) / 25.0f));
+    try { s.rayTop.assign(static_cast<size_t>(nx) * static_cast<size_t>(ny), -1e30f); } catch (...) { s.phase = 0; return false; }
+    s.rayNext = 0;
+    s.phase = 1;
+    return true;
+}
+// 0.22.68 (B2 1): called by MdObjTick after a [Push] end line (game thread)
+void ThNotePushEnd(DWORD inst) {
+    ThState &s = g_th;
+    if (!g_thOn || s.phase != 2 || !s.anchor) return;
+    const DWORD x = tlobj::MultiOfAny(s.anchor);
+    if (inst == s.pillar || inst == s.anchor || (x && tlobj::MultiOfAny(inst) == x)) InterlockedExchange(&s.pushEnd, 1);
+}
+// the pillar line at a [Push] end, against the current map (before it is rebuilt from the new place)
+void ThPillarLine(ThState &s) {
+    float p[3];
+    if (!ReadFloats(s.pillar + kInstancePosition, p, 3)) return;
+    AcquireSRWLockShared(&g_thLock);
+    const ThView *v = g_thView;
+    if (v) {
+        const thorcore::Result &R = v->R;
+        const int i = R.Index(p[0], p[1]);
+        float bd = 0.0f;
+        const int nb = i >= 0 ? R.NearestBlocked(p[0], p[1], 1200.0f, &bd) : -1;
+        char in[300] = "";
+        size_t used = 0;
+        for (size_t k = 0; k < v->L.size(); ++k) {
+            const thorcore::Ledge &l = v->L[k];
+            if (!l.target || (!l.closed && !g_thDirect)) continue;
+            const float d = thorcore::LedgeDist(l, p) - R.P.head;
+            if (d > R.P.gap) continue;
+            char nm[40], to[80];
+            if (l.closed) ThRingName(*v, l, false, nm, sizeof(nm));
+            else Out(nm, sizeof(nm), "gallery %d", l.gal);
+            ThKindName(*v, l.kind, false, to, sizeof(to));
+            LabelAdd(in, sizeof(in), &used, "%s%s -> %s (D %.0f)", used ? ", " : "", nm, to, static_cast<double>(d));
         }
-    s.phase = 2;
-    s.builtAt = GetTickCount();
-    InterlockedExchange(&s.ready, 1);
-    // 0.22.65 (S5 2): which query answered the floor rays - terrain / object per cell, the object words named to
-    // loaded instances (up to 6 distinct words)
-    int none = 0, terr = 0, obj = 0, objFloor = 0, other = 0, wn = 0;
-    DWORD wl[6][3];
-    int wc[6] = {0, 0, 0, 0, 0, 0};
-    for (int i = 0; i < s.nx * s.ny; ++i) {
-        const BYTE k = s.hitKind[i];
-        if (!k) { ++none; continue; }
-        if (k == 1) { ++terr; continue; }
-        if (k != 2) { ++other; continue; }
-        ++obj;
-        if (s.floorCls[i]) ++objFloor;
-        int j = 0;
-        while (j < wn && memcmp(wl[j], s.hitW[i], sizeof(wl[j]))) ++j;
-        if (j == wn && wn < 6) memcpy(wl[wn++], s.hitW[i], sizeof(wl[0]));
-        if (j < 6) ++wc[j];
+        const bool valid = i >= 0 && R.valid[static_cast<size_t>(i)], reach = i >= 0 && R.reach[static_cast<size_t>(i)];
+        Log(1, "[Thor] pillar at %.0f %.0f %.0f: cell rise %.1f, nearest blocked %.0f u at (%.0f, %.0f) rise %.0f, valid %s, "
+            "reachable %s, in %s", static_cast<double>(p[0]), static_cast<double>(p[1]), static_cast<double>(p[2]),
+            static_cast<double>(i >= 0 ? R.Rise(i) : -1.0f), static_cast<double>(nb >= 0 ? bd : -1.0f),
+            static_cast<double>(nb >= 0 ? R.Cx(nb) : 0.0f), static_cast<double>(nb >= 0 ? R.Cy(nb) : 0.0f),
+            static_cast<double>(nb >= 0 && R.Rise(nb) < 1e29f ? R.Rise(nb) : -1.0f), valid ? "y" : "n", reach ? "y" : "n",
+            used ? in : "no area");
+        if (i >= 0 && !valid)
+            Log(1, "[Thor] MISMATCH pillar at %.0f %.0f stands where the map says blocked (nearest blocked %.0f u < foot %d)",
+                static_cast<double>(p[0]), static_cast<double>(p[1]), static_cast<double>(R.dist[static_cast<size_t>(i)]), g_thFoot);
     }
-    char fr[900];
-    size_t fu = 0;
-    fr[0] = 0;
-    LabelAdd(fr, sizeof(fr), &fu, "floor rays: %d terrain, %d object (%d of them counted as floor), %d no hit%s", terr, obj,
-             objFloor, none, other ? ", some other kind" : "");
-    for (int j = 0; j < wn; ++j) {
-        DWORD inst = 0;
-        for (int k = 0; k < 3 && !inst; ++k) inst = ThWordInst(wl[j][k]);
-        char nm[48] = "-";
-        if (inst) tlobj::InstName(inst, nm, sizeof(nm));
-        LabelAdd(fr, sizeof(fr), &fu, "; %d cell(s) words %08lx %08lx %08lx = %s%s%s", wc[j], wl[j][0], wl[j][1], wl[j][2],
-                 inst ? "'" : "no loaded instance / body", inst ? nm : "", inst ? "'" : "");
-    }
-    Log(1, "[Thor] areas (strict cells, |dz| <= 6): exit %d, artifact A %d, artifact B %d, rings %d (relaxed %d / %d / %d / %d); "
-        "%d cell(s) blocked by %d obstacle(s) (radius 100 \xf0\x9f\x94\xb6), gap %d; %s", cells[0], cells[1], cells[2], cells[3],
-        loose[0], loose[1], loose[2], loose[3], blocked, s.obsN, g_thGap, fr);
+    ReleaseSRWLockShared(&g_thLock);
 }
-// the pillar's current cell: bits of the areas it is in (-1 = outside the grid); *dist[k] = flat distance (m) to the
-// nearest cell of kind k, *to = that cell's centre for the nearest kind. 0.22.63 (S3 5): strict cells only (S2: the
-// pillar already stuck at the 23-unit step)
-int ThPillarState(const float *p, float *dist, float *to) {
+// 0.22.68 (B2 1): called by MdLaunchNote for Lara's launches (game thread): a jump from the pillar top
+void ThNoteLaunch(const float *p) {
     ThState &s = g_th;
-    for (int k = 0; k < kThKinds; ++k) dist[k] = -1.0f;
-    float best = 1e30f;
-    to[0] = p[0]; to[1] = p[1]; to[2] = s.floorZ;
-    for (int i = 0; i < s.nx * s.ny; ++i) {
-        if (!s.inStrict[i]) continue;
-        const float cx = s.x0 + (i % s.nx + 0.5f) * kThCell, cy = s.y0 + (i / s.nx + 0.5f) * kThCell;
-        const float d = sqrtf((cx - p[0]) * (cx - p[0]) + (cy - p[1]) * (cy - p[1])) / kUnitsPerMetre;
-        for (int k = 0; k < kThKinds; ++k)
-            if (((s.inStrict[i] >> k) & 1) && (dist[k] < 0.0f || d < dist[k])) dist[k] = d;
-        if (d < best) { best = d; to[0] = cx; to[1] = cy; }
-    }
-    const int ix = static_cast<int>((p[0] - s.x0) / kThCell), iy = static_cast<int>((p[1] - s.y0) / kThCell);
-    if (ix < 0 || iy < 0 || ix >= s.nx || iy >= s.ny) return -1;
-    return s.inStrict[iy * s.nx + ix];
+    if (!g_thOn || s.phase != 2) return;
+    const float dx = p[0] - s.pos[0], dy = p[1] - s.pos[1];
+    if (dx * dx + dy * dy > 650.0f * 650.0f || p[2] < s.floorZ + 1100.0f) return;
+    char t[300] = "";
+    size_t used = 0;
+    AcquireSRWLockShared(&g_thLock);
+    if (g_thView)
+        for (const thorcore::Ledge &l : g_thView->L) {
+            if (!l.target || !l.closed) continue;
+            char nm[40];
+            ThRingName(*g_thView, l, false, nm, sizeof(nm));
+            LabelAdd(t, sizeof(t), &used, "%s%s %.0f", used ? ", " : "", nm, static_cast<double>(thorcore::LedgeDist(l, s.pos) - 552.0f));
+        }
+    ReleaseSRWLockShared(&g_thLock);
+    Log(1, "[Thor] jump from the pillar top at %.0f %.0f %.0f (pillar %.0f %.0f; D to %s) - where she ends up in 2 s",
+        static_cast<double>(p[0]), static_cast<double>(p[1]), static_cast<double>(p[2]), static_cast<double>(s.pos[0]),
+        static_cast<double>(s.pos[1]), used ? t : "-");
+    s.jumpAt = GetTickCount();
+    memcpy(s.jumpP, p, sizeof(s.jumpP));
 }
-// 0.22.63 (S3 5): every second the obstacles again; a moved (> 20 units), new or gone one queues the cells within 700
-// units of its old and new place for a new floor query (phase 3), then the areas are rebuilt
+void ThJumpFollow(ThState &s, DWORD now) {
+    if (!s.jumpAt || now - s.jumpAt < 2000) return;
+    s.jumpAt = 0;
+    DWORD player = 0, t = 0, tgt = 0;
+    float lp[3] = {0, 0, 0};
+    ReadDword(kPlayerPtr, &player);
+    if (player) ReadFloats(player + kInstancePosition, lp, 3);
+    if (ReadDword(0x00fadb58, &t) && t) ReadDword(t + 0xa64, &tgt);
+    char rec[64];
+    MdRecText(rec, sizeof(rec));
+    float best = 1e30f;
+    int bk = -1;
+    AcquireSRWLockShared(&g_thLock);
+    if (g_thView)
+        for (size_t k = 0; k < g_thView->L.size(); ++k) {
+            const thorcore::Ledge &l = g_thView->L[k];
+            const float d = thorcore::LedgeDist(l, lp) + fabsf(l.zmean - lp[2]);
+            if (d < best) { best = d; bk = l.id; }
+        }
+    ReleaseSRWLockShared(&g_thLock);
+    Log(1, "[Thor] jump from the pillar top: 2 s later Lara at %.0f %.0f %.0f rec %s, target T+0xa64 0x%08lx, nearest ledge edge %d "
+        "(%.0f u flat + height) \xf0\x9f\x94\xb6", static_cast<double>(lp[0]), static_cast<double>(lp[1]), static_cast<double>(lp[2]),
+        rec, tgt, bk, static_cast<double>(bk >= 0 ? best : -1.0f));
+}
+// every second the obstacles again; a moved (> 20 units), new or gone one rebuilds the map
 void ThObsTick(ThState &s, DWORD now) {
     if (now - s.obsAt < 1000) return;
     s.obsAt = now;
     static ThObs cur[kThObsMax];
     const int n = ThObsCollect(s, cur, kThObsMax);
     int moved = 0;
-    auto queue = [&](const float *p) {
-        for (int i = 0; i < s.nx * s.ny; ++i) {
-            const float cx = s.x0 + (i % s.nx + 0.5f) * kThCell - p[0], cy = s.y0 + (i / s.nx + 0.5f) * kThCell - p[1];
-            if (cx * cx + cy * cy <= 700.0f * 700.0f) s.reprobe[i] = 1;
-        }
-    };
     for (int a = 0; a < n; ++a) {            // new or moved
         int b = 0;
         while (b < s.obsN && !(s.obs[b].inst == cur[a].inst && s.obs[b].stamp == cur[a].stamp)) ++b;
         const float *old = b < s.obsN ? s.obs[b].pos : nullptr;
+        cur[a].ext = b < s.obsN ? s.obs[b].ext : 100.0f;
         const float dx = old ? cur[a].pos[0] - old[0] : 1e4f, dy = old ? cur[a].pos[1] - old[1] : 0.0f,
                     dz = old ? cur[a].pos[2] - old[2] : 0.0f;
         if (dx * dx + dy * dy + dz * dz <= 20.0f * 20.0f) continue;
         ++moved;
-        queue(cur[a].pos);
-        if (old) queue(old);
-        char ext[200];
-        ThObsExtent(cur[a], ext, sizeof(ext));   // 0.22.65 (S5 2)
+        char ext[220];
+        cur[a].ext = ThObsExtent(cur[a], ext, sizeof(ext));
         Log(1, "[Thor] obstacle %ld %s at %.0f %.0f %.0f%s %s", cur[a].intro, old ? "moved" : "new", static_cast<double>(cur[a].pos[0]),
             static_cast<double>(cur[a].pos[1]), static_cast<double>(cur[a].pos[2]), cur[a].breakable ? " (breakable)" : "", ext);
     }
@@ -57785,94 +58117,91 @@ void ThObsTick(ThState &s, DWORD now) {
         while (a < n && !(s.obs[b].inst == cur[a].inst && s.obs[b].stamp == cur[a].stamp)) ++a;
         if (a < n) continue;
         ++moved;
-        queue(s.obs[b].pos);
         Log(1, "[Thor] obstacle %ld gone", s.obs[b].intro);
     }
     memcpy(s.obs, cur, sizeof(ThObs) * static_cast<size_t>(n));
     s.obsN = n;
-    if (moved) { s.next = 0; s.phase = 3; }
+    if (moved) ThLaunch(s, "obstacle moved");
 }
 void ThTick() {                              // game frame
     ThState &s = g_th;
-    if (!g_thOn) { if (s.phase) { s.phase = 0; InterlockedExchange(&s.ready, 0); } return; }
+    if (!g_thOn) { if (s.phase) ThReset(); return; }
     if (!g_mdProbeOk || !InLevel()) return;
-    if (s.phase && tlobj::D(s.pillar + 0x44) != s.stamp) { s.phase = 0; InterlockedExchange(&s.ready, 0); }
-    static DWORD lastTry = 0;
+    if (s.phase && tlobj::D(s.pillar + 0x44) != s.stamp) ThReset();
     const DWORD now = GetTickCount();
     if (!s.phase) {
-        if (now - lastTry < 3000) return;
-        lastTry = now;
-        ThStart();
+        if (now - s.lastTry < 3000) return;
+        s.lastTry = now;
+        try {
+            ThStart();
+        } catch (...) {
+            Log(0, "[Thor] build: out of memory (caught) - no areas");
+            s.phase = 0;
+        }
         return;
     }
-    if (s.phase == 1) {
-        for (int k = 0; k < 300 && s.next < s.nx * s.ny; ++k, ++s.next) {
-            const int i = s.next;
-            const float cx = s.x0 + (i % s.nx + 0.5f) * kThCell, cy = s.y0 + (i / s.nx + 0.5f) * kThCell;
-            const float a[3] = {cx, cy, s.floorZ + 1700.0f}, b[3] = {cx, cy, s.floorZ - 300.0f};
+    if (s.phase == 1) {                      // the ray fallback: 1000 vertical rays per frame
+        const int nx = static_cast<int>(ceilf((s.box[1] - s.box[0]) / 25.0f));
+        const int total = static_cast<int>(s.rayTop.size());
+        for (int k = 0; k < 1000 && s.rayNext < total; ++k, ++s.rayNext) {
+            const int i = s.rayNext;
+            const float cx = s.box[0] + (static_cast<float>(i % nx) + 0.5f) * 25.0f, cy = s.box[2] + (static_cast<float>(i / nx) + 0.5f) * 25.0f;
+            const float a[3] = {cx, cy, s.floorZ + 1450.0f}, b[3] = {cx, cy, s.floorZ - 60.0f};
             float hit[3];
-            BYTE f = 0;
-            DWORD words[4];
-            if (MdProbe(a, b, hit, s.pillar, words)) {
-                const float dz = fabsf(hit[2] - s.floorZ);
-                f = dz <= 6.0f ? 1 : dz <= 130.0f ? 2 : 0;   // 0.22.63 (S3 5): strict = R8b's 6 units (was 20)
-            }
-            ThNoteHit(s, i, words);
-            s.floorCls[i] = f;
+            if (MdProbe(a, b, hit, s.pillar)) s.rayTop[static_cast<size_t>(i)] = hit[2];
         }
-        if (s.next >= s.nx * s.ny) { memset(s.reprobe, 0, sizeof(s.reprobe)); ThFinish(); }
+        if (s.rayNext >= total) { s.phase = 2; ThLaunch(s, "build (rays)"); }
         return;
     }
-    if (s.phase == 3) {                      // 0.22.63 (S3 5): only the queued cells round moved obstacles
-        int done = 0;
-        for (; s.next < s.nx * s.ny && done < 300; ++s.next) {
-            const int i = s.next;
-            if (!s.reprobe[i]) continue;
-            s.reprobe[i] = 0;
-            ++done;
-            const float cx = s.x0 + (i % s.nx + 0.5f) * kThCell, cy = s.y0 + (i / s.nx + 0.5f) * kThCell;
-            const float a[3] = {cx, cy, s.floorZ + 1700.0f}, b[3] = {cx, cy, s.floorZ - 300.0f};
-            float hit[3];
-            BYTE f = 0;
-            DWORD words[4];
-            if (MdProbe(a, b, hit, s.pillar, words)) {
-                const float dz = fabsf(hit[2] - s.floorZ);
-                f = dz <= 6.0f ? 1 : dz <= 130.0f ? 2 : 0;
-            }
-            ThNoteHit(s, i, words);
-            s.floorCls[i] = f;
+    float p[3];                              // phase 2: the pillar now, its track, push ends, obstacles, rebuilds
+    if (ReadFloats(s.pillar + kInstancePosition, p, 3)) {
+        memcpy(s.pos, p, sizeof(p));
+        const LONG n = s.trackN;
+        const float *last = n ? s.track[(n - 1) % kThTrackMax] : nullptr;
+        if (!last || (p[0] - last[0]) * (p[0] - last[0]) + (p[1] - last[1]) * (p[1] - last[1]) > 25.0f * 25.0f) {
+            s.track[n % kThTrackMax][0] = p[0];
+            s.track[n % kThTrackMax][1] = p[1];
+            InterlockedExchange(&s.trackN, n + 1);
         }
-        if (s.next >= s.nx * s.ny) ThFinish();
-        return;
+    }
+    if (!s.meshChecked && !s.busy && s.mesh) {   // a mesh with no surface under the pillar -> rays
+        AcquireSRWLockShared(&g_thLock);
+        const int i = g_thView ? g_thView->R.startFrom : -2;
+        const float r = g_thView && i >= 0 ? g_thView->R.Rise(i) : 0.0f;
+        ReleaseSRWLockShared(&g_thLock);
+        if (i != -2) {
+            s.meshChecked = true;
+            if (i < 0 || r > 1e29f || fabsf(r) > static_cast<float>(g_thStep) + 20.0f) {
+                Log(0, "[Thor] MISMATCH the mesh puts %s under the pillar (cell %d) - rays instead \xf0\x9f\x94\xb6",
+                    i < 0 ? "no cell" : r > 1e29f ? "no surface" : "another height", i);
+                s.mesh = false;
+                s.faces.clear();
+                const int nx = static_cast<int>(ceilf((s.box[1] - s.box[0]) / 25.0f)), ny = static_cast<int>(ceilf((s.box[3] - s.box[2]) / 25.0f));
+                s.rayTop.assign(static_cast<size_t>(nx) * static_cast<size_t>(ny), -1e30f);
+                s.rayNext = 0;
+                s.phase = 1;
+                return;
+            }
+            Log(1, "[Thor] mesh check: the cell under the pillar has rise %.1f (floor) - mesh kept", static_cast<double>(r));
+        }
+    }
+    if (InterlockedExchange(&s.pushEnd, 0)) {
+        ThPillarLine(s);
+        ThLaunch(s, "[Push] end");
     }
     ThObsTick(s, now);
-    if (s.phase != 2) return;
-    // done: the pillar's state changes into the log
-    float p[3], dist[kThKinds], to[3];
-    if (!ReadFloats(s.pillar + kInstancePosition, p, 3)) return;
-    memcpy(s.centre, p, sizeof(p));
-    const int st = ThPillarState(p, dist, to);
-    if (st != s.lastState) {
-        char t[200] = "";
-        size_t used = 0;
-        for (int k = 0; k < kThKinds; ++k)
-            LabelAdd(t, sizeof(t), &used, "%s%s %s", used ? ", " : "", kThEn[k], ((st >> k) & 1) && st > 0 ? "in" :
-                     dist[k] < 0.0f ? "none" : "out");
-        Log(1, "[Thor] pillar at %.0f %.0f %.0f: %s", static_cast<double>(p[0]), static_cast<double>(p[1]),
-            static_cast<double>(p[2]), st < 0 ? "outside the grid" : t);
-        s.lastState = st;
-    }
+    ThJumpFollow(s, now);
+    if (s.rebuild && !s.busy) ThLaunch(s, s.reason);
 }
-bool ThReady() { return g_th.ready != 0; }
+bool ThReady() { return g_thView != nullptr; }
 void ValThor(char *o, size_t n) {
-    Out(o, n, "%ld (%s, gap %d)", static_cast<LONG>(g_thOn), g_th.phase == 2 ? "areas ready" : g_th.phase == 1 ? "building"
-        : "idle / no pillar", g_thGap);
+    Out(o, n, "%ld (%s, gap %d, step %d, foot %d)", static_cast<LONG>(g_thOn), g_thView ? "areas ready" : g_th.phase == 1 ?
+        "rays" : g_th.phase == 2 ? "building" : "idle / no pillar", g_thGap, g_thStep, g_thFoot);
 }
 bool RunThor(const char *arg, char *o, size_t n) {
     const bool on = BoolArg(arg, g_thOn != 0);
     InterlockedExchange(&g_thOn, on ? 1 : 0);
-    g_th.phase = 0;
-    InterlockedExchange(&g_th.ready, 0);
+    ThReset();
     Log(1, "puzzle.thor %d (src=%s)", on ? 1 : 0, ShotSource("puzzle.thor"));
     Out(o, n, "puzzle.thor %d%s", on ? 1 : 0, on ? " (areas build within a few seconds where the Thor pillar is loaded)" : "");
     return true;
@@ -57881,91 +58210,248 @@ void ValThorLoose(char *o, size_t n) { Out(o, n, "%ld", static_cast<LONG>(g_thLo
 bool RunThorLoose(const char *arg, char *o, size_t n) {
     const bool on = BoolArg(arg, g_thLoose != 0);
     InterlockedExchange(&g_thLoose, on ? 1 : 0);
-    Log(1, "puzzle.thorloose %d (src=%s): relaxed cells (|dz| <= 130) %s", on ? 1 : 0, ShotSource("puzzle.thorloose"),
-        on ? "drawn as thin lines (state / arrow / log stay strict)" : "hidden");
+    Log(1, "puzzle.thorloose %d (src=%s): the outline of all reachable cells %s", on ? 1 : 0, ShotSource("puzzle.thorloose"),
+        on ? "drawn (thin white)" : "hidden");
     Out(o, n, "puzzle.thorloose %d", on ? 1 : 0);
     return true;
 }
+void ValThorMap(char *o, size_t n) { Out(o, n, "%ld", static_cast<LONG>(g_thMap)); }
+bool RunThorMap(const char *arg, char *o, size_t n) {
+    const bool on = BoolArg(arg, g_thMap != 0);
+    InterlockedExchange(&g_thMap, on ? 1 : 0);
+    Log(1, "puzzle.thormap %d (src=%s): height tiles of 100 u %s", on ? 1 : 0, ShotSource("puzzle.thormap"), on ? "drawn" : "hidden");
+    Out(o, n, "puzzle.thormap %d", on ? 1 : 0);
+    return true;
+}
+void ValThorDirect(char *o, size_t n) { Out(o, n, "%ld", static_cast<LONG>(g_thDirect)); }
+bool RunThorDirect(const char *arg, char *o, size_t n) {
+    const bool on = BoolArg(arg, g_thDirect != 0);
+    InterlockedExchange(&g_thDirect, on ? 1 : 0);
+    IniKeepInt("Puzzle", "ThorGalleryDirect", on ? 1 : 0);
+    ThReset();
+    Log(1, "puzzle.thordirect %d (src=%s): galleries direct from the top %s", on ? 1 : 0, ShotSource("puzzle.thordirect"),
+        on ? "drawn dashed (rise ~800 unproven)" : "not drawn");
+    Out(o, n, "puzzle.thordirect %d ([Puzzle] ThorGalleryDirect written; the areas rebuild)", on ? 1 : 0);
+    return true;
+}
+bool ThIntArg(const char *arg, long lo, long hi, long *v) {
+    char *end = nullptr;
+    *v = arg ? strtol(arg, &end, 10) : 0;
+    return arg && arg[0] && end && !*end && *v >= lo && *v <= hi;
+}
 void ValThorGap(char *o, size_t n) { Out(o, n, "%d units (%.2f m)", g_thGap, static_cast<double>(g_thGap / kUnitsPerMetre)); }
 bool RunThorGap(const char *arg, char *o, size_t n) {
-    char *end = nullptr;
-    const long v = arg ? strtol(arg, &end, 10) : 0;
-    if (!arg || !arg[0] || !end || *end || v < 100 || v > 3000) { Out(o, n, "usage: puzzle.thorgap <100 .. 3000 units>"); return false; }
+    long v = 0;
+    if (!ThIntArg(arg, 100, 3000, &v)) { Out(o, n, "usage: puzzle.thorgap <100 .. 3000 units>"); return false; }
     g_thGap = static_cast<int>(v);
     IniKeepInt("Puzzle", "ThorGap", g_thGap);
-    g_th.phase = 0;                          // rebuild
-    InterlockedExchange(&g_th.ready, 0);
+    ThReset();                               // rebuild
     Out(o, n, "puzzle.thorgap %d ([Puzzle] ThorGap written; the areas rebuild)", g_thGap);
     return true;
 }
-// render thread (debug view): area outlines on the floor, the pillar's circle, its state and the arrow
-void ThDraw(ImDrawList *dl, const DvCam &c) {
-    ThState &s = g_th;
-    if (!s.ready) return;
-    const float z = s.floorZ + 6.0f;
-    // 0.22.63 (S3 5): the strict areas thick; the relaxed ones thin only with puzzle.thorloose
-    const bool loose = g_thLoose != 0;
-    for (int pass = 0; pass < (loose ? 2 : 1); ++pass) {
-        const BYTE *set = pass == 0 ? s.inStrict : s.inRelaxed;
-        for (int i = 0; i < s.nx * s.ny; ++i) {
-            const BYTE m = set[i];
-            if (!m) continue;
-            const int ix = i % s.nx, iy = i / s.nx;
-            const float x0 = s.x0 + ix * kThCell, y0 = s.y0 + iy * kThCell, x1 = x0 + kThCell, y1 = y0 + kThCell;
-            const int nb[4] = {ix > 0 ? i - 1 : -1, ix + 1 < s.nx ? i + 1 : -1, iy > 0 ? i - s.nx : -1, iy + 1 < s.ny ? i + s.nx : -1};
-            const float e[4][4] = {{x0, y0, x0, y1}, {x1, y0, x1, y1}, {x0, y0, x1, y0}, {x0, y1, x1, y1}};
-            for (int k = 0; k < kThKinds; ++k) {
-                if (!((m >> k) & 1)) continue;
-                for (int q = 0; q < 4; ++q) {
-                    if (nb[q] >= 0 && ((set[nb[q]] >> k) & 1)) continue;
-                    const float a[3] = {e[q][0], e[q][1], z + 3.0f * k}, b[3] = {e[q][2], e[q][3], z + 3.0f * k};
-                    DvLine(dl, c, a, b, kThCol[k], pass == 0 ? 3.0f : 1.0f);
-                }
-            }
-        }
+void ValThorStep(char *o, size_t n) { Out(o, n, "%d units", g_thStep); }
+bool RunThorStep(const char *arg, char *o, size_t n) {
+    long v = 0;
+    if (!ThIntArg(arg, 1, 200, &v)) { Out(o, n, "usage: puzzle.thorstep <1 .. 200 units>"); return false; }
+    g_thStep = static_cast<int>(v);
+    IniKeepInt("Puzzle", "ThorStep", g_thStep);
+    ThReset();
+    Out(o, n, "puzzle.thorstep %d ([Puzzle] ThorStep written; the areas rebuild)", g_thStep);
+    return true;
+}
+void ValThorFoot(char *o, size_t n) { Out(o, n, "%d units (%.2f m)", g_thFoot, static_cast<double>(g_thFoot / kUnitsPerMetre)); }
+bool RunThorFoot(const char *arg, char *o, size_t n) {
+    long v = 0;
+    if (!ThIntArg(arg, 50, 800, &v)) { Out(o, n, "usage: puzzle.thorfoot <50 .. 800 units>"); return false; }
+    g_thFoot = static_cast<int>(v);
+    IniKeepInt("Puzzle", "ThorFoot", g_thFoot);
+    ThReset();
+    Out(o, n, "puzzle.thorfoot %d ([Puzzle] ThorFoot written; the areas rebuild)", g_thFoot);
+    return true;
+}
+// render thread (debug view)
+void ThCircle(ImDrawList *dl, const DvCam &c, const float *p, float r, ImU32 col, float thick) {
+    float prev[3] = {p[0] + r, p[1], p[2]};
+    for (int k = 1; k <= 40; ++k) {
+        const float a = 6.2831853f * static_cast<float>(k) / 40.0f, q[3] = {p[0] + r * cosf(a), p[1] + r * sinf(a), p[2]};
+        DvLine(dl, c, prev, q, col, thick);
+        memcpy(prev, q, sizeof(q));
     }
-    for (int q = 0; q < s.obsN; ++q) {       // 0.22.63: obstacles as grey crosses
-        const float *o = s.obs[q].pos;
-        const float a1[3] = {o[0] - 80.0f, o[1] - 80.0f, s.floorZ + 10.0f}, b1[3] = {o[0] + 80.0f, o[1] + 80.0f, s.floorZ + 10.0f};
-        const float a2[3] = {o[0] - 80.0f, o[1] + 80.0f, s.floorZ + 10.0f}, b2[3] = {o[0] + 80.0f, o[1] - 80.0f, s.floorZ + 10.0f};
+}
+void ThText(ImDrawList *dl, ImVec2 at, int row, ImU32 col, const char *line) {
+    ImFont *font = ImGui::GetFont();
+    const float size = ImGui::GetFontSize();
+    const ImVec2 sz = font->CalcTextSizeA(size, FLT_MAX, 0.0f, line);
+    const ImVec2 o(at.x - sz.x * 0.5f, at.y + static_cast<float>(row) * (sz.y + 2.0f));
+    dl->AddRectFilled(ImVec2(o.x - 3, o.y), ImVec2(o.x + sz.x + 3, o.y + sz.y), IM_COL32(0, 0, 0, 165), 3.0f);
+    dl->AddText(font, size, o, col, line);
+}
+void ThDrawView(ImDrawList *dl, const DvCam &c, const ThView &v) {
+    const thorcore::Result &R = v.R;
+    const bool de = g_qbLang == 0;
+    const float z = R.P.floorZ + 6.0f;
+    const ThState &s = g_th;
+    if (g_thMap)                             // height tiles (only round the pillar)
+        for (const ThTile &t : v.tiles) {
+            const float dx = t.x + 50.0f - s.pos[0], dy = t.y + 50.0f - s.pos[1];
+            if (dx * dx + dy * dy > 3500.0f * 3500.0f) continue;
+            const float w[4][3] = {{t.x, t.y, z}, {t.x + 100.0f, t.y, z}, {t.x + 100.0f, t.y + 100.0f, z}, {t.x, t.y + 100.0f, z}};
+            ImVec2 sp[4];
+            bool ok = true;
+            for (int k = 0; k < 4 && ok; ++k) {
+                float q[3];
+                DvToCam(c, w[k], q);
+                ok = DvCamToScreen(c, q, &sp[k]);
+            }
+            if (ok) dl->AddQuadFilled(sp[0], sp[1], sp[2], sp[3], t.col);
+        }
+    for (const ThSeg &g : v.segs) {
+        ImU32 col = kThGrey;
+        float thick = 1.5f;
+        bool dash = false;
+        if (g.layer < 3) {
+            col = kThCol[g.layer];
+            const int a = g.layer == thorcore::kArtA ? 0 : g.layer == thorcore::kArtB ? 1 : -1;
+            if (a >= 0 && a < v.arts && !v.art[a].born) col = (col & 0x00ffffff) | 0x90000000;   // collected: dimmed
+            thick = 3.0f;
+        } else if (g.layer < 6) {
+            col = kThCol[g.layer - 3];
+            thick = 2.0f;
+            dash = true;
+        } else if (g.layer == 7) {
+            if (!g_thLoose) continue;
+            col = IM_COL32(255, 255, 255, 150);
+            thick = 1.0f;
+        } else if (g.layer == 8) {
+            col = IM_COL32(200, 200, 200, 230);
+            thick = 2.5f;
+        }
+        const float a[3] = {g.a[0], g.a[1], z + (g.layer < 3 ? 3.0f * static_cast<float>(g.layer) : 0.0f)};
+        const float b[3] = {g.b[0], g.b[1], a[2]};
+        g_dvDashed = dash;
+        DvLine(dl, c, a, b, col, thick);
+        g_dvDashed = false;
+    }
+    for (const thorcore::Ledge &l : v.L) {   // the rings in their target's colour, with a name
+        if (!l.closed || !l.target) continue;
+        const ImU32 col = l.kind >= 0 ? kThCol[l.kind] : kThGrey;
+        for (int i = 0; i < l.n; ++i) DvLine(dl, c, l.pts[i], l.pts[(i + 1) % l.n], col, 2.5f);
+        float rc[2];
+        ThRingCentre(l, rc);
+        const float top[3] = {rc[0], rc[1], l.zmean + 150.0f};
+        float q[3];
+        ImVec2 at;
+        DvToCam(c, top, q);
+        if (!DvCamToScreen(c, q, &at)) continue;
+        char nm[40], to[96], line[160];
+        ThRingName(v, l, de, nm, sizeof(nm));
+        ThKindName(v, l.kind, de, to, sizeof(to));
+        Out(line, sizeof(line), "%s -> %s", nm, to);
+        ThText(dl, at, 0, col, line);
+    }
+    for (int k = 0; k < thorcore::kKinds; ++k) {   // targets without a reachable area: grey text at their gallery
+        if (v.kindReach[k] || !v.kindKnown[k]) continue;
+        const float at3[3] = {v.kindAt[k][0], v.kindAt[k][1], v.kindAt[k][2] + 120.0f};
+        float q[3];
+        ImVec2 at;
+        DvToCam(c, at3, q);
+        if (!DvCamToScreen(c, q, &at)) continue;
+        char to[96], line[200];
+        ThKindName(v, k, de, to, sizeof(to));
+        Out(line, sizeof(line), de ? "%s: von der S\303\244ule nicht erreichbar" : "%s: not reachable from the pillar", to);
+        ThText(dl, at, 0, kThGrey, line);
+    }
+    for (int q = 0; q < s.obsN; ++q) {       // obstacles: grey crosses of their disc
+        const float *o = s.obs[q].pos, e = s.obs[q].ext * 0.7f;
+        const float a1[3] = {o[0] - e, o[1] - e, z + 4.0f}, b1[3] = {o[0] + e, o[1] + e, z + 4.0f};
+        const float a2[3] = {o[0] - e, o[1] + e, z + 4.0f}, b2[3] = {o[0] + e, o[1] - e, z + 4.0f};
         DvLine(dl, c, a1, b1, IM_COL32(170, 170, 170, 230), 2.0f);
         DvLine(dl, c, a2, b2, IM_COL32(170, 170, 170, 230), 2.0f);
     }
-    float p[3] = {s.centre[0], s.centre[1], s.floorZ + 8.0f};   // pillar circle (552)
-    float prev[3] = {p[0] + 552.0f, p[1], p[2]};
-    for (int k = 1; k <= 32; ++k) {
-        const float a = 6.2831853f * k / 32.0f, q[3] = {p[0] + 552.0f * cosf(a), p[1] + 552.0f * sinf(a), p[2]};
-        DvLine(dl, c, prev, q, IM_COL32(255, 255, 255, 230), 2.0f);
-        memcpy(prev, q, sizeof(q));
+    const LONG tn = s.trackN;                // the pillar's track (dotted)
+    for (LONG k = tn > kThTrackMax ? tn - kThTrackMax : 0; k + 1 < tn; k += 2) {
+        const float *a = s.track[k % kThTrackMax], *b = s.track[(k + 1) % kThTrackMax];
+        const float a3[3] = {a[0], a[1], z + 2.0f}, b3[3] = {(a[0] + b[0]) * 0.5f, (a[1] + b[1]) * 0.5f, z + 2.0f};
+        DvLine(dl, c, a3, b3, IM_COL32(255, 255, 255, 200), 2.0f);
     }
-    float dist[kThKinds], to[3];
-    const int st = ThPillarState(p, dist, to);
-    if (st <= 0 && (to[0] != p[0] || to[1] != p[1])) {   // arrow to the nearest valid cell
-        const float t3[3] = {to[0], to[1], p[2]};
-        DvLine(dl, c, p, t3, IM_COL32(255, 255, 255, 255), 2.5f);
-        M20Diamond(dl, c, t3, 25.0f, IM_COL32(255, 255, 255, 255), 2.0f);
+    const float p[3] = {s.pos[0], s.pos[1], R.P.floorZ + 8.0f};
+    ThCircle(dl, c, p, R.P.foot, IM_COL32(255, 255, 255, 230), 2.0f);
+    ThCircle(dl, c, p, R.P.head, IM_COL32(255, 230, 60, 200), 1.5f);
+    // the state lines above the pillar
+    const int i = R.Index(p[0], p[1]);
+    int best = -1;                           // the nearest cell of any area
+    float bd = 1e30f;
+    for (const int k : v.areaCells) {
+        const float dx = R.Cx(k) - p[0], dy = R.Cy(k) - p[1], d = dx * dx + dy * dy;
+        if (d < bd) { bd = d; best = k; }
     }
-    const float top[3] = {p[0], p[1], s.floorZ + 1500.0f};
+    const float top[3] = {p[0], p[1], R.P.floorZ + 1500.0f};
     float q[3];
     ImVec2 at;
     DvToCam(c, top, q);
     if (!DvCamToScreen(c, q, &at)) return;
-    const bool de = g_qbLang == 0;
-    ImFont *font = ImGui::GetFont();
-    const float size = ImGui::GetFontSize();
-    for (int k = 0; k < kThKinds; ++k) {
-        char line[96];
-        if (st > 0 && ((st >> k) & 1)) Out(line, sizeof(line), "%s: %s", de ? kThDe[k] : kThEn[k], de ? "im Bereich" : "in the area");
-        else if (dist[k] >= 0.0f) Out(line, sizeof(line), de ? "%s: %.1f m daneben" : "%s: %.1f m off", de ? kThDe[k] : kThEn[k],
-                                      static_cast<double>(dist[k]));
-        else Out(line, sizeof(line), "%s: -", de ? kThDe[k] : kThEn[k]);
-        const int ai = k == kThArtA ? 0 : k == kThArtB ? 1 : -1;   // 0.22.63: an unborn artifact = collected (?)
-        if (ai >= 0 && ai < s.arts && !s.art[ai].born) strncat_s(line, sizeof(line), de ? " (gefunden?)" : " (collected?)", _TRUNCATE);
-        const ImVec2 sz = font->CalcTextSizeA(size, FLT_MAX, 0.0f, line);
-        const ImVec2 o(at.x - sz.x * 0.5f, at.y + k * (sz.y + 2.0f));
-        dl->AddRectFilled(ImVec2(o.x - 3, o.y), ImVec2(o.x + sz.x + 3, o.y + sz.y), IM_COL32(0, 0, 0, 165), 3.0f);
-        dl->AddText(font, size, o, kThCol[k], line);
+    int row = 0;
+    char line[220], nm[40], to[96];
+    auto areaText = [&](int cell, char *o, size_t n, ImU32 *col) {   // "Ring NO -> Artefakt A (D 2.0 m)" of a cell
+        o[0] = 0;
+        size_t used = 0;
+        *col = kThGrey;
+        const float cp[3] = {R.Cx(cell), R.Cy(cell), 0.0f};
+        for (size_t r = 0; r < R.rings.size(); ++r) {
+            if (!((R.ringMask[static_cast<size_t>(cell)] >> r) & 1)) continue;
+            const thorcore::Ledge &l = v.L[static_cast<size_t>(R.rings[r])];
+            ThRingName(v, l, de, nm, sizeof(nm));
+            ThKindName(v, l.kind, de, to, sizeof(to));
+            LabelAdd(o, n, &used, "%s%s -> %s (D %.1f m)", used ? ", " : "", nm, to,
+                     static_cast<double>((thorcore::LedgeDist(l, cell == i ? p : cp) - R.P.head) / kUnitsPerMetre));
+            if (l.kind >= 0) *col = kThCol[l.kind];
+        }
+        for (int k = 0; k < thorcore::kKinds; ++k)
+            if ((R.galMask[static_cast<size_t>(cell)] >> k) & 1) {
+                ThKindName(v, k, de, to, sizeof(to));
+                LabelAdd(o, n, &used, "%s%s %s", used ? ", " : "", to, de ? "(direkt, unbelegt)" : "(direct, unproven)");
+                if (*col == kThGrey) *col = kThCol[k];
+            }
+    };
+    ImU32 col = kThGrey;
+    char area[200];
+    if (i >= 0 && (R.ringMask[static_cast<size_t>(i)] || R.galMask[static_cast<size_t>(i)])) {
+        areaText(i, area, sizeof(area), &col);
+        Out(line, sizeof(line), de ? "S\303\244ule in Fl\303\244che %s" : "pillar in the area %s", area);
+        ThText(dl, at, row++, col, line);
+    } else if (best >= 0) {
+        areaText(best, area, sizeof(area), &col);
+        const float dx = R.Cx(best) - p[0], dy = R.Cy(best) - p[1];
+        const bool free = i >= 0 && R.reach[static_cast<size_t>(i)];
+        Out(line, sizeof(line), de ? "n\303\244chste Fl\303\244che %s: %.1f m nach %s, %s" : "next area %s: %.1f m %s, %s", area,
+            static_cast<double>(sqrtf(dx * dx + dy * dy) / kUnitsPerMetre), ThCompass(dx, dy, de, false),
+            free ? (de ? "Weg frei" : "way free") : (de ? "S\303\244ule nicht im erreichbaren Bereich" : "pillar not in the reachable part"));
+        ThText(dl, at, row++, col, line);
+        const float t3[3] = {R.Cx(best), R.Cy(best), p[2]};   // arrow to it
+        DvLine(dl, c, p, t3, IM_COL32(255, 255, 255, 255), 2.5f);
+        M20Diamond(dl, c, t3, 25.0f, IM_COL32(255, 255, 255, 255), 2.0f);
+    } else {
+        ThText(dl, at, row++, kThGrey, de ? "keine erreichbare Fl\303\244che" : "no reachable area");
     }
+    if (i >= 0 && R.dist[static_cast<size_t>(i)] < R.P.foot + 40.0f) {   // at a limit
+        float d = 0.0f;
+        const int nb = R.NearestBlocked(p[0], p[1], R.P.foot + 200.0f, &d);
+        if (nb >= 0) {
+            const float h = R.Rise(nb);
+            char hs[40];
+            if (h > 1e29f) Out(hs, sizeof(hs), "%s", de ? "Loch" : "hole");
+            else Out(hs, sizeof(hs), de ? "H\303\266he %.1f m" : "height %.1f m", static_cast<double>(h / kUnitsPerMetre));
+            Out(line, sizeof(line), de ? "S\303\244ule kann hier nicht weiter (Hindernis %.1f m, %s)" : "the pillar cannot go on here "
+                "(obstacle %.1f m, %s)", static_cast<double>((d - R.P.foot) / kUnitsPerMetre), hs);
+            ThText(dl, at, row++, IM_COL32(255, 200, 120, 255), line);
+        }
+    }
+    if (!v.mesh) ThText(dl, at, row, kThGrey, de ? "(Gel\303\244nde aus Strahlen)" : "(terrain from rays)");
+}
+void ThDraw(ImDrawList *dl, const DvCam &c) {
+    AcquireSRWLockShared(&g_thLock);
+    if (g_thView) ThDrawView(dl, c, *g_thView);
+    ReleaseSRWLockShared(&g_thLock);
 }
 // ---- state log + switch learning (every 250 ms in a level) ----
 struct PzWatch { DWORD b, stamp; LONG intro, node; DWORD trans; };
@@ -61243,6 +61729,10 @@ void ReadOptions(const char *dir) {
         if (!g_phFile[0] || strpbrk(g_phFile, "\\/:<>\"|?*")) strcpy_s(g_phFile, sizeof(g_phFile), "TruMenu.puzzlehints.txt");
         const int gap = OptInt(ini, "Puzzle", "ThorGap");   // 0.22.61 (R1c 1)
         g_thGap = gap < 100 ? 100 : gap > 3000 ? 3000 : gap;
+        const int step = OptInt(ini, "Puzzle", "ThorStep"), foot = OptInt(ini, "Puzzle", "ThorFoot");   // 0.22.68 (B2 1)
+        g_thStep = step < 1 ? 1 : step > 200 ? 200 : step;
+        g_thFoot = foot < 50 ? 50 : foot > 800 ? 800 : foot;
+        InterlockedExchange(&g_thDirect, OptInt(ini, "Puzzle", "ThorGalleryDirect") != 0 ? 1 : 0);
     }
     InterlockedExchange(&g_dgLive, OptInt(ini, "Costume", "DoppelLive") != 0 ? 1 : 0);   // 0.22.58 (857 option B): default 0
     InterlockedExchange(&g_lsWant, OptInt(ini, "Light", "Stable") != 0 ? 1 : 0);   // 0.22.5: default on (end-cutscene flicker)

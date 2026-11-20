@@ -2928,6 +2928,53 @@ Reihenfolge fest (Flacker-Test)".
   combos as set now (e.g. `LB + View = weiter . RB + View = 1 Bild . LB + RB + View = Foto`), built from the INI values,
   so it follows any change.
 
+## 0.22.68 - build B2: Thor pillar reach from the terrain mesh (2026-11-20)
+
+Package B2 of the owner's queue (workspace `docs/Pakete-2111.md` row 6; specs in the analyses A2 / A3 / A4 of
+2026-11-20). Not installed (0.22.65 stays in the game until the owner's test).
+
+- **(1) `puzzle.thor` rebuilt** (A3, ENGINE 9 "Thor pillar reach from the terrain mesh (A3)"): the pure rules sit in
+  `TruThorCore.h` (no game access), run on a background thread:
+  - **terrain**: the TerrainGroup collision meshes of the pillar's unit (stream table +8 Level, Level+0 -> terrain,
+    groups +0x0c / +0x10, group +0x38 -> mesh: position +0x20, vertices +0x30, faces +0x34, counts +0x44 / +0x48),
+    copied on the game thread (faces touching floor - 60 .. floor + 1450, at most 8800 round the pillar). Every face
+    index is checked against the vertex count; a bad index, no mesh or no surface under the pillar = **vertical rays
+    per 25-unit cell** (floor + 1450 down to floor - 60) instead, marked "(terrain from rays)".
+  - **rule** (port of `work/a3_2011/reach_map.py`): every face sampled at <= 10 units, the highest point per 25-unit
+    cell; a cell is blocked when it rises more than `[Puzzle] ThorStep` (10) above the floor, has no surface or lies
+    inside an obstacle disc (breakables / bodies of the unit with the extent of the four 0.22.65 rays, default 100);
+    a centre is valid when the nearest blocked cell is farther than `[Puzzle] ThorFoot` (290); reachable = 8-neighbour
+    flood fill from the pillar (from the nearest valid cell within 50 units when it stands on an invalid one, with a
+    MISMATCH line). Again at every `[Push] end` of the pillar and when an obstacle moves.
+  - **targets**: unit markup ledges 1700 .. 2200 above the floor (rings = closed loops, galleries = open ledges chained
+    as before; a gallery within 1500 / height 150 of an artifact is that artifact's, the one nearest a unit trigger the
+    exit, a left-over joins the nearest assigned gallery at its height within 3000) and 1700 .. 2800 for the **next
+    edge of a ring** (flat gap <= 900, rise 0 .. 500): an artifact gallery -> that artifact, any other edge -> the exit.
+    Areas = reachable cells with D = flat distance to the ring - 552 <= `ThorGap` (600). Galleries direct (rise ~800
+    over the top, unproven) only with `[Puzzle] ThorGalleryDirect` 1 (`puzzle.thordirect`), dashed.
+  - **drawn**: the areas in their target's colour (exit red, artifact A green, B blue; collected dimmed; a ring
+    without a next target grey), valid but unreachable cells grey, the rings in their target's colour with "Ring NO ->
+    Artefakt A (Ost)", a target without a reachable area as grey text at its gallery ("... von der Saeule nicht
+    erreichbar"), foot circle 290 white, head ring 552 yellow, the pillar's track dotted, obstacles as crosses of their
+    disc; above the pillar "Saeule in Flaeche Ring W -> Ausgang (D 2.0 m)" / "naechste Flaeche ...: 3.2 m nach Nordost,
+    Weg frei" / "Saeule kann hier nicht weiter (Hindernis 0.1 m, Hoehe 1.4 m)". `puzzle.thormap`: height tiles of 100
+    units (green <= 6, yellow 6 .. 20, red > 20; > 300 not drawn), `puzzle.thorloose`: the outline of all reachable
+    cells. Compass names assume +y = north (unproven).
+  - **log**: `[Thor] terrain` (groups, meshes, faces, source, grid, rise bands), `[Thor] reach from`, one `[Thor]
+    target` line per ring / gallery (next edge, gap, rise, reachable cells, bbox, min D), `[Thor] pillar at` at every
+    push end (cell rise, nearest blocked cell, valid / reachable, the areas it is in), `[Thor] MISMATCH`, `[Thor] foot`
+    (4 rays at floor + 100 / + 700 against the pillar), `[Thor] jump from the pillar top` + the follow-up 2 s later.
+  - **offline check**: `selftest/TruThorCoreTest.cpp` on the faces of the unit file (`work/b2_2011/thor_dump.py`):
+    the A3 numbers again (2203 faces, the same rise bands, 14190 valid / 5710 reachable at foot 285; 5614 at 290) and
+    both proven spots pass - exit spot (-11986, 2484) reachable in the area of ring W982 -> exit, artifact spot
+    (-10625, 3940) in the area of ring NE981 -> artifact A (negative case foot 325: the exit spot fails).
+  - Items `puzzle.thorstep` / `puzzle.thorfoot` (int) / `puzzle.thordirect` / `puzzle.thormap` (bool), bar rows under
+    "Puzzle displays", INI keys `[Puzzle] ThorStep=10`, `ThorFoot=290`, `ThorGalleryDirect=0`.
+
+### TO TEST 0.22.68
+
+- workspace `docs/Testanleitung-B2-2011.md`.
+
 ## 0.22.67 - build B1: reload guard after a costume switch, one-press villa switches, pull-out doors, evidence logs (2026-11-20)
 
 Package B1 of the owner's queue (workspace `docs/Pakete-2111.md` row 5; specs in the analyses A1 / A2 / A4 of

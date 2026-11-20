@@ -5479,12 +5479,14 @@ def check_02244(switches_path):
     # the three [Sonar] keys, 0.22.49 [Sonar] AllFloors + TriangleCap, 0.22.50 the 11 [Sound] keys of W8_KEYS_02250,
     # 0.22.51 the three keys of S5_KEYS_02251, 0.22.53 the six keys of W11_KEYS_02253, 0.22.54 [Sound] ResetAtStart,
     # 0.22.55 [Cheat] FlightKeepOnLoad, 0.22.58 [Chapter] UnitFresh + [Costume] DoppelLive, 0.22.59 [Puzzle] Help + HintFile,
-    # 0.22.61 [Puzzle] ThorGap, 0.22.62 [Puzzle] Hints + Actions for Help (net 1), 0.22.66 [Sonar] KeepView
+    # 0.22.61 [Puzzle] ThorGap, 0.22.62 [Puzzle] Hints + Actions for Help (net 1), 0.22.66 [Sonar] KeepView, 0.22.68 [Puzzle]
+    # ThorStep + ThorFoot + ThorGalleryDirect
     if len(opt_rows) != 283 + len(W6_KEYS_02245) + len(W7_KEYS_02247) + len(SO_KEYS_02248) + 2 + len(W8_KEYS_02250) + \
-            len(S5_KEYS_02251) + len(W11_KEYS_02253) + 1 + 1 + 2 + 2 + 1 + 1 + 1:
+            len(S5_KEYS_02251) + len(W11_KEYS_02253) + 1 + 1 + 2 + 2 + 1 + 1 + 1 + 3:
         problems.append('TruMenu.cpp: kOpts has %d keys - 0.22.44 adds no INI key (283), 0.22.45 adds %d, 0.22.47 adds %d, '
                         '0.22.48 adds %d, 0.22.49 adds 2, 0.22.50 adds %d, 0.22.51 adds %d, 0.22.53 adds %d, 0.22.54 adds 1, '
-                        '0.22.55 adds 1, 0.22.58 adds 2, 0.22.59 adds 2, 0.22.61 adds 1, 0.22.62 adds 1, 0.22.66 adds 1' % (
+                        '0.22.55 adds 1, 0.22.58 adds 2, 0.22.59 adds 2, 0.22.61 adds 1, 0.22.62 adds 1, 0.22.66 adds 1, '
+                        '0.22.68 adds 3' % (
                             len(opt_rows), len(W6_KEYS_02245), len(W7_KEYS_02247), len(SO_KEYS_02248), len(W8_KEYS_02250),
                             len(S5_KEYS_02251), len(W11_KEYS_02253)))
     readme = open(os.path.join(ROOT, 'src', 'asi', 'TruMenu', 'README.md'), encoding='utf-8').read()
@@ -7534,11 +7536,13 @@ def check_02265():
     if '"log.perch", "", kQbBool' not in lara:
         problems.append('TruMenu.cpp: bar row log.perch missing on kQbLara')
     done.append('1 log.perch')
-    ext = fn_body(src, 'void ThObsExtent(')
+    ext = fn_body(src, 'void ThObsExtent(') or fn_body(src, 'float ThObsExtent(')   # 0.22.68: returns the extent
     if 'MdProbe(a, o.pos, hit, 0, words)' not in ext or 'default 100' not in ext:
         problems.append('TruMenu.cpp: ThObsExtent must measure by queries and fall back to "default 100"')
     fin = fn_body(src, 'void ThFinish(')
-    if 'floor rays:' not in fin or 's.hitKind[i]' not in fin:
+    # 0.22.68 (B2 1): no floor ray cells any more (terrain mesh, rays only as the fallback) - the [Thor] terrain line
+    # names the source instead (check_02268)
+    if '#include "TruThorCore.h"' not in src and ('floor rays:' not in fin or 's.hitKind[i]' not in fin):
         problems.append('TruMenu.cpp: ThFinish must summarise the floor ray kinds in the [Thor] areas line')
     geo = fn_body(src, 'void CnwGeoTick(')
     if not geo or 'WriteBytes' in geo or 'kCnwCam + 0x150' not in geo or 'CnwWaterNow(' not in geo:
@@ -7654,6 +7658,69 @@ def check_02267():
     return problems, 'build B1 (%s)' % ', '.join(done)
 
 
+def check_02268():
+    """0.22.68 (package B2, docs Pakete-2111.md row 6): kVersion starts with 0.22.68; (1) Thor: TruThorCore.h holds the
+    A3 rules (highest surface per cell, blocked = rise > step or hole, valid = distance > foot, 8-neighbour flood fill,
+    rings -> next edge gap <= 900 / rise 0 .. 500), TruMenu copies the terrain mesh with an index check and falls back to
+    rays, rebuilds at every [Push] end of the pillar, the seven [Thor] log lines, 3 INI keys, 4 items + bar rows, the
+    offline selftest; README section"""
+    problems = []
+    done = []
+    src = read_cpp()
+
+    def rows_in(table_name):
+        at = src.find('const QbRow %s[] = {' % table_name)
+        return src[at:src.find('\n};', at)] if at >= 0 else ''
+    ver = src[:src.find('\n', src.find('kVersion = '))]
+    if '"TruMenu 0.22.68 (build B2' not in ver and ' - 0.22.68 (build B2' not in ver:
+        problems.append('TruMenu.cpp: kVersion must start with "TruMenu 0.22.68 (build B2 ..."')
+    core = open(os.path.join(ROOT, 'src', 'asi', 'TruMenu', 'TruThorCore.h'), encoding='utf-8').read()
+    build = fn_body(core, 'inline bool Build(')
+    for frag, what in (('R.blocked[i] = static_cast<unsigned char>(!(rise <= P.step) ? 1 : 0);', 'blocked = rise > step or hole'),
+                       ('R.valid[k] = static_cast<unsigned char>(R.dist[k] > P.foot ? 1 : 0);', 'valid = distance > foot'),
+                       ('for (int db = -1; db <= 1; ++db)', '8-neighbour flood fill'),
+                       ('ceil(len / (cell * 0.4))', 'samples <= cell * 0.4 apart'),
+                       ('LedgeDist(L[static_cast<size_t>(R.rings[r])], c) - P.head <= P.gap', 'ring areas D <= gap')):
+        if frag not in build:
+            problems.append('TruThorCore.h: Build must hold the rule "%s"' % what)
+    cls = fn_body(core, 'inline void Classify(')
+    if 'float best = 900.0f;' not in cls or 'rise < 0.0f || rise > 500.0f' not in cls:
+        problems.append('TruThorCore.h: Classify must take the next edge of a ring with gap <= 900 and rise 0 .. 500')
+    if not os.path.exists(os.path.join(ROOT, 'src', 'asi', 'TruMenu', 'selftest', 'TruThorCoreTest.cpp')):
+        problems.append('selftest/TruThorCoreTest.cpp missing')
+    mesh = fn_body(src, 'bool ThCopyMesh(')
+    if 'ix[0] >= nv || ix[1] >= nv || ix[2] >= nv' not in mesh or 'WriteBytes' in mesh:
+        problems.append('TruMenu.cpp: ThCopyMesh must check every face index against the vertex count (read only)')
+    tick = fn_body(src, 'void ThTick(')
+    if 'MdProbe(a, b, hit, s.pillar)' not in tick or 'InterlockedExchange(&s.pushEnd, 0)' not in tick or \
+            'ThLaunch(s, "[Push] end");' not in tick:
+        problems.append('TruMenu.cpp: ThTick must hold the ray fallback and rebuild at a [Push] end')
+    if 'ThNotePushEnd(o.inst);' not in fn_body(src, 'void MdObjTick('):
+        problems.append('TruMenu.cpp: MdObjTick must report each [Push] end to ThNotePushEnd')
+    if 'ThNoteLaunch(p);' not in fn_body(src, 'void MdLaunchNote('):
+        problems.append('TruMenu.cpp: MdLaunchNote must report Lara\'s launches to ThNoteLaunch')
+    for line in ('[Thor] terrain: ', '[Thor] reach from ', '[Thor] target ', '[Thor] pillar at ', '[Thor] MISMATCH pillar at ',
+                 '[Thor] foot: 4 horizontal rays', '[Thor] jump from the pillar top at '):
+        if line not in src:
+            problems.append('TruMenu.cpp: log line "%s" missing' % line)
+    header, opt_rows = table(src)
+    d = {(s, k): v for s, k, v, _ in opt_rows}
+    for key, val in (('ThorStep', '10'), ('ThorFoot', '290'), ('ThorGalleryDirect', '0')):
+        if d.get(('Puzzle', key)) != val:
+            problems.append('TruMenu.cpp: kOpts [Puzzle] %s=%s missing' % (key, val))
+    for item, kind in (('puzzle.thorstep', 'int'), ('puzzle.thorfoot', 'int'), ('puzzle.thordirect', 'bool'),
+                       ('puzzle.thormap', 'bool')):
+        if '{"%s", "%s",' % (item, kind) not in src:
+            problems.append('TruMenu.cpp: item %s missing' % item)
+        if '"%s"' % item not in rows_in('kQbChapters'):
+            problems.append('TruMenu.cpp: bar row %s missing on kQbChapters' % item)
+    done.append('1 Thor')
+    readme = open(os.path.join(ROOT, 'src', 'asi', 'TruMenu', 'README.md'), encoding='utf-8-sig').read()
+    if '## 0.22.68' not in readme or 'TO TEST 0.22.68' not in readme:
+        problems.append('README.md: section "## 0.22.68" with "TO TEST 0.22.68" missing')
+    return problems, 'build B2 (%s)' % ', '.join(done)
+
+
 def check_02264():
     """0.22.64 (package S4, Befund-S2 "S2b Spielkamera", ENGINE 22): (1) kVersion starts with 0.22.64; cam.nowall: the
     three sites with the game's / the own bytes, the three target checks, written only in CnwTick (game thread, follow
@@ -7762,17 +7829,25 @@ def check_02263():
     # (5) Thor: strict 6 units for areas / state, relaxed only drawn with puzzle.thorloose, obstacles, artifacts from the
     # unit intro list with the measured offset, galleries chained
     tick5 = fn_body(src, 'void ThTick(')
-    if tick5.count('f = dz <= 6.0f ? 1 : dz <= 130.0f ? 2 : 0;') != 2 or 'ThObsTick(s, now);' not in tick5:
-        problems.append('TruMenu.cpp: ThTick: strict |dz| <= 6 in both probe passes, ThObsTick')
-    if 's.inRelaxed' in fn_body(src, 'int ThPillarState('):
-        problems.append('TruMenu.cpp: ThPillarState must use the strict cells only')
-    if 'stone = ox * ox + oy * oy < 652.0f * 652.0f;' not in fn_body(src, 'void ThFinish('):
-        problems.append('TruMenu.cpp: ThFinish must block cells near obstacles (552 + 100)')
+    # 0.22.68 (B2 1) replaced the 150-unit ray cells (strict / relaxed, 552 + 100 obstacle rule) by the terrain-mesh
+    # reach of TruThorCore.h - those three rules are checked by check_02268 then; the chaining moved into the core
+    b2thor = '#include "TruThorCore.h"' in src
+    if not b2thor:
+        if tick5.count('f = dz <= 6.0f ? 1 : dz <= 130.0f ? 2 : 0;') != 2 or 'ThObsTick(s, now);' not in tick5:
+            problems.append('TruMenu.cpp: ThTick: strict |dz| <= 6 in both probe passes, ThObsTick')
+        if 's.inRelaxed' in fn_body(src, 'int ThPillarState('):
+            problems.append('TruMenu.cpp: ThPillarState must use the strict cells only')
+        if 'stone = ox * ox + oy * oy < 652.0f * 652.0f;' not in fn_body(src, 'void ThFinish('):
+            problems.append('TruMenu.cpp: ThFinish must block cells near obstacles (552 + 100)')
+    elif 'ThObsTick(s, now);' not in tick5:
+        problems.append('TruMenu.cpp: ThTick must run ThObsTick')
     if 'ReadFloats(rec + 0x10, data, 3)' not in fn_body(src, 'void ThOffset(') or \
             'PzNameHas(name, "ma_rw_artifact")' not in fn_body(src, 'void ThArtifacts('):
         problems.append('TruMenu.cpp: artifacts from the unit intro list with the measured data -> live offset')
-    if 'joined = dx * dx + dy * dy < 300.0f * 300.0f && fabsf(pa[2] - pb[2]) < 100.0f;' not in fn_body(src, 'bool ThStart('):
-        problems.append('TruMenu.cpp: ThStart must chain open ledges into galleries')
+    join = 'joined = dx * dx + dy * dy < 300.0f * 300.0f && fabsf(pa[2] - pb[2]) < 100.0f;'
+    core = open(os.path.join(ROOT, 'src', 'asi', 'TruMenu', 'TruThorCore.h'), encoding='utf-8').read() if b2thor else ''
+    if join not in (fn_body(core, 'inline void Classify(') if b2thor else fn_body(src, 'bool ThStart(')):
+        problems.append('TruMenu.cpp: ThStart (0.22.68: TruThorCore Classify) must chain open ledges into galleries')
     if '{"puzzle.thorloose", "bool",' not in src or '"puzzle.thorloose"' not in rows_in('kQbChapters'):
         problems.append('TruMenu.cpp: item / bar row puzzle.thorloose missing')
     done.append('5 thor')
@@ -8801,6 +8876,10 @@ def main(argv):
     for p in cproblems67: print('Q02267 %s' % p)
     if not cproblems67: print('ok: 0.22.67 %s' % csummary67)
     problems += cproblems67
+    cproblems68, csummary68 = check_02268()   # 0.22.68 (build B2: Thor reach, ...)
+    for p in cproblems68: print('Q02268 %s' % p)
+    if not cproblems68: print('ok: 0.22.68 %s' % csummary68)
+    problems += cproblems68
     cproblems27, csummary27 = check_02227(ini_path, opt.get('--switches', SWITCHES))   # 0.22.27
     for p in cproblems27: print('Q02227 %s' % p)
     if not cproblems27: print('ok: 0.22.27 %s' % csummary27)

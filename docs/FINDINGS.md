@@ -35,3 +35,14 @@ Compact reference of facts the project established. "Verified" = checked against
 * Audio: all DLC audio was initially emitted as silence on purpose; real audio = Xbox XMA decoded and re-encoded as IMA ADPCM into the same-size Wave sections / `.mul` streams.
 * Physics records for custom-range grapple rings (tag `0x404`): the enable byte at `+4` must stay raw.
 * u16-swapped type words in PC SoundPlex nodes (e.g. `0xB0000`) fall to the walker's default case and return NULL harmlessly (costume DTPs, knight_thrall, adren_trap).
+
+## Flashlight shadows (PC, verified in game on GOG, Nov 2026)
+
+The PC flashlight data already has the Xbox shadow spot light (`g_personal_light` DTP 3404, entry 3 = record 3407,
+spot, shadow on; identical on PC and Xbox). Four PC code gates stop its shadow: (1) the cast bit PCRenderLight `+0xc5`
+bit 2 is cleared after creation; (2) the flashlight is never in the shadow list passed by SetLights `0x5076a0` ->
+`0x505530` (call at `0x5076c2`); (3) static batches `0x50f7c0` register as casters (`0x504ee0`) only with data flag
+bit 2 (`je` at `0x50fc32 / 0x50fd10 / 0x50fe2f`); (4) `PCRenderTerrain` draw `0x5128b0` (vtable slot `0x8499c8`) casts
+per part through a 128-bit caster mask (part record `+0x18..+0x24`) without the flashlight's bit. Opening all four
+in memory (`work/ws/flashlight_shadow`, TruFlashShadow 0.5) gives Xbox-like flashlight shadows. Xbox and PC both
+switch flashlight shadows off per lighting zone (Croft Manor start, Mexico tunnel): not a port issue.

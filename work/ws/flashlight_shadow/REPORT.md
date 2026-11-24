@@ -66,6 +66,9 @@ The plugin goes beyond the Xbox on purpose: Lara and her guns cast too (the Xbox
   bug (the engine has frame-rate-dependent behaviour above 60).
 - Diagnostics are on in the tested ini (`Diagnostics=1`, `LogLevel=1`: a log line every 120 frames). A release build
   should default them off.
+- **Underwater:** no flashlight shadows underwater on PC with the plugin. Xbox comparison still to do (it may be the
+  same zone behaviour, or a separate underwater render path).
+- Mounting the motorcycle turns the flashlight off at once (game behaviour), so the plugin is not active while riding.
 - Also seen working in an ultrawide test build (a separate aspect-ratio plugin loaded at the same time): no conflict
   noticed.
 

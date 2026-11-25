@@ -43,3 +43,13 @@ Libs 21118 / 20262 / 21164 have no donor. The direct-light path of the harness i
 * F8 debug menu not working for the tester.
 * Audio quality (IMA encoder) never re-judged after B43; A/B listening clips (original XMA vs converted) were produced by scripts that are not part of this repo.
 * Water in the dungeon, stained-glass window noise, torch/axe visuals: listed as open in older notes, not re-checked.
+
+## 10. Goo room: instant death on the eitr-tub ledges (found on GOG, Nov 2026)
+**Symptom (in game, GOG, B270 data + B272/B273 + B274):** shimmying along the lip of the round eitr tubs in `dlc2_goo_room`, Lara dies instantly (full health, death sound) after a random number of steps; only on this ledge type. The tub top is closed (she cannot jump in).
+**Facts (sampled, chart record of machine 0 + player tracker `+0xa64` / `+0xc94`):**
+* PC, 4 deaths: at a ledge-piece end `450 -> 462/463 -> 522/523` (ledge-end jump left / right, sid 2005, parent 524 / 457), dead within 0.6 s, height unchanged.
+* Xbox (Xenia, same tub, ~5 300 samples in 450 / 462 / 463): always `450 -> 463 -> 436` (keeps shimmying), never 522/523, no death.
+* 522/523 need `{600,610,1}`: condition 610 = handler `0x763eb0` -> template `0x782ad0` on the detected markup `+0xa64 / +0xa68`. On PC `+0xa64` holds a type-1 ledge at those joints, **the same ledge record Lara hangs on (`+0xa64 == +0xc94`)**; on Xbox `+0xa64` stays empty.
+* Ruled out: chart records 436-470 / 515-530 / 615-622 equal to the Xbox (only 457: remapped section id, as expected); goo-room collision equal to the Xbox (7 meshes, 10 491 faces, flags under the base game's PC byte rule, positions); B274 (dies without it too).
+**Hypotheses:** the ledge-target search does not exclude the current ledge on PC because a field of the tub's ledge markup (owner / id / flags) was converted wrongly (same family as the B272 typelist fault); or record 457's remapped activity 1114 (t3 `0x48e -> 0x3c7`) on the jump branch. Possibly related to A19 (shadow "teleport" between ledges).
+**Next:** dump the tub's type-1 markup records PC vs Xbox field by field; read the target search that fills `+0xa64` for the "same as current" test.

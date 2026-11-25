@@ -20,6 +20,11 @@ def parse_xb(d):
 
 import subprocess
 FFMPEG = '/opt/homebrew/bin/ffmpeg'
+import os
+if not os.path.exists(FFMPEG):   # Windows: TRU_FFMPEG, PATH o installazione winget (Gyan.FFmpeg)
+    import shutil, glob as _g
+    FFMPEG = os.environ.get('TRU_FFMPEG') or shutil.which('ffmpeg') or next(iter(sorted(_g.glob(os.path.expandvars(
+        r'%LOCALAPPDATA%\Microsoft\WinGet\Packages\Gyan.FFmpeg*\ffmpeg-*\bin\ffmpeg.exe')))), FFMPEG)
 def xma_decode(riff, rate=None):
     """Decode an Xbox RIFF/XMA blob via ffmpeg -> (int16 numpy array [n,ch], rate, ch)."""
     import numpy as np

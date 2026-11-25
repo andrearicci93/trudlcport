@@ -2,6 +2,23 @@
 
 "Played" means the project owner ran it in game (Windows 11 VM). "Offline" means it was checked only with static gates and data comparisons against the Xbox/PC originals and has **not yet been seen in game**.
 
+## B276–B281 — Nov 2026 (Windows, native D3D9; kit not published)
+
+Data fixes derived from the rules of the community fork (LukasKurthRocks, each one re-checked against the Xbox data) and from the machine_room investigation. Every build was installed in the owner's game after the offline gates (484/484 files compared); none is confirmed as a fix in game yet.
+
+| Build | Area | Change | Status |
+|---|---|---|---|
+| B276_scriptclash | DLC2 thralls | The base thrall script of DLC2 (12433, 152 bytes) clashed with a base-game script and was renumbered to 26893, plus 72 ids in 16 DRM. Crash `0x5976a3` when the thralls were unloaded (`work/ws/b276_scriptclash`) | Offline |
+| B277_lukas | DLC2 data | 42 words in 22 DRM: PDA on the D-pad, LT lock, thrall generators, id words, fx nodes, external tuning (`work/ws/b277_lukas`). Read-only inventory of what is still missing: `work/ws/lukas_check/inv` | Installed; machine_room still broken |
+| B278_relayout | DLC2 effects | 6 FX DTPs stored as a record table were re-strided from 0x24 to 0x28 (sml / tiny / tongue torches, cine_object, goo_cannonball, goo_upcolumn_pit). Base check 25/25. `dlc_fx_bloom` is left out: its section has to be widened first | Installed; machine_room still broken |
+| B279_unitcurve | DLC2 / DLC1 units | 283 words of the u16[64] curves of the unit DTPs (machine_room 243 = 10 curves, ceremony_room 29, DLC1 dungeon 6, caverns 5). Base check 435/435 | Installed; no change seen |
+| B280_markup | Models | 14 words of model MarkUp records (DLC2 machine_column level 1: 5 ids read as 0 and 1 float; DLC1 pillar_of_doom a/b: 8 ids) | Installed; no change seen |
+| B281_natnull | DLC2 final | 11 calls to native `achievement` neutralised. The PC has 16 achievements, the Xbox title update 21: in `050_crush` (cinematic_object 12164, script 26418) the call to index 17 left the final stuck on a black screen | Installed, not yet tried |
+
+**machine_room.** The room is unlocked with a corrected savegame ("Savegame 8": 2 bytes in the column record, `work/ws/machine_room/trusave_colpatch.py --min`; savegame tools `trusave.py` / `trusave_reset.py`). With it the structure appears complete and the game goes on past it. The live fault at the third switch (column part 0 stays at its second stage; pillars, rays and one yeti are never born) is still open: [REPORT.md](work/ws/machine_room/REPORT.md).
+
+Tools: `tools/win_diag/dump_once.ps1`, and `tools/audio_parse.py` now finds ffmpeg on Windows.
+
 ## B271–B275 — Nov 2026 (Windows, native D3D9; kit not published)
 
 Work moved from the VM to a Windows PC with the real game (native Direct3D 9). The exe chain was rebuilt byte for byte on Windows (`work/ws/exe_chain`, `CATENA.md`). New diagnostics run next to the game (`tools/win_diag`: TruLive recorder, game control, apitrace capture).

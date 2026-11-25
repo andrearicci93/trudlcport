@@ -9,6 +9,8 @@ Latest build: **B270** (release build `B270_acqua`) → [Releases](https://githu
 
 B270_acqua is B269_nativo (B269_tubi plus native-D3D9 shader fixes) plus a fix for black water in the DLC1 dungeons. B269_tubi was tested in the VM; B269_nativo is in its first VM test; B270_acqua was installed in the VM: the black water of the DLC1 dungeons is fixed (it now looks translucent, like on Xbox).
 
+**Newer work, no kit published yet (B271–B281, Nov 2026).** Development moved to a Windows PC with the real game and **native Direct3D 9**. The rock veins now grab (B272–B274), and the machine-room terrain-group fix is in (B275). B276–B281 add more DLC2 data fixes: they are installed but not yet confirmed in game. Details are in the [CHANGELOG](CHANGELOG.md). The release above is still B270.
+
 
 ## Screenshots
 
@@ -59,7 +61,7 @@ Full guide: [docs/INSTALL.md](docs/INSTALL.md).
   - the NVIDIA *Max Frame Rate* or AMD *Frame Rate Target Control* limiter;
   - RTSS;
   - [dxwrapper](https://github.com/elishacloud/dxwrapper) with `LimitPerFrameFPS = 60`.
-- **Windows' own Direct3D 9** should accept every shader of B270. Builds B147-B268 contained up to 240 pixel shaders (counted on B269_tubi) with forms that a real AMD driver rejected, which showed up as *"A problem has occurred with your display driver"*. Since B269 the expected count is 0. This is checked offline only; the native test still has to confirm it on a real GPU.
+- **Windows' own Direct3D 9** should accept every shader of B270. Builds B147-B268 contained up to 240 pixel shaders (counted on B269_tubi) with forms that a real AMD driver rejected, which showed up as *"A problem has occurred with your display driver"*. Since B269 the expected count is 0. B271 rewrote the remaining forms that native D3D9 rejected (56 DRM) and was played on a real Windows PC with native D3D9. Other GPUs and drivers are still to be confirmed by the native test.
 - **[DXVK](https://github.com/doitsujin/dxvk/releases)** is the fallback if a GPU still refuses something: copy `x32\d3d9.dll` next to `tru.exe`. dgVoodoo2 also works.
 
 ## Troubleshooting
@@ -76,28 +78,35 @@ Full guide: [docs/INSTALL.md](docs/INSTALL.md).
 
 More: [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md).
 
-## Status (B270)
+## Status (B270 release; B271–B281 in development)
 
 "Played" means the project owner ran it in game (Windows 11 VM, dgVoodoo2). "Offline" means it was only checked with static gates and comparisons against the Xbox/PC originals.
 
 | | |
 |---|---|
-| DLC1 *Beneath the Ashes* | Played end to end on B132. Later builds carry back to DLC1 the data fixes found for DLC2, all verified offline. The VM tests of B139-B269 focused on DLC2, so a full replay of DLC1 on B270 is still to do. |
+| DLC1 *Beneath the Ashes* | Played end to end on B132. Later builds carry back to DLC1 the data fixes found for DLC2, all verified offline. The VM tests of B139-B269 focused on DLC2, so a full replay of DLC1 on B270 is still to do. A GOG-install run to the credits is documented in [work/ws/gog/README.md](work/ws/gog/README.md). |
 | DLC2 *Lara's Shadow* | Played on B231-B269, up to the final area: <br>• the doppelganger's costume, colours, hair and attacks (Q/E, Shift+E, finisher) <br>• thralls, goo cannons, pools, bridges, columns <br>• the ceremony-room cutscene <br>• flying with F2 without crashes |
 
 Known open issues:
 
 - **Cutscene flicker on Natla.** Block-shaped patches appear on Natla, the doppelganger and the throne in the Natla cutscene. Cause not found.
-- **Wall-run on the rock veins.** It does not grab in some places: on B269 one vein in front of the doppelganger reported `NONE`. It still has to be checked spot by spot.
+- **Wall-run on the rock veins.** Fixed in B272–B274 (markup-type lists restored to the Xbox bytes, plus the ledge-band threshold of the title update): dropping onto a vein with the shadow now grabs it. Played on a Windows PC, not on the B270 kit. Other veins still have to be checked spot by spot.
 - **Goo FX in the ceremony room switched off.** The four `dlc_fx_goo_ceremony*` effects rendered wrong shapes, so their emitters are at 0. The goo itself is fine.
 - **Black water in the DLC1 dungeons (material 20262).** Fixed offline in B270, not yet seen in game. The surrogate vertex shader 976 did not write COLOR0, which the water pixel shader uses for its alpha. A newer driver reads that as 0, so the water turned invisible over a dark floor. The water now uses the base-game VS 164, the same shader plus vertex colour. Material 26584 in the DLC2 treasure room is fixed the same way (VS 243).
 - **Guillotine (`dlc1_uo_guillotine`).** Not fixed. Its pixel shaders 738/739 discard on `v0.w`, which vertex shader 211 never writes.
-- **Machine room.** The terrain (material 26622) is black: the fix is ready but needs a vertex shader too. The dark pipes (materials 22915/25901) are fixed offline in B269 and not yet confirmed.
+- **Machine room.** The terrain (material 26622) is black: the fix is ready but needs a vertex shader too. The dark pipes (materials 22915/25901) are fixed offline in B269 and not yet confirmed. B275 fixes a terrain-group mask (played). The "transparent wall" is a collision-only rectangle that is identical on Xbox, so it is probably by design ([report](work/ws/machine_room/REPORT.md)). The goo columns are still incomplete.
+- **Shadow "teleport" between ledges (A19).** Still open. Found on GOG: instant death on the eitr-tub ledges of the goo room, see [docs/INVESTIGATION.md](docs/INVESTIGATION.md) section 10.
 - **Goo grinder / goo converter material 25165.** Black surrogate shader, not fixed.
 - **Final sequence of DLC2.** The 045 → 050 → credits chain is fixed offline in B266, not yet confirmed. Credits need `credits_DLC2.bik`.
 - **Older open items.** Rare FMOD crash at start-up, golden shotgun untested, dungeon material 23211.
 
 Per-area detail: [docs/STATUS.md](docs/STATUS.md). Changes since B138: [CHANGELOG.md](CHANGELOG.md).
+
+## Experimental extras (not part of the installer)
+
+- **GOG version.** Not supported by the installer, which refuses it on purpose. Research, tools and test results (DLC1 to the credits, DLC2 played, B272–B274 confirmed) are in [work/ws/gog/README.md](work/ws/gog/README.md).
+- **Flashlight shadows.** `TruFlashShadow`, an ASI plugin that gives the PC flashlight the Xbox 360's real-time shadows. It patches memory only, so removing the `.asi` restores the stock game. Tested on GOG, **not on Steam**: every patch site is byte-checked and stays off on a mismatch. Source and open issues: [work/ws/flashlight_shadow/REPORT.md](work/ws/flashlight_shadow/REPORT.md). No built `.asi` is published yet.
+- **Contributing.** Coding agents and contributors start from [AGENTS.md](AGENTS.md).
 
 ## Credits
 

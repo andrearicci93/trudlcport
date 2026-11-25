@@ -9,7 +9,7 @@ Latest build: **B270** (release build `B270_acqua`) → [Releases](https://githu
 
 B270_acqua is B269_nativo (B269_tubi plus native-D3D9 shader fixes) plus a fix for black water in the DLC1 dungeons. B269_tubi was tested in the VM; B269_nativo is in its first VM test; B270_acqua was installed in the VM: the black water of the DLC1 dungeons is fixed (it now looks translucent, like on Xbox).
 
-**Newer work, no kit published yet (B271–B275, Nov 2026).** Development moved to a Windows PC with the real game and **native Direct3D 9**. The rock veins now grab (B272–B274), and the machine-room terrain-group fix is in (B275). Details are in the [CHANGELOG](CHANGELOG.md). The release above is still B270.
+**Newer work, no kit published yet (B271–B281, Nov 2026).** Development moved to a Windows PC with the real game and **native Direct3D 9**. The rock veins now grab (B272–B274), and the machine-room terrain-group fix is in (B275). B276–B281 add more DLC2 data fixes: they are installed but not yet confirmed in game. Details are in the [CHANGELOG](CHANGELOG.md). The release above is still B270.
 
 
 ## Screenshots
@@ -78,7 +78,7 @@ Full guide: [docs/INSTALL.md](docs/INSTALL.md).
 
 More: [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md).
 
-## Status (B270 release; B271–B275 in development)
+## Status (B270 release; B271–B281 in development)
 
 "Played" means the project owner ran it in game (Windows 11 VM, dgVoodoo2). "Offline" means it was only checked with static gates and comparisons against the Xbox/PC originals.
 

@@ -1,0 +1,3 @@
+8c68463dd626f262654b94567402afa4  dlc1_uo_pillar_of_doom_a.drm
+a7966ddce4b9110fca29e07602e1b466  dlc1_uo_pillar_of_doom_b.drm
+ad8dab733132f6b62a940a10ba9b72d3  dlc2_uo_machine_column.drm

@@ -1,0 +1,8 @@
+b14347a70d9dcd9e26fe3a794d14bcab  dlc2_ceremony_room.drm
+cdcf66a2377bad1889e27d3f68dc9f44  dlc2_goo_room.drm
+e15ea87d806982bf18e43bf4bc8e5714  dlc2_hall_ceremony_goo.drm
+3943f709346956319ab8c223fbeb8406  dlc2_hall_machine_ceremony.drm
+6195346c154aa002fa70e21c2d6011ed  dlc2_treasure_room_cine.drm
+d244afadcc520c5f54538ed30ae0c8ba  dlc_treasureroom.drm
+24c50310aa2d3b3c3aa5ec0f4ed7c85b  dlc_yggdrasil_end.drm
+2bbe829be82842b5c0e131699abc88ff  dlc_yggdrasil_hall02.drm

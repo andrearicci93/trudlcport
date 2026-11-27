@@ -1,0 +1,6 @@
+448dcbff1474c7ecf436c21449733c81  dlc2_uo_goo_cannonball.drm
+04434d6a7eea06a041ffc963fdb9f67e  dlc_fx_cine_object.drm
+f5d412f1060c77685a6fc3a1c8ddce63  dlc_fx_goo_upcolumn_pit.drm
+3aa9e4634837e8452999e108fe3f3543  dlc_fx_torch_sml_ist.drm
+bff9e6f34a47e36ceda155192cc446d7  dlc_fx_torch_tiny_ist.drm
+d44b0aa67ef210ed42da9246c9176736  dlc_fx_torch_tongue_ist.drm
